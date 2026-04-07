@@ -157,5 +157,3 @@ This project is for academic and research purposes.
 - Agricultural experts and pepper farmers  
 - Academic supervisor and research guidance  
 - Open-source ML and development communities  
-
----
