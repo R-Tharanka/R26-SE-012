@@ -1,30 +1,17 @@
 from __future__ import annotations
 
-import hashlib
-import random
-
 from app.schemas.grading_forecast import (
     GradeEnum,
     GradingResult,
     SupportingLabels,
     VisualFeatures,
 )
+from app.services.grading_forecast.feature_extractor import extract_features_from_bytes
+from app.services.grading_forecast.image_preprocessor import preprocess_image_bytes
 
 LIMITATION_NOTE = (
     "Camera-based visual estimate only. Chemical requirements and bulk density are not measured."
 )
-
-
-def _rng_for(image_bytes: bytes | None, image_name: str | None) -> random.Random:
-    hasher = hashlib.sha256()
-    hasher.update(b"grading-forecast-mock-v1")
-    if image_name:
-        hasher.update(image_name.encode("utf-8", errors="ignore"))
-    if image_bytes:
-        hasher.update(image_bytes[:16384])
-
-    seed = int.from_bytes(hasher.digest()[:8], "big", signed=False)
-    return random.Random(seed)
 
 
 def _quality_band(value: float, *, good_threshold: float, medium_threshold: float) -> str:
@@ -44,27 +31,16 @@ def _level_band(value: float, *, low_threshold: float, medium_threshold: float) 
 
 
 def build_grading_result(image_bytes: bytes | None, image_name: str | None) -> GradingResult:
-    rng = _rng_for(image_bytes=image_bytes, image_name=image_name)
-
-    color_uniformity_score = rng.uniform(0.55, 0.95)
-    texture_score = rng.uniform(0.45, 0.92)
-    defect_ratio = rng.uniform(0.02, 0.30)
-    cleanliness_score = rng.uniform(0.60, 0.98)
-
-    dark_berry_ratio = rng.uniform(0.40, 0.92)
-    light_berry_ratio = rng.uniform(0.05, 0.35)
-    total = dark_berry_ratio + light_berry_ratio
-    if total > 1.0:
-        dark_berry_ratio /= total
-        light_berry_ratio /= total
+    processed_bytes, _ = preprocess_image_bytes(image_bytes)
+    features = extract_features_from_bytes(processed_bytes or image_bytes)
 
     visual_features = VisualFeatures(
-        color_uniformity_score=round(color_uniformity_score, 3),
-        dark_berry_ratio=round(dark_berry_ratio, 3),
-        light_berry_ratio=round(light_berry_ratio, 3),
-        texture_score=round(texture_score, 3),
-        defect_ratio=round(defect_ratio, 3),
-        cleanliness_score=round(cleanliness_score, 3),
+        color_uniformity_score=round(float(features["color_uniformity_score"]), 3),
+        dark_berry_ratio=round(float(features["dark_berry_ratio"]), 3),
+        light_berry_ratio=round(float(features["light_berry_ratio"]), 3),
+        texture_score=round(float(features["texture_score"]), 3),
+        defect_ratio=round(float(features["defect_ratio"]), 3),
+        cleanliness_score=round(float(features["cleanliness_score"]), 3),
     )
 
     defect_free_score = 1.0 - visual_features.defect_ratio
@@ -89,16 +65,15 @@ def build_grading_result(image_bytes: bytes | None, image_name: str | None) -> G
     confidence = round(confidence, 2)
 
     if predicted_grade == GradeEnum.grade_1:
-        size_quality = "good" if rng.random() < 0.80 else "medium"
+        size_quality = "good"
     elif predicted_grade == GradeEnum.grade_2:
-        size_quality = "medium" if rng.random() < 0.80 else "good"
+        size_quality = "medium"
     else:
-        size_quality = "poor" if rng.random() < 0.80 else "medium"
+        size_quality = "poor"
 
-    pinhead_r = rng.random()
-    if pinhead_r < 0.65:
+    if visual_features.light_berry_ratio <= 0.12:
         pinhead_level = "low"
-    elif pinhead_r < 0.85:
+    elif visual_features.light_berry_ratio <= 0.22:
         pinhead_level = "medium"
     else:
         pinhead_level = "high"
@@ -120,9 +95,9 @@ def build_grading_result(image_bytes: bytes | None, image_name: str | None) -> G
             visual_features.light_berry_ratio, low_threshold=0.12, medium_threshold=0.22
         ),
         pinhead_level=pinhead_level,
-        foreign_matter_visible=visual_features.cleanliness_score < 0.74,
-        mould_visible=(visual_features.defect_ratio > 0.22 and rng.random() < 0.35),
-        insect_damage_visible=(visual_features.defect_ratio > 0.18 and rng.random() < 0.30),
+        foreign_matter_visible=visual_features.cleanliness_score < 0.75,
+        mould_visible=visual_features.defect_ratio > 0.20 and visual_features.light_berry_ratio > 0.15,
+        insect_damage_visible=visual_features.defect_ratio > 0.18 and visual_features.texture_score < 0.55,
     )
 
     explanation: list[str] = []
@@ -145,6 +120,11 @@ def build_grading_result(image_bytes: bytes | None, image_name: str | None) -> G
         explanation.append("Wrinkled texture appears acceptable.")
     else:
         explanation.append("Texture quality appears weak and reduced the score.")
+
+    if image_bytes is None:
+        explanation.append("No image provided; demo features were used.")
+    elif processed_bytes is None:
+        explanation.append("OpenCV preprocessing unavailable; safe demo features may be used.")
 
     return GradingResult(
         predicted_grade=predicted_grade,
