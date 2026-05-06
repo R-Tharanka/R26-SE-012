@@ -15,3 +15,6 @@ data/pytest-temp/
 data/tmp_py/
 data/tmp_perm_test/
 data/_tmp_tests/
+
+# Local Python virtual environment
+.venv/
