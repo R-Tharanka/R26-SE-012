@@ -1,0 +1,11 @@
+date,price_lkr_per_kg,market,grade,source
+2024-01-01,1250,local_wholesale,Grade 2,sample
+2024-01-08,1280,local_wholesale,Grade 2,sample
+2024-01-15,"1,350",local_wholesale,Grade 2,sample
+2024-01-22,,local_wholesale,Grade 2,sample
+2024-01-29,1340,local_wholesale,Grade 2,sample
+2024-02-05,1320,local_wholesale,Grade 2,sample
+2024-02-05,1360,local_wholesale,Grade 2,sample
+2024-02-12,1380,local_wholesale,Grade 2,sample
+2024-02-19,1410,local_wholesale,Grade 2,sample
+2024-02-26,1395,local_wholesale,Grade 2,sample

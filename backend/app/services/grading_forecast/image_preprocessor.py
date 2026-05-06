@@ -7,7 +7,8 @@ def preprocess_image_bytes(image_bytes: bytes | None) -> tuple[bytes | None, dic
 
     - Never raises.
     - Uses OpenCV when available.
-    - If OpenCV is missing or decoding fails, returns (None, meta) so callers can fall back to demo mode.
+    - If OpenCV is missing or decoding fails (and no safe fallback decoder is available),
+      returns (None, meta) so callers can fall back to demo mode.
     """
 
     meta: dict[str, object] = {"processed": False, "note": "Preprocessing not executed."}
@@ -29,8 +30,20 @@ def preprocess_image_bytes(image_bytes: bytes | None) -> tuple[bytes | None, dic
         image_bgr = None
 
     if image_bgr is None:
-        meta["note"] = "Image decoding failed; skipping preprocessing."
-        return None, meta
+        # OpenCV can be strict about certain PNG edge cases; try a safe Pillow decode if available.
+        try:
+            import io
+
+            from PIL import Image  # type: ignore
+
+            img = Image.open(io.BytesIO(image_bytes))
+            img.load()
+            img_rgb = np.asarray(img.convert("RGB"))
+            image_bgr = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2BGR)
+            meta["note"] = "OpenCV decode failed; Pillow fallback decode used."
+        except Exception:
+            meta["note"] = "Image decoding failed; skipping preprocessing."
+            return None, meta
 
     input_h, input_w = image_bgr.shape[:2]
     meta["input_width"] = int(input_w)
