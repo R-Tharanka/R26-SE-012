@@ -45,6 +45,9 @@ async def analyze(image: UploadFile | None = None) -> AnalyzeResponse:
     recommendation = build_recommendation(
         grade=grading.predicted_grade,
         trend=forecast.trend,
+        quality_score=grading.quality_score,
+        current_price_lkr_per_kg=forecast.current_price_lkr_per_kg,
+        predicted_price_lkr_per_kg=forecast.predicted_price_lkr_per_kg,
     )
     storage = build_storage_result()
 
@@ -95,7 +98,13 @@ def price_forecast() -> PriceForecastResponse:
 
 @router.post("/recommend", response_model=RecommendResponse)
 def recommend(payload: RecommendRequest) -> RecommendResponse:
-    recommendation = build_recommendation(grade=payload.grade, trend=payload.trend)
+    recommendation = build_recommendation(
+        grade=payload.grade,
+        trend=payload.trend,
+        quality_score=payload.quality_score,
+        current_price_lkr_per_kg=payload.current_price_lkr_per_kg,
+        predicted_price_lkr_per_kg=payload.predicted_price_lkr_per_kg,
+    )
     return RecommendResponse(
         status="success",
         component="berry_grading_export_price_forecasting",

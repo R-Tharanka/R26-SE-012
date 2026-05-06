@@ -50,13 +50,15 @@ def test_recommend_endpoint_validates_payload() -> None:
     data = resp.json()
     assert data["status"] == "success"
     assert data["recommendation"]["decision"] in {
-        "WAIT",
-        "TARGET_EXPORT_BUYER",
+        "WAIT_OR_TARGET_EXPORT_BUYER",
         "SELL_EXPORT",
         "SELL_SOON",
+        "WAIT_SHORTLY",
         "MONITOR",
         "SORT_OR_PROCESS",
         "PROCESS_LOCAL",
         "PROCESS_OR_SELL_IMMEDIATELY",
     }
-
+    assert data["recommendation"]["limitation_note"] == (
+        "Camera-based visual estimate only. Laboratory tests are required for full official quality certification."
+    )

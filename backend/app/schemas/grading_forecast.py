@@ -18,14 +18,20 @@ class TrendEnum(str, Enum):
 
 
 class DecisionEnum(str, Enum):
-    wait = "WAIT"
-    target_export_buyer = "TARGET_EXPORT_BUYER"
+    wait_or_target_export_buyer = "WAIT_OR_TARGET_EXPORT_BUYER"
     sell_export = "SELL_EXPORT"
     sell_soon = "SELL_SOON"
+    wait_shortly = "WAIT_SHORTLY"
     monitor = "MONITOR"
     sort_or_process = "SORT_OR_PROCESS"
     process_local = "PROCESS_LOCAL"
     process_or_sell_immediately = "PROCESS_OR_SELL_IMMEDIATELY"
+
+
+class UrgencyLevelEnum(str, Enum):
+    low = "LOW"
+    medium = "MEDIUM"
+    high = "HIGH"
 
 
 class ImageAnalysis(BaseModel):
@@ -82,6 +88,10 @@ class ForecastResult(BaseModel):
 class RecommendationResult(BaseModel):
     decision: DecisionEnum
     message: str
+    explanation: list[str]
+    urgency_level: UrgencyLevelEnum
+    suggested_action: str
+    limitation_note: str
 
 
 class StorageResult(BaseModel):
@@ -114,10 +124,12 @@ class PriceForecastResponse(BaseModel):
 class RecommendRequest(BaseModel):
     grade: GradeEnum
     trend: TrendEnum
+    quality_score: float | None = Field(default=None, ge=0.0, le=100.0)
+    current_price_lkr_per_kg: int | None = Field(default=None, ge=0)
+    predicted_price_lkr_per_kg: int | None = Field(default=None, ge=0)
 
 
 class RecommendResponse(BaseModel):
     status: str
     component: str
     recommendation: RecommendationResult
-
