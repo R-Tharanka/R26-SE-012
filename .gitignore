@@ -9,6 +9,7 @@ __pycache__/
 
 # Pytest temp/cache dirs (may have restricted permissions in some environments)
 .pytest-tmp/
+.pytest-basetemp/
 pytest-cache-files-*/
 backend/pytest-cache-files-*/
 data/pytest-temp/
@@ -19,5 +20,6 @@ data/_tmp_tests/
 # Local Python virtual environment
 .venv/
 
-# Secrets and service account keys
+# Local secrets / env files (do not commit)
+backend/.env
 backend/secrets/

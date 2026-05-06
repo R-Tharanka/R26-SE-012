@@ -27,6 +27,7 @@ def health() -> dict[str, str]:
 
 @router.post("/analyze", response_model=AnalyzeResponse)
 async def analyze(image: UploadFile | None = None) -> AnalyzeResponse:
+    component = "berry_grading_export_price_forecasting"
     image_bytes: bytes | None = None
     image_name: str | None = None
     processed = False
@@ -49,13 +50,22 @@ async def analyze(image: UploadFile | None = None) -> AnalyzeResponse:
         current_price_lkr_per_kg=forecast.current_price_lkr_per_kg,
         predicted_price_lkr_per_kg=forecast.predicted_price_lkr_per_kg,
     )
-    storage = build_storage_result()
+
+    image_id = image_name or "DEMO_IMAGE"
+    storage = build_storage_result(
+        component=component,
+        image_id=image_id,
+        image_processed=processed,
+        grading=grading,
+        forecast=forecast,
+        recommendation=recommendation,
+    )
 
     return AnalyzeResponse(
         status="success",
-        component="berry_grading_export_price_forecasting",
+        component=component,
         image_analysis={
-            "image_id": (image_name or "DEMO_IMAGE"),
+            "image_id": image_id,
             "processed": processed,
             "note": "Camera-based visual analysis only",
         },

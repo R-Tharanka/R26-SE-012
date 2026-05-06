@@ -25,6 +25,8 @@ def test_analyze_without_file_returns_demo_response() -> None:
     assert "forecast" in data
     assert "recommendation" in data
     assert "storage" in data
+    assert data["storage"]["saved_to_firebase"] is False
+    assert data["storage"]["document_id"] is None
 
 
 def test_analyze_is_deterministic_for_same_filename_and_bytes() -> None:
