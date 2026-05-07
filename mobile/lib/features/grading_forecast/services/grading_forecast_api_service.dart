@@ -79,6 +79,83 @@ class GradingForecastApiService {
     }
   }
 
+  Future<RecommendationResult> recommend({
+    required String grade,
+    required String trend,
+    double? qualityScore,
+    int? currentPriceLkrPerKg,
+    int? predictedPriceLkrPerKg,
+  }) async {
+    final uri = Uri.parse('$_baseUrl/api/v1/grading-forecast/recommend');
+
+    final payload = <String, dynamic>{
+      'grade': grade,
+      'trend': trend,
+    };
+
+    if (qualityScore != null) {
+      payload['quality_score'] = qualityScore;
+    }
+    if (currentPriceLkrPerKg != null) {
+      payload['current_price_lkr_per_kg'] = currentPriceLkrPerKg;
+    }
+    if (predictedPriceLkrPerKg != null) {
+      payload['predicted_price_lkr_per_kg'] = predictedPriceLkrPerKg;
+    }
+
+    try {
+      final response = await http
+          .post(
+            uri,
+            headers: const {'Content-Type': 'application/json'},
+            body: json.encode(payload),
+          )
+          .timeout(_timeout);
+
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw GradingForecastApiException(
+          statusCode: response.statusCode,
+          message: _bestEffortErrorMessage(response.body, response.statusCode),
+        );
+      }
+
+      final decoded = json.decode(response.body);
+      if (decoded is! Map) {
+        throw GradingForecastApiException(
+          statusCode: response.statusCode,
+          message: 'Unexpected response format from server.',
+        );
+      }
+
+      final recommendationJson = decoded['recommendation'];
+      if (recommendationJson is! Map) {
+        throw GradingForecastApiException(
+          statusCode: response.statusCode,
+          message: 'Unexpected response format from server.',
+        );
+      }
+
+      return RecommendationResult.fromJson(Map<String, dynamic>.from(recommendationJson));
+    } on TimeoutException catch (e) {
+      throw GradingForecastApiException(
+        message: 'The server is taking too long. Please try again.',
+        cause: e,
+      );
+    } on SocketException catch (e) {
+      throw GradingForecastApiException(
+        message: 'Cannot reach the backend. Check your connection and try again.',
+        cause: e,
+      );
+    } on GradingForecastApiException {
+      rethrow;
+    } catch (e) {
+      throw GradingForecastApiException(
+        message: 'Something went wrong while updating the recommendation. Please try again.',
+        cause: e,
+      );
+    }
+  }
+
   static String _bestEffortErrorMessage(String body, int statusCode) {
     final trimmed = body.trim();
     if (trimmed.isEmpty) return 'Request failed (HTTP $statusCode).';
@@ -125,4 +202,3 @@ class GradingForecastApiService {
     return url;
   }
 }
-
