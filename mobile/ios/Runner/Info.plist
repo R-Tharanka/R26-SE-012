@@ -26,6 +26,17 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>Capture pepper berry images to estimate berry quality.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Select pepper berry images to estimate berry quality.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Save captured images if you choose.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
