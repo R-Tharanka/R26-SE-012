@@ -1,0 +1,111 @@
+{
+  "info": {
+    "name": "Pepper AI - Grading Forecast API",
+    "_postman_id": "7b1d7c3a-0cbe-4e3d-9f19-2f8c7a0a3c5c",
+    "description": "Postman collection for the Berry Grading and Export Price Forecasting FastAPI endpoints.\n\nNote: `sample_black_pepper_prices.csv` is sample-only data for pipeline testing (not official).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{base_url}}/api/v1/grading-forecast/health"
+      }
+    },
+    {
+      "name": "Price Forecast (GET)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{base_url}}/api/v1/grading-forecast/price-forecast"
+      }
+    },
+    {
+      "name": "Analyze (POST multipart/form-data)",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "image",
+              "type": "file",
+              "src": []
+            }
+          ]
+        },
+        "url": "{{base_url}}/api/v1/grading-forecast/analyze",
+        "description": "If you don't attach an image, the backend returns a safe demo response."
+      }
+    },
+    {
+      "name": "Analyze Demo (POST no file)",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": "{{base_url}}/api/v1/grading-forecast/analyze",
+        "description": "Sends no body. The backend should return a safe demo response."
+      }
+    },
+    {
+      "name": "Grade Only (POST multipart/form-data)",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "image",
+              "type": "file",
+              "src": []
+            }
+          ]
+        },
+        "url": "{{base_url}}/api/v1/grading-forecast/grade-only"
+      }
+    },
+    {
+      "name": "Recommend (POST JSON)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"grade\": \"Grade 2\",\n  \"trend\": \"upward\"\n}"
+        },
+        "url": "{{base_url}}/api/v1/grading-forecast/recommend"
+      }
+    },
+    {
+      "name": "OpenAPI JSON (GET)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{base_url}}/openapi.json"
+      }
+    },
+    {
+      "name": "Swagger UI (GET)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{base_url}}/docs"
+      }
+    }
+  ]
+}

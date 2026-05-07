@@ -1,0 +1,25 @@
+docs/references/*
+docs/ui-references/*
+docs/guidelines_with_steps.md
+docs/extra_guideline_for_the_mobile_UI_screens_only.md
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# Pytest temp/cache dirs (may have restricted permissions in some environments)
+.pytest-tmp/
+.pytest-basetemp/
+pytest-cache-files-*/
+backend/pytest-cache-files-*/
+data/pytest-temp/
+data/tmp_py/
+data/tmp_perm_test/
+data/_tmp_tests/
+
+# Local Python virtual environment
+.venv/
+
+# Local secrets / env files (do not commit)
+backend/.env
+backend/secrets/
