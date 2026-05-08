@@ -23,3 +23,5 @@ data/_tmp_tests/
 # Local secrets / env files (do not commit)
 backend/.env
 backend/secrets/
+
+data/raw/market_prices/ipc_monthly_local_prices_2013_2022.csv
