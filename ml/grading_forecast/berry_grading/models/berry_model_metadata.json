@@ -1,0 +1,57 @@
+{
+  "model_name": "berry_mobilenetv2",
+  "version": "v1",
+  "trained_at": "2026-05-10T14:11:40+00:00",
+  "seed": 42,
+  "image_size": [
+    224,
+    224
+  ],
+  "classes": [
+    "Grade 1",
+    "Grade 2",
+    "Grade 3"
+  ],
+  "dataset_dir": "D:\\work\\Year - 4\\pepper\\project\\multimodal-pepper-ai-decision-support\\data\\processed\\grading_forecast\\berry_images_processed",
+  "split": {
+    "val_ratio": 0.2,
+    "train_counts": {
+      "0": 96,
+      "1": 96,
+      "2": 96
+    },
+    "val_counts": {
+      "0": 24,
+      "1": 24,
+      "2": 24
+    },
+    "dir_split_used": {
+      "train": "D:\\work\\Year - 4\\pepper\\project\\multimodal-pepper-ai-decision-support\\data\\processed\\grading_forecast\\_berry_split_v1\\train",
+      "val": "D:\\work\\Year - 4\\pepper\\project\\multimodal-pepper-ai-decision-support\\data\\processed\\grading_forecast\\_berry_split_v1\\val"
+    }
+  },
+  "augmentation": {
+    "flip": true,
+    "rotation": 0.06,
+    "zoom": 0.1,
+    "brightness_factor": 0.12
+  },
+  "stage1": {
+    "name": "stage1_frozen",
+    "epochs": 25,
+    "learning_rate": 0.001,
+    "patience": 6
+  },
+  "stage2": {
+    "name": "stage2_finetune",
+    "epochs": 8,
+    "learning_rate": 1e-05,
+    "patience": 3
+  },
+  "export_formats_present": {
+    "keras": true,
+    "onnx": false,
+    "tflite": false
+  },
+  "git_sha": "d203fe334a50ba3e35877826bb3a80ed29d095de"
+}
