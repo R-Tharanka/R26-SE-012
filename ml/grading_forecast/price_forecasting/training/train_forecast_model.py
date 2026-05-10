@@ -116,7 +116,9 @@ def _hash_feature_spec(spec: dict[str, Any]) -> str:
 
 def _metrics(y_true: np.ndarray, y_pred: np.ndarray) -> dict[str, float]:
     mae = float(mean_absolute_error(y_true, y_pred))
-    rmse = float(mean_squared_error(y_true, y_pred, squared=False))
+    # Avoid relying on sklearn's `squared=` kwarg (removed/changed in some versions).
+    mse = float(mean_squared_error(y_true, y_pred))
+    rmse = float(np.sqrt(mse))
     mape = float(np.mean(np.abs((y_true - y_pred) / np.clip(np.abs(y_true), 1.0, None)))) * 100.0
     r2 = float(r2_score(y_true, y_pred))
     return {"mae": round(mae, 4), "rmse": round(rmse, 4), "mape": round(mape, 4), "r2": round(r2, 4)}
@@ -220,4 +222,3 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

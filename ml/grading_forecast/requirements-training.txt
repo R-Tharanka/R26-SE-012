@@ -12,6 +12,7 @@ tf2onnx==1.17.0
 
 # Utilities
 numpy>=2.0
+pandas>=2.2
 Pillow>=10.0
 matplotlib>=3.8
 scikit-learn>=1.8.0
