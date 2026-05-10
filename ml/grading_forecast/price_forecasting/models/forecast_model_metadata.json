@@ -1,0 +1,34 @@
+{
+  "model_name": "random_forest_regressor",
+  "version": "v1",
+  "trained_at": "2026-05-10T16:21:39+00:00",
+  "seed": 42,
+  "git_sha": "267c87309ca8f4bacde40a864507d636d09d04c6",
+  "train_csv": "D:\\work\\Year - 4\\pepper\\project\\multimodal-pepper-ai-decision-support\\data\\processed\\grading_forecast\\train_forecast_data.csv",
+  "feature_spec_hash": "723fb5ecfcf4511b",
+  "n_rows": 166,
+  "date_range": {
+    "start": "2022-02-01",
+    "end": "2025-05-27"
+  },
+  "rf_params": {
+    "bootstrap": true,
+    "ccp_alpha": 0.0,
+    "criterion": "squared_error",
+    "max_depth": null,
+    "max_features": 1.0,
+    "max_leaf_nodes": null,
+    "max_samples": null,
+    "min_impurity_decrease": 0.0,
+    "min_samples_leaf": 1,
+    "min_samples_split": 2,
+    "min_weight_fraction_leaf": 0.0,
+    "monotonic_cst": null,
+    "n_estimators": 400,
+    "n_jobs": -1,
+    "oob_score": false,
+    "random_state": 42,
+    "verbose": 0,
+    "warm_start": false
+  }
+}

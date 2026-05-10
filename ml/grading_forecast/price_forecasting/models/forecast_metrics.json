@@ -1,0 +1,11 @@
+{
+  "evaluated_at": "2026-05-10T16:21:39+00:00",
+  "model": "random_forest_regressor_v1",
+  "train_metrics": {
+    "mae": 15.7114,
+    "rmse": 24.344,
+    "mape": 0.9527,
+    "r2": 0.9841
+  },
+  "baseline_metrics": null
+}
