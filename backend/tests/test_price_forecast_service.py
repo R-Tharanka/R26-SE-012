@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import shutil
 import uuid
 from contextlib import contextmanager
@@ -8,6 +9,7 @@ from typing import Iterator
 
 from app.services.grading_forecast.price_forecast_service import (
     EVAL_MIN_RECORDS,
+    TrendEnum,
     build_price_forecast,
     clean_price_csv,
     evaluate_one_step_ahead_metrics,
@@ -35,6 +37,8 @@ def _temp_dir() -> Iterator[Path]:
 
 
 def test_clean_price_csv_sorts_dedupes_fills_and_writes() -> None:
+    # Keep baseline behavior stable even if real model artifacts exist locally.
+    os.environ["GRADING_FORECAST_DISABLE_REAL_MODELS"] = "1"
     with _temp_dir() as tmp_dir:
         raw = tmp_dir / "raw.csv"
         out = tmp_dir / "cleaned.csv"
@@ -70,6 +74,7 @@ def test_clean_price_csv_sorts_dedupes_fills_and_writes() -> None:
 
 
 def test_forecast_model_selection_naive_for_single_point() -> None:
+    os.environ["GRADING_FORECAST_DISABLE_REAL_MODELS"] = "1"
     with _temp_dir() as tmp_dir:
         raw = tmp_dir / "one.csv"
         _write_csv(
@@ -93,6 +98,7 @@ def test_forecast_model_selection_naive_for_single_point() -> None:
 
 
 def test_forecast_model_selection_moving_average_for_multiple_points() -> None:
+    os.environ["GRADING_FORECAST_DISABLE_REAL_MODELS"] = "1"
     with _temp_dir() as tmp_dir:
         raw = tmp_dir / "multi.csv"
         _write_csv(
@@ -119,6 +125,7 @@ def test_forecast_model_selection_moving_average_for_multiple_points() -> None:
 
 
 def test_metrics_are_null_when_insufficient_records() -> None:
+    os.environ["GRADING_FORECAST_DISABLE_REAL_MODELS"] = "1"
     with _temp_dir() as tmp_dir:
         raw = tmp_dir / "few.csv"
         rows = ["date,price_lkr_per_kg"]
@@ -133,6 +140,7 @@ def test_metrics_are_null_when_insufficient_records() -> None:
 
 
 def test_metrics_are_floats_when_enough_records() -> None:
+    os.environ["GRADING_FORECAST_DISABLE_REAL_MODELS"] = "1"
     with _temp_dir() as tmp_dir:
         raw = tmp_dir / "enough.csv"
         rows = ["date,price_lkr_per_kg"]
@@ -149,6 +157,7 @@ def test_metrics_are_floats_when_enough_records() -> None:
 
 
 def test_demo_fallback_when_override_path_missing() -> None:
+    os.environ["GRADING_FORECAST_DISABLE_REAL_MODELS"] = "1"
     with _temp_dir() as tmp_dir:
         missing = tmp_dir / "does_not_exist.csv"
         forecast = build_price_forecast(
@@ -157,3 +166,92 @@ def test_demo_fallback_when_override_path_missing() -> None:
             cleaned_output_path_override=(tmp_dir / "cleaned.csv"),
         )
         assert forecast.model == "demo_baseline"
+
+
+def test_real_forecast_model_path_when_artifacts_provided() -> None:
+    # Enable real model inference for this test.
+    os.environ.pop("GRADING_FORECAST_DISABLE_REAL_MODELS", None)
+
+    import json
+
+    import joblib
+    import numpy as np
+    from sklearn.ensemble import RandomForestRegressor
+
+    with _temp_dir() as tmp_dir:
+        # Synthetic weekly series
+        raw = tmp_dir / "series.csv"
+        rows = ["date,price_lkr_per_kg"]
+        base = 1000
+        for i in range(20):
+            rows.append(f"2024-01-{1+i:02d},{base + (i * 10)}")
+        _write_csv(raw, "\n".join(rows) + "\n")
+
+        points = clean_price_csv(raw, output_csv_path=(tmp_dir / "cleaned.csv"))
+        assert len(points) >= 8
+
+        models_dir = tmp_dir / "models"
+        models_dir.mkdir(parents=True, exist_ok=True)
+
+        spec = {
+            "lags": [1, 2, 3],
+            "rolling_windows": [3, 5],
+            "eps": 1.0,
+            "feature_names": [
+                "lag_1",
+                "lag_2",
+                "lag_3",
+                "rolling_mean_3",
+                "rolling_std_3",
+                "rolling_mean_5",
+                "rolling_std_5",
+                "month",
+                "week_of_year",
+                "price_change_1w",
+                "price_change_pct_1w",
+            ],
+        }
+        (models_dir / "forecast_features.json").write_text(json.dumps(spec, indent=2), encoding="utf-8")
+
+        # Train a tiny RF on engineered features (mirror backend feature logic).
+        def std(vals: list[float]) -> float:
+            m = sum(vals) / len(vals)
+            return float(np.sqrt(sum((v - m) ** 2 for v in vals) / len(vals)))
+
+        X = []
+        y = []
+        prices = [float(p.price_lkr_per_kg) for p in points]
+        dates = [p.date for p in points]
+        for t in range(6, len(points) - 1):
+            cur = prices[t]
+            lag1 = prices[t - 1]
+            feats = [
+                prices[t - 1],
+                prices[t - 2],
+                prices[t - 3],
+                sum(prices[t - 3 : t]) / 3.0,
+                std(prices[t - 3 : t]),
+                sum(prices[t - 5 : t]) / 5.0,
+                std(prices[t - 5 : t]),
+                float(dates[t].month),
+                float(dates[t].isocalendar().week),
+                cur - lag1,
+                (cur - lag1) / max(lag1, 1.0),
+            ]
+            X.append(feats)
+            y.append(prices[t + 1])
+
+        model = RandomForestRegressor(n_estimators=50, random_state=42)
+        model.fit(np.asarray(X, dtype=float), np.asarray(y, dtype=float))
+        joblib.dump(model, models_dir / "forecast_model.joblib")
+
+        forecast = build_price_forecast(
+            seed_hint="x",
+            csv_path_override=raw,
+            cleaned_output_path_override=(tmp_dir / "cleaned2.csv"),
+            models_dir_override=models_dir,
+        )
+        assert forecast.model == "random_forest_regressor_v1"
+        assert forecast.current_price_lkr_per_kg > 0
+        assert forecast.predicted_price_lkr_per_kg > 0
+        assert forecast.trend in {TrendEnum.upward, TrendEnum.downward, TrendEnum.stable}
