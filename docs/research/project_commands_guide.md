@@ -257,6 +257,48 @@ If you ever need to force fallback mode for debugging/tests:
 $env:GRADING_FORECAST_DISABLE_REAL_MODELS = "1"
 ```
 
+### 5.4 Verify real models via API calls
+
+Assuming `uvicorn` is running on `http://127.0.0.1:8000`.
+
+Health check:
+
+```powershell
+curl.exe http://127.0.0.1:8000/api/v1/grading-forecast/health
+```
+
+Price forecasting (real model check):
+
+```powershell
+curl.exe http://127.0.0.1:8000/api/v1/grading-forecast/price-forecast
+```
+
+Verify in the JSON response:
+
+- `forecast.model` is `random_forest_regressor_v1` when these exist:
+  - `ml/grading_forecast/price_forecasting/models/forecast_model.joblib`
+  - `ml/grading_forecast/price_forecasting/models/forecast_features.json`
+- If artifacts are missing (or `GRADING_FORECAST_DISABLE_REAL_MODELS=1`), it will fall back to `moving_average_baseline` or `demo_baseline`.
+
+Berry grading only (real ONNX check):
+
+```powershell
+curl.exe -X POST -F "image=@path\\to\\test.jpg" http://127.0.0.1:8000/api/v1/grading-forecast/grade-only
+```
+
+Verify in the JSON response:
+
+- `grading.explanation` contains: `Real grading model (ONNX) was used for predicted grade.` when these exist:
+  - `ml/grading_forecast/berry_grading/models/berry_mobilenetv2_best.onnx`
+  - `ml/grading_forecast/berry_grading/models/class_names.json`
+- If artifacts are missing (or `GRADING_FORECAST_DISABLE_REAL_MODELS=1`), it will fall back to heuristic grading and mention heuristic mode in the explanation.
+
+Full analyze endpoint (grading + forecast + recommendation):
+
+```powershell
+curl.exe -X POST -F "image=@path\\to\\test.jpg" http://127.0.0.1:8000/api/v1/grading-forecast/analyze
+```
+
 ---
 
 ## 6) Git hygiene (do not commit artifacts)
@@ -281,4 +323,3 @@ Do commit:
 - JSON metrics/metadata (small files)
 - docs
 - configs
-
