@@ -44,6 +44,22 @@ def _forecast_models_dir(*, repo_root: Path) -> Path:
     return repo_root / "ml" / "grading_forecast" / "price_forecasting" / "models"
 
 
+def _default_forecast_series_csv(*, repo_root: Path) -> Path | None:
+    """
+    Preferred series for real-model forecasting:
+    - forecast_training_data.csv (National + Grade 1 + average baseline series)
+    - fallback: cleaned_price_data.csv (may contain multiple series)
+    """
+
+    p1 = repo_root / "data" / "processed" / "grading_forecast" / "forecast_training_data.csv"
+    if p1.is_file():
+        return p1
+    p2 = repo_root / "data" / "processed" / "grading_forecast" / "cleaned_price_data.csv"
+    if p2.is_file():
+        return p2
+    return None
+
+
 @lru_cache(maxsize=4)
 def _load_forecast_model_bundle(models_dir_override: Path | None = None) -> tuple[object, dict] | None:
     """
@@ -331,27 +347,31 @@ def build_price_forecast(
         if input_csv is None or not input_csv.is_file():
             return _demo_forecast(seed_hint=seed_hint)
 
+        # Prefer real model if artifacts exist.
+        model_bundle = _load_forecast_model_bundle(models_dir_override)
+        if model_bundle is not None:
+            model_obj, spec = model_bundle
+
+            series_csv = csv_path_override or _default_forecast_series_csv(repo_root=root) or input_csv
+            if series_csv is not None and series_csv.is_file():
+                points_for_model = clean_price_csv(series_csv, output_csv_path=None)
+                predicted = _predict_next_price(points_for_model, spec=spec, model=model_obj)
+                if predicted is not None and points_for_model:
+                    current = points_for_model[-1].price_lkr_per_kg
+                    return ForecastResult(
+                        model="random_forest_regressor_v1",
+                        current_price_lkr_per_kg=int(current),
+                        predicted_price_lkr_per_kg=int(max(0, int(round(predicted)))),
+                        trend=_trend(int(current), int(max(0, int(round(predicted))))),
+                        forecast_period="next_period",
+                        metrics=ForecastMetrics(mae=None, rmse=None),
+                    )
+
         output_csv = cleaned_output_path_override or _default_output_path(repo_root=root)
         points = clean_price_csv(input_csv, output_csv_path=output_csv)
 
         if not points:
             return _demo_forecast(seed_hint=seed_hint)
-
-        # Prefer real model if artifacts exist.
-        model_bundle = _load_forecast_model_bundle(models_dir_override)
-        if model_bundle is not None:
-            model_obj, spec = model_bundle
-            predicted = _predict_next_price(points, spec=spec, model=model_obj)
-            if predicted is not None:
-                current = points[-1].price_lkr_per_kg
-                return ForecastResult(
-                    model="random_forest_regressor_v1",
-                    current_price_lkr_per_kg=int(current),
-                    predicted_price_lkr_per_kg=int(max(0, int(round(predicted)))),
-                    trend=_trend(int(current), int(max(0, int(round(predicted))))),
-                    forecast_period="next_period",
-                    metrics=ForecastMetrics(mae=None, rmse=None),
-                )
 
         # Fallback baseline: moving average / naive.
         current = points[-1].price_lkr_per_kg
