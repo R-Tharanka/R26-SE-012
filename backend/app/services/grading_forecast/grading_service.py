@@ -73,6 +73,7 @@ def _letterbox_224(img: Image.Image) -> Image.Image:
 
 
 def _mobilenetv2_scale_minus1_1(arr_0_255: np.ndarray) -> np.ndarray:
+    # NOTE: kept for backwards compatibility but not used for ONNX inference.
     return (arr_0_255.astype(np.float32) / 127.5) - 1.0
 
 
@@ -124,8 +125,11 @@ def _predict_grade_with_onnx(image_bytes: bytes) -> tuple[GradeEnum, float, dict
         img = Image.open(io.BytesIO(image_bytes))  # type: ignore[name-defined]
         img.load()
         img224 = _letterbox_224(img)
-        arr = np.asarray(img224, dtype=np.float32)
-        x = _mobilenetv2_scale_minus1_1(arr)[None, ...]
+        # IMPORTANT:
+        # The exported ONNX graph includes the Keras MobileNetV2 `preprocess_input` operation.
+        # Therefore, feed raw 0..255 float32 RGB into the model (do NOT pre-scale to [-1, 1]).
+        arr_0_255 = np.asarray(img224, dtype=np.float32)
+        x = arr_0_255[None, ...]
 
         outputs = sess.run(None, {input_name: x})  # type: ignore[attr-defined]
         vec = np.asarray(outputs[0]).reshape(-1).astype(np.float32)

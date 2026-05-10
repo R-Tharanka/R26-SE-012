@@ -308,6 +308,10 @@ Verify in the JSON response:
   - `grading.quality_score` is `0..100`
   - `grading.confidence` is `0..1`
 
+Implementation note (important for correct ONNX results):
+
+- The exported ONNX graph includes MobileNetV2 preprocessing, so ONNX inference feeds **raw 0..255 float32 RGB** into the model (do not pre-scale to `[-1, 1]`).
+
 Full analyze endpoint (grading + forecast + recommendation):
 
 ```powershell

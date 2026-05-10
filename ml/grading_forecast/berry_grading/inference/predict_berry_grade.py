@@ -40,10 +40,6 @@ def _letterbox(img: Image.Image, size: tuple[int, int] = (224, 224)) -> Image.Im
     return canvas
 
 
-def _mobilenetv2_scale_minus1_1(arr_0_255: np.ndarray) -> np.ndarray:
-    return (arr_0_255.astype(np.float32) / 127.5) - 1.0
-
-
 def _load_class_names(models_dir: Path) -> list[str]:
     p = models_dir / "class_names.json"
     if p.exists():
@@ -85,8 +81,11 @@ def main(argv: list[str] | None = None) -> int:
 
     with Image.open(args.image) as img:
         img224 = _letterbox(img, (224, 224))
-    arr = np.asarray(img224, dtype=np.float32)
-    x = _mobilenetv2_scale_minus1_1(arr)[None, ...]  # (1,224,224,3)
+    # IMPORTANT:
+    # The exported ONNX graph includes the Keras MobileNetV2 `preprocess_input` operation.
+    # Therefore, feed raw 0..255 float32 RGB into the model (do NOT pre-scale to [-1, 1]).
+    arr_0_255 = np.asarray(img224, dtype=np.float32)
+    x = arr_0_255[None, ...]  # (1,224,224,3)
 
     # Predict
     logits_or_probs, meta = _predict_with_onnx(onnx_path, x)
