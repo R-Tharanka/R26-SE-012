@@ -261,6 +261,12 @@ $env:GRADING_FORECAST_DISABLE_REAL_MODELS = "1"
 
 Assuming `uvicorn` is running on `http://127.0.0.1:8000`.
 
+This section includes:
+
+- HTTP method + endpoint path
+- Example `curl.exe` calls (PowerShell / Windows)
+- Example JSON responses (what to look for)
+
 Health check:
 
 ```powershell
@@ -280,6 +286,11 @@ Verify in the JSON response:
   - `ml/grading_forecast/price_forecasting/models/forecast_features.json`
 - If artifacts are missing (or `GRADING_FORECAST_DISABLE_REAL_MODELS=1`), it will fall back to `moving_average_baseline` or `demo_baseline`.
 
+Berry quality detection model (Berry Grading) endpoints are available under the same component prefix:
+
+- ` /api/v1/grading-forecast/grade-only` (berry grading only)
+- ` /api/v1/grading-forecast/analyze` (berry grading + price forecast + recommendation + storage result)
+
 Berry grading only (real ONNX check):
 
 ```powershell
@@ -292,11 +303,180 @@ Verify in the JSON response:
   - `ml/grading_forecast/berry_grading/models/berry_mobilenetv2_best.onnx`
   - `ml/grading_forecast/berry_grading/models/class_names.json`
 - If artifacts are missing (or `GRADING_FORECAST_DISABLE_REAL_MODELS=1`), it will fall back to heuristic grading and mention heuristic mode in the explanation.
+- Also verify core outputs are present and valid:
+  - `grading.predicted_grade` is one of `Grade 1 | Grade 2 | Grade 3`
+  - `grading.quality_score` is `0..100`
+  - `grading.confidence` is `0..1`
 
 Full analyze endpoint (grading + forecast + recommendation):
 
 ```powershell
 curl.exe -X POST -F "image=@path\\to\\test.jpg" http://127.0.0.1:8000/api/v1/grading-forecast/analyze
+```
+
+Verify in the JSON response:
+
+- Berry model:
+  - Same checks as `grade-only` for `grading.*`
+- Forecast model:
+  - `forecast.model` is `random_forest_regressor_v1` when forecast artifacts exist
+- End-to-end:
+  - Response contains `grading`, `forecast`, `recommendation`, and `storage`
+
+### 5.5 Endpoint reference (HTTP methods + sample JSON)
+
+#### `GET /api/v1/grading-forecast/health`
+
+Purpose: quick service availability check.
+
+Example response:
+
+```json
+{
+  "status": "ok",
+  "component": "berry_grading_export_price_forecasting"
+}
+```
+
+#### `GET /api/v1/grading-forecast/price-forecast`
+
+Purpose: run **price forecasting** (uses RandomForest if artifacts exist; otherwise falls back).
+
+Example response (real model):
+
+```json
+{
+  "status": "success",
+  "component": "berry_grading_export_price_forecasting",
+  "forecast": {
+    "model": "random_forest_regressor_v1",
+    "current_price_lkr_per_kg": 2027,
+    "predicted_price_lkr_per_kg": 2068,
+    "trend": "upward",
+    "forecast_period": "next_period",
+    "metrics": { "mae": null, "rmse": null }
+  }
+}
+```
+
+What to verify:
+
+- `forecast.model == "random_forest_regressor_v1"` indicates the backend loaded `forecast_model.joblib` + `forecast_features.json`.
+- `forecast.trend` is one of: `upward | downward | stable`.
+
+#### `POST /api/v1/grading-forecast/grade-only` (multipart upload)
+
+Purpose: run **berry quality grading** only (uses ONNX if exported; otherwise heuristic fallback).
+
+Request (multipart form-data):
+
+```powershell
+curl.exe -X POST -F "image=@path\\to\\test.jpg" http://127.0.0.1:8000/api/v1/grading-forecast/grade-only
+```
+
+Example response (real model):
+
+```json
+{
+  "status": "success",
+  "component": "berry_grading_export_price_forecasting",
+  "grading": {
+    "predicted_grade": "Grade 2",
+    "quality_score": 70.8,
+    "confidence": 0.9,
+    "visual_features": {
+      "color_uniformity_score": 0.72,
+      "dark_berry_ratio": 0.62,
+      "light_berry_ratio": 0.18,
+      "texture_score": 0.68,
+      "defect_ratio": 0.1,
+      "cleanliness_score": 0.9
+    },
+    "supporting_labels": {
+      "size_quality": "medium",
+      "color_quality": "medium",
+      "texture_quality": "medium",
+      "broken_level": "low",
+      "light_berry_level": "medium",
+      "pinhead_level": "medium",
+      "foreign_matter_visible": false,
+      "mould_visible": false,
+      "insect_damage_visible": false
+    },
+    "explanation": [
+      "Real grading model (ONNX) was used for predicted grade."
+    ],
+    "limitation": "Camera-based visual estimate only. Chemical requirements and bulk density are not measured."
+  }
+}
+```
+
+What to verify:
+
+- `grading.predicted_grade` is one of `Grade 1 | Grade 2 | Grade 3`.
+- `grading.explanation` contains `Real grading model (ONNX) was used for predicted grade.` when ONNX artifacts exist.
+
+#### `POST /api/v1/grading-forecast/analyze` (multipart upload)
+
+Purpose: full pipeline (image analysis + grading + forecast + recommendation + storage result).
+
+Request (multipart form-data):
+
+```powershell
+curl.exe -X POST -F "image=@path\\to\\test.jpg" http://127.0.0.1:8000/api/v1/grading-forecast/analyze
+```
+
+Example response shape (fields abbreviated):
+
+```json
+{
+  "status": "success",
+  "component": "berry_grading_export_price_forecasting",
+  "image_analysis": {
+    "image_id": "test.jpg",
+    "processed": true,
+    "note": "Camera-based visual analysis only"
+  },
+  "grading": { "predicted_grade": "Grade 2", "quality_score": 70.8, "confidence": 0.9 },
+  "forecast": { "model": "random_forest_regressor_v1", "trend": "upward" },
+  "recommendation": { "decision": "WAIT_SHORTLY", "urgency_level": "LOW" },
+  "storage": { "saved_to_firebase": false, "document_id": null }
+}
+```
+
+What to verify:
+
+- `grading.*` and `forecast.*` indicate real model usage as described above.
+- Response includes all of: `grading`, `forecast`, `recommendation`, `storage`.
+
+#### `POST /api/v1/grading-forecast/recommend` (JSON body)
+
+Purpose: request a recommendation directly if you already have `grade` and `trend` (and optionally prices).
+
+Request (JSON):
+
+```powershell
+curl.exe -X POST ^
+  -H "Content-Type: application/json" ^
+  -d "{\"grade\":\"Grade 2\",\"trend\":\"upward\",\"quality_score\":70.8,\"current_price_lkr_per_kg\":2027,\"predicted_price_lkr_per_kg\":2068}" ^
+  http://127.0.0.1:8000/api/v1/grading-forecast/recommend
+```
+
+Example response shape:
+
+```json
+{
+  "status": "success",
+  "component": "berry_grading_export_price_forecasting",
+  "recommendation": {
+    "decision": "WAIT_SHORTLY",
+    "message": "…",
+    "explanation": ["…"],
+    "urgency_level": "LOW",
+    "suggested_action": "…",
+    "limitation_note": "Camera-based visual estimate only. Laboratory tests are required for full official quality certification."
+  }
+}
 ```
 
 ---
