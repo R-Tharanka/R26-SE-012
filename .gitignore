@@ -29,3 +29,12 @@ backend/secrets/
 data/raw/market_prices/ipc_monthly_local_prices_2013_2022.csv
 data/raw/berry_images
 data/raw/market_prices/dea_farmgate_weekly_prices_2016_2026.csv
+
+# Processed ML datasets
+data/processed/grading_forecast/berry_images_processed/
+
+# Large processed csvs
+data/processed/grading_forecast/*.csv
+
+# Generated summaries
+data/processed/grading_forecast/*.json
