@@ -38,3 +38,17 @@ data/processed/grading_forecast/*.csv
 
 # Generated summaries
 data/processed/grading_forecast/*.json
+
+# Model artifacts (generated locally; do not commit)
+*.keras
+*.onnx
+*.tflite
+*.joblib
+
+# Training/evaluation outputs
+ml/**/evaluation/_outputs/
+ml/**/evaluation/_outputs/*
+
+# Deterministic split directories created during training
+data/processed/grading_forecast/_berry_split_v1/
+data/processed/grading_forecast/_berry_split_v1/*
