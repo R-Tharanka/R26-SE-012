@@ -34,6 +34,28 @@ def _load_class_names(models_dir: Path) -> list[str]:
     return list(json.loads(p.read_text(encoding="utf-8")))
 
 
+def _load_val_dir_from_metadata(models_dir: Path) -> Path | None:
+    """
+    If training used a deterministic directory split, reuse its validation directory for evaluation.
+    """
+    meta_path = models_dir / "berry_model_metadata.json"
+    if not meta_path.exists():
+        return None
+    try:
+        meta = json.loads(meta_path.read_text(encoding="utf-8"))
+        split = meta.get("split") or {}
+        used = split.get("dir_split_used") or None
+        if not isinstance(used, dict):
+            return None
+        val = used.get("val")
+        if not val:
+            return None
+        p = Path(str(val))
+        return p if p.exists() else None
+    except Exception:
+        return None
+
+
 def _model_size_mb(path: Path) -> float | None:
     try:
         return round(path.stat().st_size / (1024.0 * 1024.0), 3)
@@ -96,18 +118,31 @@ def main(argv: list[str] | None = None) -> int:
     from sklearn.metrics import classification_report, confusion_matrix, precision_recall_fscore_support
 
     class_names_dir = ["grade_1", "grade_2", "grade_3"]
-    val_ds = tf.keras.utils.image_dataset_from_directory(
-        data_dir,
-        labels="inferred",
-        label_mode="int",
-        class_names=class_names_dir,
-        image_size=(224, 224),
-        batch_size=args.batch_size,
-        shuffle=False,
-        seed=args.seed,
-        validation_split=args.val_split,
-        subset="validation",
-    ).cache().prefetch(tf.data.AUTOTUNE)
+    val_dir_override = _load_val_dir_from_metadata(models_dir)
+    if val_dir_override is not None:
+        val_ds = tf.keras.utils.image_dataset_from_directory(
+            val_dir_override,
+            labels="inferred",
+            label_mode="int",
+            class_names=class_names_dir,
+            image_size=(224, 224),
+            batch_size=args.batch_size,
+            shuffle=False,
+        )
+    else:
+        val_ds = tf.keras.utils.image_dataset_from_directory(
+            data_dir,
+            labels="inferred",
+            label_mode="int",
+            class_names=class_names_dir,
+            image_size=(224, 224),
+            batch_size=args.batch_size,
+            shuffle=False,
+            seed=args.seed,
+            validation_split=args.val_split,
+            subset="validation",
+        )
+    val_ds = val_ds.cache().prefetch(tf.data.AUTOTUNE)
 
     model = tf.keras.models.load_model(model_path)
 
@@ -135,6 +170,7 @@ def main(argv: list[str] | None = None) -> int:
     report = classification_report(
         y_true,
         y_pred,
+        labels=list(range(len(class_names))),
         target_names=class_names,
         zero_division=0,
         output_dict=True,
@@ -260,4 +296,3 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
