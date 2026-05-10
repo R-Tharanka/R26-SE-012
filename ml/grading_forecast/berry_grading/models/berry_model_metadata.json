@@ -50,7 +50,7 @@
   },
   "export_formats_present": {
     "keras": true,
-    "onnx": false,
+    "onnx": true,
     "tflite": false
   },
   "git_sha": "d203fe334a50ba3e35877826bb3a80ed29d095de"
