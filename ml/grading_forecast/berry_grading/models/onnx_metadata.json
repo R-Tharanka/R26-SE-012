@@ -1,0 +1,26 @@
+{
+  "exported_at": "2026-05-10T14:32:23+00:00",
+  "git_sha": "39dc3085d337636e3d60324dbf1734652c8f6b9c",
+  "keras_model_path": "D:\\work\\Year - 4\\pepper\\project\\multimodal-pepper-ai-decision-support\\ml\\grading_forecast\\berry_grading\\models\\berry_mobilenetv2_best.keras",
+  "onnx_model_path": "D:\\work\\Year - 4\\pepper\\project\\multimodal-pepper-ai-decision-support\\ml\\grading_forecast\\berry_grading\\models\\berry_mobilenetv2_best.onnx",
+  "opset": 13,
+  "inputs": [
+    {
+      "name": "image",
+      "dtype": "float32",
+      "shape": [
+        null,
+        224,
+        224,
+        3
+      ]
+    }
+  ],
+  "outputs": [
+    {
+      "name": "probs",
+      "note": "Model output probabilities (softmax) if exported as such."
+    }
+  ],
+  "onnx_graph_name": "tf2onnx"
+}

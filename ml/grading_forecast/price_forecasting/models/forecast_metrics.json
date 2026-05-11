@@ -1,0 +1,69 @@
+{
+  "evaluated_at": "2026-05-10T16:23:59+00:00",
+  "model": "random_forest_regressor_v1",
+  "train_metrics": {
+    "mae": 15.7114,
+    "rmse": 24.344,
+    "mape": 0.9527,
+    "r2": 0.9841
+  },
+  "baseline_metrics": null,
+  "test_metrics": {
+    "mae": 45.8347,
+    "rmse": 47.7556,
+    "mape": 2.2911,
+    "r2": -6.1315
+  },
+  "test_csv": "D:\\work\\Year - 4\\pepper\\project\\multimodal-pepper-ai-decision-support\\data\\processed\\grading_forecast\\test_forecast_data.csv",
+  "artifacts": {
+    "actual_vs_predicted_png": "D:\\work\\Year - 4\\pepper\\project\\multimodal-pepper-ai-decision-support\\ml\\grading_forecast\\price_forecasting\\evaluation\\_outputs\\actual_vs_predicted.png",
+    "residuals_png": "D:\\work\\Year - 4\\pepper\\project\\multimodal-pepper-ai-decision-support\\ml\\grading_forecast\\price_forecasting\\evaluation\\_outputs\\residuals.png",
+    "feature_importances_png": "D:\\work\\Year - 4\\pepper\\project\\multimodal-pepper-ai-decision-support\\ml\\grading_forecast\\price_forecasting\\evaluation\\_outputs\\feature_importances.png"
+  },
+  "feature_importances": [
+    {
+      "feature": "lag_1",
+      "importance": 0.775719
+    },
+    {
+      "feature": "rolling_mean_3",
+      "importance": 0.045047
+    },
+    {
+      "feature": "price_change_1w",
+      "importance": 0.032434
+    },
+    {
+      "feature": "rolling_mean_5",
+      "importance": 0.032196
+    },
+    {
+      "feature": "price_change_pct_1w",
+      "importance": 0.031035
+    },
+    {
+      "feature": "week_of_year",
+      "importance": 0.026198
+    },
+    {
+      "feature": "lag_2",
+      "importance": 0.022284
+    },
+    {
+      "feature": "lag_3",
+      "importance": 0.011665
+    },
+    {
+      "feature": "rolling_std_3",
+      "importance": 0.00838
+    },
+    {
+      "feature": "month",
+      "importance": 0.007867
+    },
+    {
+      "feature": "rolling_std_5",
+      "importance": 0.007176
+    }
+  ]
+}
