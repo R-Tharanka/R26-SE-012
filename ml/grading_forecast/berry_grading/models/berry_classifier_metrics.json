@@ -1,0 +1,73 @@
+{
+  "evaluated_at": "2026-05-10T17:04:13+00:00",
+  "model_path": "D:\\work\\Year - 4\\pepper\\project\\multimodal-pepper-ai-decision-support\\ml\\grading_forecast\\berry_grading\\models\\berry_mobilenetv2_best.keras",
+  "accuracy": 0.7778,
+  "precision_weighted": 0.8516,
+  "recall_weighted": 0.7778,
+  "f1_weighted": 0.7447,
+  "confusion_matrix": [
+    [
+      24,
+      0,
+      0
+    ],
+    [
+      2,
+      8,
+      14
+    ],
+    [
+      0,
+      0,
+      24
+    ]
+  ],
+  "classification_report": {
+    "Grade 1": {
+      "precision": 0.9230769230769231,
+      "recall": 1.0,
+      "f1-score": 0.96,
+      "support": 24.0
+    },
+    "Grade 2": {
+      "precision": 1.0,
+      "recall": 0.3333333333333333,
+      "f1-score": 0.5,
+      "support": 24.0
+    },
+    "Grade 3": {
+      "precision": 0.631578947368421,
+      "recall": 1.0,
+      "f1-score": 0.7741935483870968,
+      "support": 24.0
+    },
+    "accuracy": 0.7777777777777778,
+    "macro avg": {
+      "precision": 0.8515519568151148,
+      "recall": 0.7777777777777777,
+      "f1-score": 0.7447311827956989,
+      "support": 72.0
+    },
+    "weighted avg": {
+      "precision": 0.8515519568151146,
+      "recall": 0.7777777777777778,
+      "f1-score": 0.7447311827956988,
+      "support": 72.0
+    }
+  },
+  "artifacts": {
+    "confusion_matrix_png": "D:\\work\\Year - 4\\pepper\\project\\multimodal-pepper-ai-decision-support\\ml\\grading_forecast\\berry_grading\\evaluation\\_outputs\\confusion_matrix.png",
+    "training_curves_png": "D:\\work\\Year - 4\\pepper\\project\\multimodal-pepper-ai-decision-support\\ml\\grading_forecast\\berry_grading\\evaluation\\_outputs\\training_curves.png"
+  },
+  "performance": {
+    "inference_timing_single_image": {
+      "runs": 80,
+      "avg_ms": 58.791,
+      "p95_ms": 66.148
+    },
+    "model_size_mb": 18.439,
+    "rss_before_bytes": 790585344,
+    "rss_after_bytes": 803692544,
+    "rss_delta_bytes": 13107200
+  }
+}

@@ -2,6 +2,8 @@ docs/references/*
 docs/ui-references/*
 docs/guidelines_with_steps.md
 docs/extra_guideline_for_the_mobile_UI_screens_only.md
+docs/agent_guide
+docs/agent_guide/*
 
 # Python bytecode
 __pycache__/
@@ -23,3 +25,30 @@ data/_tmp_tests/
 # Local secrets / env files (do not commit)
 backend/.env
 backend/secrets/
+
+data/raw/market_prices/ipc_monthly_local_prices_2013_2022.csv
+data/raw/berry_images
+data/raw/market_prices/dea_farmgate_weekly_prices_2016_2026.csv
+
+# Processed ML datasets
+data/processed/grading_forecast/berry_images_processed/
+
+# Large processed csvs
+data/processed/grading_forecast/*.csv
+
+# Generated summaries
+data/processed/grading_forecast/*.json
+
+# Model artifacts (generated locally; do not commit)
+*.keras
+*.onnx
+*.tflite
+*.joblib
+
+# Training/evaluation outputs
+ml/**/evaluation/_outputs/
+ml/**/evaluation/_outputs/*
+
+# Deterministic split directories created during training
+data/processed/grading_forecast/_berry_split_v1/
+data/processed/grading_forecast/_berry_split_v1/*

@@ -6,8 +6,11 @@ import hashlib
 import math
 import random
 import re
+import json
+import os
 from collections import defaultdict
 from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
 
 from app.schemas.grading_forecast import ForecastMetrics, ForecastResult, TrendEnum
@@ -35,6 +38,57 @@ def _default_input_paths(*, repo_root: Path) -> tuple[Path, Path]:
 
 def _default_output_path(*, repo_root: Path) -> Path:
     return repo_root / "data" / "processed" / "grading_forecast" / "cleaned_price_data.csv"
+
+
+def _forecast_models_dir(*, repo_root: Path) -> Path:
+    return repo_root / "ml" / "grading_forecast" / "price_forecasting" / "models"
+
+
+def _default_forecast_series_csv(*, repo_root: Path) -> Path | None:
+    """
+    Preferred series for real-model forecasting:
+    - forecast_training_data.csv (National + Grade 1 + average baseline series)
+    - fallback: cleaned_price_data.csv (may contain multiple series)
+    """
+
+    p1 = repo_root / "data" / "processed" / "grading_forecast" / "forecast_training_data.csv"
+    if p1.is_file():
+        return p1
+    p2 = repo_root / "data" / "processed" / "grading_forecast" / "cleaned_price_data.csv"
+    if p2.is_file():
+        return p2
+    return None
+
+
+@lru_cache(maxsize=4)
+def _load_forecast_model_bundle(models_dir_override: Path | None = None) -> tuple[object, dict] | None:
+    """
+    Returns (model, feature_spec) or None if artifacts are missing/unloadable.
+
+    Never raises: the service must fall back to the existing baseline behavior.
+    """
+    root = _repo_root()
+
+    if os.getenv("GRADING_FORECAST_DISABLE_REAL_MODELS", "").strip().lower() in {"1", "true", "yes"}:
+        return None
+
+    models_dir = models_dir_override or _forecast_models_dir(repo_root=root)
+    model_path = models_dir / "forecast_model.joblib"
+    spec_path = models_dir / "forecast_features.json"
+    if not model_path.is_file() or not spec_path.is_file():
+        return None
+
+    try:
+        import joblib  # type: ignore
+    except Exception:
+        return None
+
+    try:
+        model = joblib.load(model_path)
+        spec = json.loads(spec_path.read_text(encoding="utf-8"))
+        return model, spec
+    except Exception:
+        return None
 
 
 def select_input_csv_path(*, repo_root: Path | None = None) -> Path | None:
@@ -275,6 +329,7 @@ def build_price_forecast(
     *,
     csv_path_override: Path | None = None,
     cleaned_output_path_override: Path | None = None,
+    models_dir_override: Path | None = None,
 ) -> ForecastResult:
     """
     Build a baseline price forecast.
@@ -292,24 +347,45 @@ def build_price_forecast(
         if input_csv is None or not input_csv.is_file():
             return _demo_forecast(seed_hint=seed_hint)
 
+        # Prefer real model if artifacts exist.
+        model_bundle = _load_forecast_model_bundle(models_dir_override)
+        if model_bundle is not None:
+            model_obj, spec = model_bundle
+
+            series_csv = csv_path_override or _default_forecast_series_csv(repo_root=root) or input_csv
+            if series_csv is not None and series_csv.is_file():
+                points_for_model = clean_price_csv(series_csv, output_csv_path=None)
+                predicted = _predict_next_price(points_for_model, spec=spec, model=model_obj)
+                if predicted is not None and points_for_model:
+                    current = points_for_model[-1].price_lkr_per_kg
+                    return ForecastResult(
+                        model="random_forest_regressor_v1",
+                        current_price_lkr_per_kg=int(current),
+                        predicted_price_lkr_per_kg=int(max(0, int(round(predicted)))),
+                        trend=_trend(int(current), int(max(0, int(round(predicted))))),
+                        forecast_period="next_period",
+                        metrics=ForecastMetrics(mae=None, rmse=None),
+                    )
+
         output_csv = cleaned_output_path_override or _default_output_path(repo_root=root)
         points = clean_price_csv(input_csv, output_csv_path=output_csv)
 
         if not points:
             return _demo_forecast(seed_hint=seed_hint)
 
+        # Fallback baseline: moving average / naive.
         current = points[-1].price_lkr_per_kg
         if len(points) == 1:
             predicted = current
-            model = "naive_baseline"
+            model_name = "naive_baseline"
         else:
             window = points[-min(MOVING_AVG_WINDOW, len(points)) :]
             predicted = int(round(sum(p.price_lkr_per_kg for p in window) / len(window)))
-            model = "moving_average_baseline"
+            model_name = "moving_average_baseline"
 
         metrics = evaluate_one_step_ahead_metrics(points)
         return ForecastResult(
-            model=model,
+            model=model_name,
             current_price_lkr_per_kg=int(current),
             predicted_price_lkr_per_kg=int(max(0, predicted)),
             trend=_trend(int(current), int(max(0, predicted))),
@@ -318,3 +394,81 @@ def build_price_forecast(
         )
     except Exception:
         return _demo_forecast(seed_hint=seed_hint)
+
+
+def _std(values: list[float]) -> float:
+    if not values:
+        return 0.0
+    mean = sum(values) / len(values)
+    return float(math.sqrt(sum((v - mean) ** 2 for v in values) / len(values)))
+
+
+def _build_latest_features(points: list[PricePoint], *, spec: dict) -> dict[str, float] | None:
+    feature_names = list(spec.get("feature_names") or [])
+    lags = [int(x) for x in (spec.get("lags") or [])]
+    rolling_windows = [int(x) for x in (spec.get("rolling_windows") or [])]
+    eps = float(spec.get("eps") or 1.0)
+
+    if not points or not feature_names or not lags or not rolling_windows:
+        return None
+
+    prices = [float(p.price_lkr_per_kg) for p in points]
+    dates = [p.date for p in points]
+    t = len(prices) - 1
+
+    # Need lag history plus rolling history on shifted series.
+    max_lag = max(lags)
+    max_roll = max(rolling_windows)
+    if len(prices) < (max_lag + 1) or len(prices) < (max_roll + 2):
+        return None
+
+    current_price = prices[t]
+    current_date = dates[t]
+
+    feats: dict[str, float] = {}
+    for lag in lags:
+        feats[f"lag_{lag}"] = float(prices[t - lag])
+
+    # Rolling on shifted series => use history up to t-1.
+    hist = prices[:t]  # excludes current
+    for w in rolling_windows:
+        window = hist[-w:]
+        if len(window) != w:
+            return None
+        feats[f"rolling_mean_{w}"] = float(sum(window) / len(window))
+        feats[f"rolling_std_{w}"] = float(_std(window))
+
+    lag1 = feats.get("lag_1")
+    if lag1 is None:
+        return None
+    feats["price_change_1w"] = float(current_price - lag1)
+    denom = max(float(lag1), float(eps))
+    feats["price_change_pct_1w"] = float((current_price - lag1) / denom)
+
+    feats["month"] = float(int(current_date.month))
+    feats["week_of_year"] = float(int(current_date.isocalendar().week))
+
+    # Ensure all expected features present.
+    for name in feature_names:
+        if name not in feats:
+            return None
+    return feats
+
+
+def _predict_next_price(points: list[PricePoint], *, spec: dict, model: object) -> float | None:
+    feats = _build_latest_features(points, spec=spec)
+    if feats is None:
+        return None
+
+    feature_names = list(spec.get("feature_names") or [])
+    x = [[float(feats[n]) for n in feature_names]]
+
+    try:
+        pred = model.predict(x)  # type: ignore[attr-defined]
+    except Exception:
+        return None
+
+    try:
+        return float(pred[0])
+    except Exception:
+        return None

@@ -17,7 +17,8 @@
       "request": {
         "method": "GET",
         "header": [],
-        "url": "{{base_url}}/api/v1/grading-forecast/health"
+        "url": "{{base_url}}/api/v1/grading-forecast/health",
+        "description": "Quick availability check. Returns status and component name."
       }
     },
     {
@@ -25,7 +26,8 @@
       "request": {
         "method": "GET",
         "header": [],
-        "url": "{{base_url}}/api/v1/grading-forecast/price-forecast"
+        "url": "{{base_url}}/api/v1/grading-forecast/price-forecast",
+        "description": "Runs price forecasting. If real model artifacts are missing, a safe baseline is used."
       }
     },
     {
@@ -44,7 +46,7 @@
           ]
         },
         "url": "{{base_url}}/api/v1/grading-forecast/analyze",
-        "description": "If you don't attach an image, the backend returns a safe demo response."
+        "description": "Full pipeline: grading + price forecast + recommendation + storage. If you don't attach an image, the backend returns a safe demo response."
       }
     },
     {
@@ -53,7 +55,7 @@
         "method": "POST",
         "header": [],
         "url": "{{base_url}}/api/v1/grading-forecast/analyze",
-        "description": "Sends no body. The backend should return a safe demo response."
+        "description": "Sends no body. The backend returns a safe demo response."
       }
     },
     {
@@ -71,7 +73,8 @@
             }
           ]
         },
-        "url": "{{base_url}}/api/v1/grading-forecast/grade-only"
+        "url": "{{base_url}}/api/v1/grading-forecast/grade-only",
+        "description": "Runs berry grading only. If no image is attached, a demo response is returned."
       }
     },
     {
@@ -86,9 +89,10 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"grade\": \"Grade 2\",\n  \"trend\": \"upward\"\n}"
+          "raw": "{\n  \"grade\": \"Grade 2\",\n  \"trend\": \"upward\",\n  \"quality_score\": 70.8,\n  \"current_price_lkr_per_kg\": 2027,\n  \"predicted_price_lkr_per_kg\": 2068\n}"
         },
-        "url": "{{base_url}}/api/v1/grading-forecast/recommend"
+        "url": "{{base_url}}/api/v1/grading-forecast/recommend",
+        "description": "Use when you already have grade and trend. Optional fields: quality_score, current_price_lkr_per_kg, predicted_price_lkr_per_kg."
       }
     },
     {
@@ -96,7 +100,8 @@
       "request": {
         "method": "GET",
         "header": [],
-        "url": "{{base_url}}/openapi.json"
+        "url": "{{base_url}}/openapi.json",
+        "description": "Raw OpenAPI spec."
       }
     },
     {
@@ -104,7 +109,8 @@
       "request": {
         "method": "GET",
         "header": [],
-        "url": "{{base_url}}/docs"
+        "url": "{{base_url}}/docs",
+        "description": "Interactive Swagger UI."
       }
     }
   ]
