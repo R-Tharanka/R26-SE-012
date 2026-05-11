@@ -1,5 +1,5 @@
 {
-  "evaluated_at": "2026-05-10T17:04:13+00:00",
+  "evaluated_at": "2026-05-11T01:58:58+00:00",
   "model_path": "D:\\work\\Year - 4\\pepper\\project\\multimodal-pepper-ai-decision-support\\ml\\grading_forecast\\berry_grading\\models\\berry_mobilenetv2_best.keras",
   "accuracy": 0.7778,
   "precision_weighted": 0.8516,
@@ -62,12 +62,12 @@
   "performance": {
     "inference_timing_single_image": {
       "runs": 80,
-      "avg_ms": 58.791,
-      "p95_ms": 66.148
+      "avg_ms": 80.973,
+      "p95_ms": 96.252
     },
     "model_size_mb": 18.439,
-    "rss_before_bytes": 790585344,
-    "rss_after_bytes": 803692544,
-    "rss_delta_bytes": 13107200
+    "rss_before_bytes": 797138944,
+    "rss_after_bytes": 810897408,
+    "rss_delta_bytes": 13758464
   }
 }
