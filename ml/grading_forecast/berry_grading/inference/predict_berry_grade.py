@@ -25,19 +25,13 @@ def _softmax(x: np.ndarray) -> np.ndarray:
     return e / np.sum(e, axis=-1, keepdims=True)
 
 
-def _letterbox(img: Image.Image, size: tuple[int, int] = (224, 224)) -> Image.Image:
+def _resize(img: Image.Image, size: tuple[int, int] = (224, 224)) -> Image.Image:
     target_w, target_h = size
     img = img.convert("RGB")
     w, h = img.size
     if w <= 0 or h <= 0:
         raise ValueError("Invalid image dimensions.")
-    scale = min(target_w / w, target_h / h)
-    new_w = max(1, int(round(w * scale)))
-    new_h = max(1, int(round(h * scale)))
-    resized = img.resize((new_w, new_h), resample=Image.BILINEAR)
-    canvas = Image.new("RGB", (target_w, target_h), (0, 0, 0))
-    canvas.paste(resized, ((target_w - new_w) // 2, (target_h - new_h) // 2))
-    return canvas
+    return img.resize((target_w, target_h), resample=Image.BILINEAR)
 
 
 def _load_class_names(models_dir: Path) -> list[str]:
@@ -80,7 +74,7 @@ def main(argv: list[str] | None = None) -> int:
         return 3
 
     with Image.open(args.image) as img:
-        img224 = _letterbox(img, (224, 224))
+        img224 = _resize(img, (224, 224))
     # IMPORTANT:
     # The exported ONNX graph includes the Keras MobileNetV2 `preprocess_input` operation.
     # Therefore, feed raw 0..255 float32 RGB into the model (do NOT pre-scale to [-1, 1]).
