@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
@@ -6,9 +6,10 @@ import '../services/grading_forecast_api_service.dart';
 import 'berry_quality_result_screen.dart';
 
 class ProcessingScreen extends StatefulWidget {
-  const ProcessingScreen({super.key, required this.imageFile});
+  const ProcessingScreen({super.key, required this.imageBytes, required this.imageName});
 
-  final File imageFile;
+  final Uint8List imageBytes;
+  final String imageName;
 
   @override
   State<ProcessingScreen> createState() => _ProcessingScreenState();
@@ -33,11 +34,11 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
     });
 
     try {
-      final result = await _api.analyze(widget.imageFile);
+      final result = await _api.analyzeBytes(widget.imageBytes, widget.imageName);
       if (!mounted) return;
       Navigator.of(context).pushReplacement(
         MaterialPageRoute<void>(
-          builder: (_) => BerryQualityResultScreen(imageFile: widget.imageFile, result: result),
+          builder: (_) => BerryQualityResultScreen(imageBytes: widget.imageBytes, result: result),
         ),
       );
     } on GradingForecastApiException catch (e) {

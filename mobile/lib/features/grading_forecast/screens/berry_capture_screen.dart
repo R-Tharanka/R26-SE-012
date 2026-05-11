@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -15,6 +15,7 @@ class BerryCaptureScreen extends StatefulWidget {
 class _BerryCaptureScreenState extends State<BerryCaptureScreen> {
   final ImagePicker _picker = ImagePicker();
   XFile? _selected;
+  Uint8List? _selectedBytes;
 
   Future<void> _pick(ImageSource source) async {
     try {
@@ -24,7 +25,19 @@ class _BerryCaptureScreenState extends State<BerryCaptureScreen> {
         maxWidth: 2048,
       );
       if (!mounted) return;
-      setState(() => _selected = picked);
+      if (picked == null) {
+        setState(() {
+          _selected = null;
+          _selectedBytes = null;
+        });
+        return;
+      }
+      final bytes = await picked.readAsBytes();
+      if (!mounted) return;
+      setState(() {
+        _selected = picked;
+        _selectedBytes = bytes;
+      });
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -35,19 +48,21 @@ class _BerryCaptureScreenState extends State<BerryCaptureScreen> {
 
   void _analyze() {
     final selected = _selected;
+    final bytes = _selectedBytes;
     if (selected == null) return;
+    if (bytes == null || bytes.isEmpty) return;
 
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => ProcessingScreen(imageFile: File(selected.path)),
+        builder: (_) => ProcessingScreen(imageBytes: bytes, imageName: selected.name),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final imagePath = _selected?.path;
-    final canAnalyze = imagePath != null && imagePath.isNotEmpty;
+    final imageBytes = _selectedBytes;
+    final canAnalyze = imageBytes != null && imageBytes.isNotEmpty;
 
     return Scaffold(
       appBar: AppBar(
@@ -62,7 +77,7 @@ class _BerryCaptureScreenState extends State<BerryCaptureScreen> {
               child: Card(
                 child: Padding(
                   padding: const EdgeInsets.all(12),
-                  child: imagePath == null
+                  child: imageBytes == null
                       ? const Center(
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
@@ -75,8 +90,8 @@ class _BerryCaptureScreenState extends State<BerryCaptureScreen> {
                         )
                       : ClipRRect(
                           borderRadius: BorderRadius.circular(12),
-                          child: Image.file(
-                            File(imagePath),
+                          child: Image.memory(
+                            imageBytes,
                             fit: BoxFit.cover,
                             width: double.infinity,
                           ),
