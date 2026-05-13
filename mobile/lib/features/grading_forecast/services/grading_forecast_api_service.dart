@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -33,12 +34,12 @@ class GradingForecastApiService {
 
   String get baseUrl => _baseUrl;
 
-  Future<GradingForecastResult> analyze(File imageFile) async {
+  Future<GradingForecastResult> analyzeBytes(Uint8List imageBytes, String filename) async {
     final uri = Uri.parse('$_baseUrl/api/v1/grading-forecast/analyze');
 
     try {
       final request = http.MultipartRequest('POST', uri);
-      request.files.add(await http.MultipartFile.fromPath('image', imageFile.path));
+      request.files.add(http.MultipartFile.fromBytes('image', imageBytes, filename: filename));
 
       final streamed = await request.send().timeout(_timeout);
       final response = await http.Response.fromStream(streamed);

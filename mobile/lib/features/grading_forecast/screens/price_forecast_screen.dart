@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
@@ -8,11 +8,11 @@ import '../services/grading_forecast_api_service.dart';
 class PriceForecastScreen extends StatefulWidget {
   const PriceForecastScreen({
     super.key,
-    required this.imageFile,
+    required this.imageBytes,
     required this.result,
   });
 
-  final File imageFile;
+  final Uint8List imageBytes;
   final GradingForecastResult result;
 
   @override
@@ -105,8 +105,8 @@ class _PriceForecastScreenState extends State<PriceForecastScreen> {
           Card(
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
-              child: Image.file(
-                widget.imageFile,
+              child: Image.memory(
+                widget.imageBytes,
                 height: 160,
                 width: double.infinity,
                 fit: BoxFit.cover,

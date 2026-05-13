@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
@@ -8,11 +8,11 @@ import 'price_forecast_screen.dart';
 class BerryQualityResultScreen extends StatelessWidget {
   const BerryQualityResultScreen({
     super.key,
-    required this.imageFile,
+    required this.imageBytes,
     required this.result,
   });
 
-  final File imageFile;
+  final Uint8List imageBytes;
   final GradingForecastResult result;
 
   static const _requiredLimitationNote =
@@ -39,7 +39,7 @@ class BerryQualityResultScreen extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Image.file(imageFile, fit: BoxFit.cover),
+                  Image.memory(imageBytes, fit: BoxFit.cover),
                   Positioned(
                     left: 16,
                     bottom: 16,
@@ -159,7 +159,7 @@ class BerryQualityResultScreen extends StatelessWidget {
               onPressed: () {
                 Navigator.of(context).push(
                   MaterialPageRoute<void>(
-                    builder: (_) => PriceForecastScreen(imageFile: imageFile, result: result),
+                        builder: (_) => PriceForecastScreen(imageBytes: imageBytes, result: result),
                   ),
                 );
               },

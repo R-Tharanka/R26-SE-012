@@ -115,15 +115,31 @@ multimodal-pepper-ai-decision-support/
 
 ---
 
-## 🧪 Current Status
+## ✅ Berry Grading & Export Price Forecasting (IT22079268)
 
-🚧 Initial development phase  
-- [x] Project setup  
-- [ ] Backend API development  
-- [ ] Mobile UI development  
-- [ ] Data collection  
-- [ ] Model training  
-- [ ] System integration  
+This component focuses on berry quality grading, export price forecasting, and decision support. It is based on the responsibilities defined in the project proposal and implemented across the backend, ML pipeline, and mobile app.
+
+### Key Implementation Areas
+
+- backend/app/api/routes/grading_forecast.py (API endpoints)
+- backend/app/services/grading_forecast/ (grading, forecasting, recommendations, Firebase storage)
+- ml/grading_forecast/ (training, evaluation, inference, and model artifacts)
+- data/raw/market_prices and data/raw/berry_images (source datasets)
+- data/processed/grading_forecast (cleaned data, splits, and summaries)
+- mobile/lib/features/grading_forecast/ (UI screens + API client)
+
+### Progress Checklist (WBS Tasks)
+
+- [x] T1 Dataset collection (berry images + market prices)
+- [x] T2 Dataset cleaning and preparation
+- [x] T3 Image preprocessing (OpenCV-based)
+- [x] T4 Feature extraction (visual quality features)
+- [x] T5 Berry grading model development (MobileNetV2 + ONNX export)
+- [x] T6 Export price forecasting model development (RandomForest + baselines)
+- [x] T7 Backend API development and integration
+- [x] T8 Mobile dashboard development
+- [ ] T9 Database integration (configure Firebase credentials and verify live writes)
+- [ ] T10 System testing and evaluation (full end-to-end + field validation)
 
 ---
 
