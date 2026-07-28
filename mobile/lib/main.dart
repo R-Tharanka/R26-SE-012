@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:pepper_care/features/grading_forecast/screens/grading_forecast_home_screen.dart';
+import 'package:pepper_care/features/home/screens/home_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
         useMaterial3: true,
       ),
-      home: const GradingForecastHomeScreen(),
+      home: const HomeScreen(),
     );
   }
 }
