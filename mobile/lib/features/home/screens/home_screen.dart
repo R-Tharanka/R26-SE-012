@@ -294,15 +294,15 @@ class _HomeScreenState extends State<HomeScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Row(
+        const Row(
           children: [
-            const Icon(
+            Icon(
               Icons.agriculture_rounded,
               color: Color(0xFF1B4332),
               size: 28,
             ),
-            const SizedBox(width: 8),
-            const Text(
+            SizedBox(width: 8),
+            Text(
               'PepperCare',
               style: TextStyle(
                 fontSize: 22,
@@ -340,10 +340,10 @@ class _HomeScreenState extends State<HomeScreen> {
         color: const Color(0xFFF3EFE6),
         borderRadius: BorderRadius.circular(24),
       ),
-      child: Column(
+      child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'FARM STATUS',
             style: TextStyle(
               fontSize: 12,
@@ -352,12 +352,12 @@ class _HomeScreenState extends State<HomeScreen> {
               letterSpacing: 1.2,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Row(
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
             children: [
-              const Expanded(
+              Expanded(
                 child: Text(
                   'Mostly\nHealthy',
                   style: TextStyle(
@@ -374,7 +374,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.w800,
-                  color: const Color(0xFF1E6B39),
+                  color: Color(0xFF1E6B39),
                   letterSpacing: -0.5,
                 ),
               ),
@@ -541,7 +541,13 @@ class _HomeScreenState extends State<HomeScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        elevation: 0.5,
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x0A000000),
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
