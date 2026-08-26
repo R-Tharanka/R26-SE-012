@@ -1,0 +1,264 @@
+{
+  "dataset_version": "price_v2",
+  "created_at": "2026-08-26T13:13:28+00:00",
+  "input_csv": "data/raw/market_prices/dea_farmgate_weekly_prices_2016_2026.csv",
+  "outputs": {
+    "cleaned_csv": "data/processed/grading_forecast/price_v2/cleaned_price_data_v2.csv",
+    "target_csv": "data/processed/grading_forecast/price_v2/national_grade1_average_weekly.csv",
+    "forecast_train_csv": "data/processed/grading_forecast/price_v2/forecast_train.csv",
+    "forecast_validation_csv": "data/processed/grading_forecast/price_v2/forecast_validation.csv",
+    "forecast_test_csv": "data/processed/grading_forecast/price_v2/forecast_test.csv"
+  },
+  "cleaning": {
+    "raw_rows": 7742,
+    "cleaned_rows": 7742,
+    "invalid_rows_removed": 0,
+    "duplicates_removed_by_date_district_grade_price_type": 0,
+    "raw_date_range": {
+      "start": "2021-02-22",
+      "end": "2026-08-18"
+    },
+    "cleaned_date_range": {
+      "start": "2021-02-22",
+      "end": "2026-08-18"
+    },
+    "district_values_after_standardization": [
+      "Badulla",
+      "Colombo",
+      "Galle",
+      "Gampaha",
+      "Hambantota",
+      "Kalutara",
+      "Kandy",
+      "Kegalle",
+      "Kurunegala",
+      "Matale",
+      "Matara",
+      "Monaragala",
+      "National",
+      "Nuwara Eliya",
+      "Ratnapura"
+    ],
+    "grade_values_after_standardization": [
+      "Grade 1",
+      "Grade 2"
+    ],
+    "price_type_values_after_standardization": [
+      "average",
+      "highest"
+    ]
+  },
+  "primary_target": {
+    "target_definition": {
+      "commodity": "black_pepper",
+      "country": "Sri Lanka",
+      "district": "National",
+      "grade": "Grade 1",
+      "price_type": "average",
+      "market_level": "farm_gate",
+      "frequency": "weekly"
+    },
+    "target_observations": 232,
+    "target_date_range": {
+      "start": "2021-02-22",
+      "end": "2026-08-18"
+    },
+    "duplicate_target_dates": 0,
+    "national_representation_verified": "National"
+  },
+  "target_gap_analysis": {
+    "observation_count": 232,
+    "date_range": {
+      "start": "2021-02-22",
+      "end": "2026-08-18"
+    },
+    "observed_intervals_days": {
+      "2": 1,
+      "5": 1,
+      "6": 14,
+      "7": 189,
+      "8": 14,
+      "13": 1,
+      "14": 9,
+      "22": 1,
+      "316": 1
+    },
+    "gaps_over_8_days": [
+      {
+        "from": "2021-02-22",
+        "to": "2022-01-04",
+        "days": 316
+      },
+      {
+        "from": "2022-02-14",
+        "to": "2022-03-08",
+        "days": 22
+      },
+      {
+        "from": "2022-04-05",
+        "to": "2022-04-19",
+        "days": 14
+      },
+      {
+        "from": "2022-05-04",
+        "to": "2022-05-17",
+        "days": 13
+      },
+      {
+        "from": "2023-04-18",
+        "to": "2023-05-02",
+        "days": 14
+      },
+      {
+        "from": "2024-07-02",
+        "to": "2024-07-16",
+        "days": 14
+      },
+      {
+        "from": "2024-10-01",
+        "to": "2024-10-15",
+        "days": 14
+      },
+      {
+        "from": "2025-02-18",
+        "to": "2025-03-04",
+        "days": 14
+      },
+      {
+        "from": "2025-04-08",
+        "to": "2025-04-22",
+        "days": 14
+      },
+      {
+        "from": "2025-09-23",
+        "to": "2025-10-07",
+        "days": 14
+      },
+      {
+        "from": "2026-04-07",
+        "to": "2026-04-21",
+        "days": 14
+      },
+      {
+        "from": "2026-06-16",
+        "to": "2026-06-30",
+        "days": 14
+      }
+    ],
+    "gap_count_over_8_days": 12,
+    "largest_gap_days": 316,
+    "note": "Dates are analyzed as observed source dates; no complete weekly calendar was fabricated."
+  },
+  "all_grade_coverage": {
+    "Grade 1": {
+      "rows_by_year": {
+        "2021": 28,
+        "2022": 1436,
+        "2023": 1528,
+        "2024": 1552,
+        "2025": 1456,
+        "2026": 930
+      },
+      "observed_dates_by_year": {
+        "2021": 1,
+        "2022": 48,
+        "2023": 51,
+        "2024": 52,
+        "2025": 49,
+        "2026": 31
+      },
+      "total_rows": 6930,
+      "unique_dates": 232
+    },
+    "Grade 2": {
+      "rows_by_year": {
+        "2022": 24,
+        "2023": 120,
+        "2024": 250,
+        "2025": 274,
+        "2026": 144
+      },
+      "observed_dates_by_year": {
+        "2022": 6,
+        "2023": 27,
+        "2024": 49,
+        "2025": 49,
+        "2026": 30
+      },
+      "total_rows": 812,
+      "unique_dates": 161
+    }
+  },
+  "grade2_coverage": {
+    "all_observed_grade2_records": {
+      "rows_by_year": {
+        "2022": 24,
+        "2023": 120,
+        "2024": 250,
+        "2025": 274,
+        "2026": 144
+      },
+      "observed_dates_by_year": {
+        "2022": 6,
+        "2023": 27,
+        "2024": 49,
+        "2025": 49,
+        "2026": 30
+      },
+      "total_rows": 812,
+      "unique_dates": 161
+    },
+    "national_average_grade2_records": {
+      "rows_by_year": {
+        "2022": 6,
+        "2023": 27,
+        "2024": 49,
+        "2025": 49,
+        "2026": 30
+      },
+      "observed_dates_by_year": {
+        "2022": 6,
+        "2023": 27,
+        "2024": 49,
+        "2025": 49,
+        "2026": 30
+      },
+      "total_rows": 161,
+      "unique_dates": 161
+    },
+    "districts_with_grade2": [
+      "Badulla",
+      "Gampaha",
+      "Kandy",
+      "National",
+      "Ratnapura"
+    ],
+    "note": "Grade 2 records are preserved but not used as the primary PP2 forecasting target because early historical coverage is sparse."
+  },
+  "split": {
+    "split_policy": "chronological_70_15_15_by_observed_rows",
+    "train": {
+      "rows": 162,
+      "start": "2021-02-22",
+      "end": "2025-03-18"
+    },
+    "validation": {
+      "rows": 34,
+      "start": "2025-03-25",
+      "end": "2025-11-25"
+    },
+    "test": {
+      "rows": 36,
+      "start": "2025-12-02",
+      "end": "2026-08-18"
+    },
+    "no_shuffle": true
+  },
+  "validation": {
+    "target_has_at_most_one_row_per_date": true,
+    "splits_are_chronological": true,
+    "no_missing_target_prices": true,
+    "no_fabricated_missing_weeks": true,
+    "no_grade2_imputation": true
+  }
+}
