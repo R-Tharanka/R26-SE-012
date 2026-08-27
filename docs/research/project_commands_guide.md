@@ -7,7 +7,7 @@ PP2 status update, 2026-08-27:
 - Berry V2 MobileNetV2 baseline training, test evaluation, and ONNX export are complete.
 - Use explicit V2 paths for any Berry V2 command.
 - Bare no-argument berry commands may target historical V1 artifacts.
-- Price Forecasting V2 training has not started yet.
+- Price Forecasting V2 baseline training/evaluation is complete; Naive Persistence outperformed RandomForest on the V2 test period.
 
 ---
 
@@ -240,7 +240,13 @@ Expected V2 outputs in `ml\grading_forecast\price_forecasting\models\v2\`:
 - `forecast_metrics.json`
 - `forecast_model_metadata.json`
 
-Important: this is the prepared Phase 3 command. Do not run it until Phase 3 execution is explicitly started.
+Important: this is the Phase 3 command that was used. Rerun it only if you intentionally want to reproduce the same V2 baseline.
+
+Completed Phase 3 V2 result:
+
+- Naive Persistence MAE/RMSE/MAPE/R2: 16.4094 / 22.5208 / 0.8539 / 0.9045
+- RandomForest MAE/RMSE/MAPE/R2: 82.4179 / 88.4452 / 4.1679 / -0.4736
+- Decision: Naive Persistence is the stronger forecasting baseline for the V2 test period.
 
 ### 4.7 Evaluate forecast model, PP2 V2 same test timestamps
 

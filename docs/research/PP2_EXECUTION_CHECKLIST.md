@@ -91,7 +91,7 @@ Evidence:
 
 ## Phase 3: Price Forecasting V2 Baseline
 
-Status: NOT STARTED
+Status: COMPLETE
 
 - [x] Confirm V2 National Grade 1 average target exists.
 - [x] Confirm chronological split exists.
@@ -100,19 +100,30 @@ Status: NOT STARTED
 - [x] Prepare explicit V2 output directories.
 - [x] Verify dry-run path resolution without training/evaluation.
 - [x] Update docs for Phase 3 pipeline preparation only.
-- [ ] Execute/evaluate naive persistence baseline.
-- [ ] Train/evaluate RandomForest.
+- [x] Execute/evaluate naive persistence baseline.
+- [x] Train/evaluate RandomForest.
 - [x] Confirm past-only lag/rolling feature logic.
-- [ ] Save metrics JSON.
-- [ ] Save actual vs predicted plot.
-- [ ] Save feature importance plot if available.
-- [ ] Compare naive vs RandomForest.
-- [ ] Update `EXPERIMENT_LOG.md`.
-- [ ] Update `PP2_RESULTS.md`.
+- [x] Save metrics JSON.
+- [x] Save actual vs predicted plot.
+- [x] Save feature importance plot if available.
+- [x] Compare naive vs RandomForest.
+- [x] Update `EXPERIMENT_LOG.md`.
+- [x] Update `PP2_RESULTS.md`.
 
 Phase 3 pipeline preparation result: PASSED.
 
-Important: Phase 3 experiment execution is still NOT STARTED. No forecast model V2 metrics should be reported yet.
+Phase 3 experiment execution result: PASSED.
+
+Evidence:
+
+- V2 RF model: `ml/grading_forecast/price_forecasting/models/v2/forecast_model.joblib`
+- V2 metrics: `ml/grading_forecast/price_forecasting/models/v2/forecast_metrics.json`
+- V2 naive metrics: `ml/grading_forecast/price_forecasting/models/v2/naive_persistence_metrics.json`
+- Actual-vs-predicted plot: `ml/grading_forecast/price_forecasting/evaluation/_outputs/v2/actual_vs_predicted.png`
+- Feature importance plot: `ml/grading_forecast/price_forecasting/evaluation/_outputs/v2/feature_importances.png`
+- Naive Persistence MAE/RMSE/MAPE/R2: 16.4094 / 22.5208 / 0.8539 / 0.9045.
+- RandomForest MAE/RMSE/MAPE/R2: 82.4179 / 88.4452 / 4.1679 / -0.4736.
+- Decision: Naive Persistence outperformed RandomForest on the V2 test period.
 
 ## Phase 4: Limited Model Improvement
 
@@ -164,7 +175,7 @@ Day 1:
 Day 2:
 
 - [x] Finish Phase 2 baseline.
-- [ ] Finish Phase 3 baseline.
+- [x] Finish Phase 3 baseline.
 
 Day 3:
 

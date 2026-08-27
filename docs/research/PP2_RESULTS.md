@@ -12,9 +12,7 @@ Phase 1 dataset preparation result: COMPLETE.
 
 Phase 2 Berry Grading V2 baseline result: COMPLETE.
 
-Phase 3 forecasting V2 pipeline preparation result: COMPLETE.
-
-No Phase 3 forecasting V2 model has been trained yet. No forecasting V2 metrics should be claimed until the corresponding experiment is executed.
+Phase 3 Price Forecasting V2 baseline result: COMPLETE.
 
 ## Dataset Evidence From Audit
 
@@ -312,26 +310,55 @@ The V2 model is the selected PP2 berry grading baseline because it was trained o
 
 ## V2 Forecast Results
 
-Status: PIPELINE READY, EXPERIMENT NOT STARTED.
+Status: COMPLETE.
 
-Pre-execution implementation evidence:
+Target:
 
-- Training can be pointed explicitly at `data/processed/grading_forecast/price_v2/forecast_train.csv`.
-- Evaluation can use `data/processed/grading_forecast/price_v2/national_grade1_average_weekly.csv` as full historical context and evaluate exactly the 36 dates in `forecast_test.csv`.
-- Naive persistence is defined as `prediction(t+1) = observed price(t)`.
-- Naive persistence and RandomForest are prepared to evaluate on the same test timestamps.
-- RandomForest outputs are isolated under `ml/grading_forecast/price_forecasting/models/v2/`.
-- Forecast evaluation plots are isolated under `ml/grading_forecast/price_forecasting/evaluation/_outputs/v2/`.
-- Dry-run validation confirmed 36 planned prediction timestamps and past-only feature dates before each prediction date.
-- No Phase 3 training, final evaluation metrics, or final plots have been generated yet.
+`National + Grade 1 + average + farm_gate + weekly`
 
-Planned table:
+Reason for Grade 1 target:
+
+National Grade 1 average has the strongest usable coverage for PP2. Grade 2 is preserved in the cleaned dataset but remains too sparse for the primary forecasting baseline.
+
+Artifacts:
+
+- `ml/grading_forecast/price_forecasting/models/v2/forecast_model.joblib`
+- `ml/grading_forecast/price_forecasting/models/v2/forecast_features.json`
+- `ml/grading_forecast/price_forecasting/models/v2/forecast_metrics.json`
+- `ml/grading_forecast/price_forecasting/models/v2/naive_persistence_metrics.json`
+- `ml/grading_forecast/price_forecasting/models/v2/forecast_model_metadata.json`
+- `ml/grading_forecast/price_forecasting/models/v2/forecast_export_manifest.json`
+- `ml/grading_forecast/price_forecasting/evaluation/_outputs/v2/actual_vs_predicted.png`
+- `ml/grading_forecast/price_forecasting/evaluation/_outputs/v2/feature_importances.png`
+- `ml/grading_forecast/price_forecasting/evaluation/_outputs/v2/residuals.png`
+
+Chronological split:
+
+| Split | Rows | Date Range |
+| --- | ---: | --- |
+| Train | 162 | 2021-02-22 to 2025-03-18 |
+| Validation | 34 | 2025-03-25 to 2025-11-25 |
+| Test | 36 | 2025-12-02 to 2026-08-18 |
+
+Test methodology:
+
+- Naive Persistence and RandomForest were evaluated on the same 36 V2 test timestamps.
+- RandomForest was trained only on `forecast_train.csv`.
+- Test feature rows were built from full target context, but every feature date is before its prediction date.
+- Lag and rolling features use previous available observations, not guaranteed previous calendar weeks.
+- No missing weeks or prices were fabricated.
+
+Final comparison:
 
 | Experiment | Target | Split | MAE | RMSE | MAPE | R2 | Decision |
 | --- | --- | --- | ---: | ---: | ---: | ---: | --- |
-| Naive persistence | National Grade 1 average | chronological test | PENDING | PENDING | PENDING | PENDING | Required baseline |
-| RandomForest | National Grade 1 average | chronological test | PENDING | PENDING | PENDING | PENDING | Primary PP2 ML model |
+| Naive persistence | National Grade 1 average | 36 identical test timestamps | 16.4094 | 22.5208 | 0.8539 | 0.9045 | Stronger Phase 3 baseline |
+| RandomForest | National Grade 1 average | 36 identical test timestamps | 82.4179 | 88.4452 | 4.1679 | -0.4736 | Required ML baseline, did not outperform naive |
 | Limited improvement | National Grade 1 average | same test | PENDING | PENDING | PENDING | PENDING | Optional |
+
+Interpretation:
+
+Naive Persistence outperformed RandomForest on every final V2 test metric. This does not invalidate the experiment; it is the Phase 3 finding. For PP2, the defensible conclusion is that the simple persistence baseline generalizes better than the current RandomForest configuration on this short and mostly stable test period.
 
 ## Integration Evidence
 

@@ -84,10 +84,14 @@ Forecasting:
 
 - V1 RandomForest had poor test R2.
 - Price forecasting is short-horizon only.
-- Phase 3 V2 forecasting metrics have not been generated yet.
+- Phase 3 V2 forecasting used the National Grade 1 average farm-gate weekly target only.
+- Grade 2 historical data remains too sparse for reliable primary forecasting.
 - V2 lag and rolling features use previous available observations, not guaranteed previous calendar weeks, because the source has missing weekly intervals.
 - No macroeconomic, export volume, weather, exchange rate, or global market features are included before PP2.
-- RandomForest may not outperform naive persistence.
+- RandomForest did not outperform Naive Persistence on the 36-row V2 test period.
+- RandomForest is a baseline ML model, not an optimized final forecasting model.
+- No hyperparameter search, advanced time-series model, or additional forecasting algorithm was evaluated in Phase 3.
+- R2 may be unstable because the test period is short and may have limited variance.
 
 ## Integration Limitations
 

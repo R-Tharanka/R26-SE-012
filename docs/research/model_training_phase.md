@@ -15,7 +15,8 @@ PP2 evidence update, 2026-08-27:
 - The V2 berry baseline uses the sample-level split under `data/processed/grading_forecast/berry_split_v2/`.
 - V2 model artifacts are stored under `ml/grading_forecast/berry_grading/models/v2/`.
 - The old 360-image processed berry dataset and root-level model artifacts are historical V1 artifacts only.
-- Price Forecasting V2 training has not started yet.
+- Price Forecasting V2 baseline training/evaluation is complete.
+- Naive Persistence outperformed RandomForest on the V2 forecasting test period.
 
 ---
 
@@ -227,6 +228,25 @@ Artifacts:
 
 - `ml/grading_forecast/price_forecasting/models/forecast_metrics.json`
 - Plots under `ml/grading_forecast/price_forecasting/evaluation/_outputs/` (generated locally)
+
+Completed PP2 V2 forecasting result:
+
+- Target: National + Grade 1 + average + farm_gate + weekly.
+- Test prediction timestamps: 36.
+- Naive Persistence MAE/RMSE/MAPE/R2: 16.4094 / 22.5208 / 0.8539 / 0.9045.
+- RandomForest MAE/RMSE/MAPE/R2: 82.4179 / 88.4452 / 4.1679 / -0.4736.
+- Decision: Naive Persistence is the stronger Phase 3 forecasting baseline on the V2 test period.
+
+V2 artifacts:
+
+- `ml/grading_forecast/price_forecasting/models/v2/forecast_model.joblib`
+- `ml/grading_forecast/price_forecasting/models/v2/forecast_features.json`
+- `ml/grading_forecast/price_forecasting/models/v2/forecast_metrics.json`
+- `ml/grading_forecast/price_forecasting/models/v2/naive_persistence_metrics.json`
+- `ml/grading_forecast/price_forecasting/models/v2/forecast_model_metadata.json`
+- `ml/grading_forecast/price_forecasting/models/v2/forecast_export_manifest.json`
+- `ml/grading_forecast/price_forecasting/evaluation/_outputs/v2/actual_vs_predicted.png`
+- `ml/grading_forecast/price_forecasting/evaluation/_outputs/v2/feature_importances.png`
 
 ---
 

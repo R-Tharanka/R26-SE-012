@@ -329,9 +329,7 @@ CRITICAL. Completed.
 
 ## Phase 3 — Price Forecasting V2 Baseline
 
-Status: NOT STARTED
-
-Pre-execution pipeline preparation: COMPLETE. The experiment itself has not been executed, and no V2 forecast metrics should be claimed yet.
+Status: COMPLETE
 
 ### Objective
 
@@ -391,6 +389,17 @@ Produces a defensible short-term forecasting result while avoiding fabricated Gr
 - V2 forecast metrics are recorded in `EXPERIMENT_LOG.md`.
 - `PP2_RESULTS.md` includes target justification and metrics.
 
+Completion result:
+
+- Target: National + Grade 1 + average + farm_gate + weekly.
+- Chronological split: train 162 rows, validation 34 rows, test 36 rows.
+- Naive Persistence and RandomForest were evaluated on the same 36 V2 test timestamps.
+- Naive Persistence MAE/RMSE/MAPE/R2: 16.4094 / 22.5208 / 0.8539 / 0.9045.
+- RandomForest MAE/RMSE/MAPE/R2: 82.4179 / 88.4452 / 4.1679 / -0.4736.
+- Decision: Naive Persistence outperformed RandomForest and is the stronger Phase 3 forecasting baseline.
+- V2 forecast artifacts were saved under `ml/grading_forecast/price_forecasting/models/v2/`.
+- V2 forecast plots were saved under `ml/grading_forecast/price_forecasting/evaluation/_outputs/v2/`.
+
 ### Risks
 
 - RandomForest may not outperform naive baseline.
@@ -405,7 +414,7 @@ Produces a defensible short-term forecasting result while avoiding fabricated Gr
 
 ### Estimated Priority
 
-CRITICAL.
+CRITICAL. Completed.
 
 ## Phase 4 — Limited Model Improvement
 

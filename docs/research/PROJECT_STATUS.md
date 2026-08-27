@@ -6,7 +6,7 @@ This document is the current source of truth for the PP2 recovery work for the i
 
 ## Current Phase
 
-Current phase: Phase 3 - Price Forecasting V2 Baseline
+Current phase: Phase 4 - Limited Model Improvement
 
 Phase 0, Repository and Research Audit, is complete.
 
@@ -14,7 +14,7 @@ Phase 1, Dataset V2 Preparation and Audit, is complete. Raw datasets and V1 arti
 
 Phase 2, Berry Grading V2 Baseline, is complete. The V2 MobileNetV2 model was trained on the sample-level V2 train/validation split, evaluated once on the untouched V2 test split, and exported to ONNX under V2-specific artifact paths.
 
-Phase 3 pre-execution pipeline preparation is complete. The forecasting scripts now support explicit V2 input/output paths, same-test-timestamp naive-vs-RandomForest evaluation, and dry-run validation. Phase 3 model execution is still not started.
+Phase 3, Price Forecasting V2 Baseline, is complete. Naive Persistence and RandomForest were evaluated on the same 36 chronological V2 test timestamps. Naive Persistence outperformed RandomForest on the final test period.
 
 ## Project Scope
 
@@ -64,7 +64,7 @@ The SLS 105 Part 1: 2022 reference includes visual, physical, and chemical requi
 | Berry V1 model | COMPLETED BUT OUTDATED | MobileNetV2 model exists, trained on old 360-image processed dataset. |
 | Berry V2 model | COMPLETE | MobileNetV2 V2 baseline trained, tested, and exported under `ml/grading_forecast/berry_grading/models/v2/`. |
 | Forecast V1 model | COMPLETED BUT OUTDATED | RandomForest artifact exists, trained on old processed price data through 2026-04-21. |
-| Forecast V2 pipeline | READY | Pre-execution implementation completed; no Phase 3 training/evaluation metrics have been generated yet. |
+| Forecast V2 baseline | COMPLETE | Naive Persistence and RandomForest V2 were evaluated on identical test timestamps under `ml/grading_forecast/price_forecasting/models/v2/`. |
 | Berry V2 data | PREPARED | V2 manifest, audit summary, and leakage-safe sample-level train/validation/test split were created. |
 | Price V2 data | PREPARED | V2 cleaned data, National Grade 1 average weekly target, coverage summary, and chronological split were created. |
 | EDA notebooks | NOT STARTED | Notebook folders exist only as scaffolds. |
@@ -242,9 +242,37 @@ Environment note:
 - Training/export used the project `.venv`, where TensorFlow and tf2onnx are available.
 - Native Windows TensorFlow ran on CPU; GPU support was not available in that environment.
 
+## Price Forecasting V2 Result
+
+Status: COMPLETE.
+
+The price forecasting pipeline used the authoritative V2 target:
+
+`National + Grade 1 + average + farm_gate + weekly`
+
+Phase 3 artifacts:
+
+- `ml/grading_forecast/price_forecasting/models/v2/forecast_model.joblib`
+- `ml/grading_forecast/price_forecasting/models/v2/forecast_features.json`
+- `ml/grading_forecast/price_forecasting/models/v2/forecast_metrics.json`
+- `ml/grading_forecast/price_forecasting/models/v2/naive_persistence_metrics.json`
+- `ml/grading_forecast/price_forecasting/models/v2/forecast_model_metadata.json`
+- `ml/grading_forecast/price_forecasting/models/v2/forecast_export_manifest.json`
+- `ml/grading_forecast/price_forecasting/evaluation/_outputs/v2/actual_vs_predicted.png`
+- `ml/grading_forecast/price_forecasting/evaluation/_outputs/v2/feature_importances.png`
+- `ml/grading_forecast/price_forecasting/evaluation/_outputs/v2/residuals.png`
+
+Final V2 test result:
+
+- Test prediction timestamps: 36.
+- Same timestamps for naive and RandomForest: true.
+- Feature dates before prediction dates: true.
+- Naive Persistence MAE/RMSE/MAPE/R2: 16.4094 / 22.5208 / 0.8539 / 0.9045.
+- RandomForest MAE/RMSE/MAPE/R2: 82.4179 / 88.4452 / 4.1679 / -0.4736.
+- Decision: Naive Persistence is the stronger Phase 3 forecasting baseline on the V2 test period.
+
 ## Current Blockers
 
-- V2 RandomForest and naive persistence forecasting baselines have not been run yet.
 - Backend/mobile integration has not yet been validated against the V2 ONNX artifact.
 
 ## Current Decision Record
@@ -253,11 +281,12 @@ Environment note:
 - Use V2 MobileNetV2 as the primary PP2 berry grading model.
 - Use one limited MobileNetV2 improvement only if time permits.
 - Use National Grade 1 average farm-gate weekly price as the primary forecasting target.
-- Compare naive persistence against RandomForest for PP2 forecasting.
+- Use Naive Persistence as the stronger Phase 3 forecasting baseline because it outperformed RandomForest on the V2 test period.
+- Keep V2 RandomForest as the required ML baseline and evidence that the simple method generalized better on the current short test window.
 - Do not make ARIMA, SARIMA, XGBoost, Prophet, or LSTM mandatory before PP2.
 - Do not fabricate missing Grade 2 price observations.
 - Do not manually annotate unavailable camera/background/capture metadata for PP2.
 
 ## Next Exact Action
 
-Execute Phase 3 from `docs/research/PP2_MASTER_PLAN.md`: Price Forecasting V2 Baseline. Use the explicit V2 commands from `docs/research/EXPERIMENT_LOG.md` and do not start Phase 4 or Phase 5 until Phase 3 is explicitly requested and completed.
+Optional next action from `docs/research/PP2_MASTER_PLAN.md`: Phase 4 - Limited Model Improvement. Do not start Phase 4, Phase 5, or integration until explicitly requested.

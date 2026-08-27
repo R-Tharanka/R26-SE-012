@@ -87,6 +87,16 @@ def _date_range_payload(df: pd.DataFrame) -> dict[str, str | None]:
     return {"start": str(dates.min().date()), "end": str(dates.max().date())}
 
 
+def _csv_summary(path: Path | None) -> dict[str, Any] | None:
+    if path is None or not path.exists():
+        return None
+    df = pd.read_csv(path)
+    payload: dict[str, Any] = {"rows": int(len(df))}
+    if "date" in df.columns:
+        payload.update(_date_range_payload(df))
+    return payload
+
+
 def _add_time_features(df: pd.DataFrame) -> pd.DataFrame:
     out = df.copy()
     out["month"] = out["date"].dt.month.astype(int)
@@ -212,6 +222,12 @@ def main(argv: list[str] | None = None) -> int:
         "target_csv": str(args.target_csv) if args.target_csv else None,
         "models_dir": str(models_dir),
     }
+    split_inputs = {
+        "target": _csv_summary(args.target_csv),
+        "train": _csv_summary(train_csv),
+        "validation": _csv_summary(args.validation_csv),
+        "test": _csv_summary(args.test_csv),
+    }
     dry_payload = {
         "dataset_version": args.dataset_version,
         "artifact_version": args.artifact_version,
@@ -230,6 +246,7 @@ def main(argv: list[str] | None = None) -> int:
             "min_samples_leaf": int(args.min_samples_leaf),
         },
         "paths": metadata_paths,
+        "split_inputs": split_inputs,
         "training_would_write": {
             "model": str(models_dir / "forecast_model.joblib"),
             "features": str(models_dir / "forecast_features.json"),
@@ -284,6 +301,7 @@ def main(argv: list[str] | None = None) -> int:
         "target_csv": str(args.target_csv) if args.target_csv else None,
         "target_definition": TARGET_DEFINITION,
         "split_strategy": "chronological_train_validation_test",
+        "split_inputs": split_inputs,
         "feature_spec_hash": feature_hash,
         "feature_spec": spec,
         "n_rows": int(len(feats)),
