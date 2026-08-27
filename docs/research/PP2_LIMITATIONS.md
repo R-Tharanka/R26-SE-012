@@ -79,6 +79,9 @@ Berry:
 - V1 and V2 metric differences are not directly equivalent because V2 uses a different expanded dataset and a sample-level train/validation/test methodology.
 - V2 Grade 3 remains the weakest class by F1 in the completed baseline.
 - The completed V2 model is still trained from a small dataset, so external generalization to new devices, lighting conditions, and backgrounds is not proven yet.
+- Phase 4 tested only one berry improvement: dropout 0.25 -> 0.35.
+- The Phase 4 berry dropout experiment did not improve the saved headline test metrics over the Phase 2 V2 baseline.
+- Phase 4 berry `training_history.json` was not present in the `v2_phase4` artifact directory during finalization, so exact completed epoch counts are not available from saved artifacts.
 
 Forecasting:
 
@@ -92,6 +95,9 @@ Forecasting:
 - RandomForest is a baseline ML model, not an optimized final forecasting model.
 - No hyperparameter search, advanced time-series model, or additional forecasting algorithm was evaluated in Phase 3.
 - R2 may be unstable because the test period is short and may have limited variance.
+- Phase 4 tested only one forecasting improvement: adding `lag_4`, `lag_8`, and `lag_12`.
+- Phase 4 extended-lag RandomForest improved over the Phase 3 RandomForest baseline but still did not outperform Naive Persistence.
+- The forecasting results should not be generalized beyond the current V2 dataset and 36-row test period.
 
 ## Integration Limitations
 

@@ -127,17 +127,30 @@ Evidence:
 
 ## Phase 4: Limited Model Improvement
 
-Status: NOT STARTED
+Status: COMPLETE
 
-- [ ] Confirm Phase 2 baseline is complete.
-- [ ] Confirm Phase 3 baseline is complete.
-- [ ] Select one berry improvement only.
-- [ ] Select one forecast improvement only.
-- [ ] Run improvement on same splits.
-- [ ] Compare against baseline.
-- [ ] Record result even if it does not improve.
-- [ ] Update `EXPERIMENT_LOG.md`.
-- [ ] Update `PP2_RESULTS.md`.
+- [x] Confirm Phase 2 baseline is complete.
+- [x] Confirm Phase 3 baseline is complete.
+- [x] Select one berry improvement only.
+- [x] Select one forecast improvement only.
+- [x] Run improvement on same splits.
+- [x] Compare against baseline.
+- [x] Record result even if it does not improve.
+- [x] Update `EXPERIMENT_LOG.md`.
+- [x] Update `PP2_RESULTS.md`.
+
+Phase 4 validation result: PASSED.
+
+Evidence:
+
+- Berry improvement: MobileNetV2 dropout 0.25 -> 0.35, evaluated on the same 109-image V2 test split.
+- Berry Phase 4 accuracy: 0.8073.
+- Berry Phase 4 weighted F1: 0.8076.
+- Berry Phase 4 Grade 2 precision/recall/F1: 0.7805 / 0.8889 / 0.8312.
+- Berry decision: dropout 0.35 did not improve or worsen the saved headline metrics compared with Phase 2.
+- Forecast improvement: RandomForest extended with `lag_4`, `lag_8`, and `lag_12`.
+- Phase 4 RF MAE/RMSE/MAPE/R2: 78.1641 / 84.8622 / 3.9482 / -0.3566.
+- Forecast decision: Phase 4 RF improved over Phase 3 RF, but Naive Persistence remained substantially stronger.
 
 ## Phase 5: Integration Validation
 
@@ -179,7 +192,7 @@ Day 2:
 
 Day 3:
 
-- [ ] Run Phase 4 if time permits.
+- [x] Run Phase 4 if time permits.
 - [ ] Start Phase 5.
 
 Day 4:

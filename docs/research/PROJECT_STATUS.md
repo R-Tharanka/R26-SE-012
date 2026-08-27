@@ -6,7 +6,7 @@ This document is the current source of truth for the PP2 recovery work for the i
 
 ## Current Phase
 
-Current phase: Phase 4 - Limited Model Improvement
+Current phase: Phase 5 - Integration Validation (not started)
 
 Phase 0, Repository and Research Audit, is complete.
 
@@ -15,6 +15,8 @@ Phase 1, Dataset V2 Preparation and Audit, is complete. Raw datasets and V1 arti
 Phase 2, Berry Grading V2 Baseline, is complete. The V2 MobileNetV2 model was trained on the sample-level V2 train/validation split, evaluated once on the untouched V2 test split, and exported to ONNX under V2-specific artifact paths.
 
 Phase 3, Price Forecasting V2 Baseline, is complete. Naive Persistence and RandomForest were evaluated on the same 36 chronological V2 test timestamps. Naive Persistence outperformed RandomForest on the final test period.
+
+Phase 4, Limited Model Improvement, is complete. The berry dropout experiment and forecasting extended-lag experiment were completed on the same V2 splits. Phase 5 and Phase 6 have not started.
 
 ## Project Scope
 
@@ -68,7 +70,8 @@ The SLS 105 Part 1: 2022 reference includes visual, physical, and chemical requi
 | Berry V2 data | PREPARED | V2 manifest, audit summary, and leakage-safe sample-level train/validation/test split were created. |
 | Price V2 data | PREPARED | V2 cleaned data, National Grade 1 average weekly target, coverage summary, and chronological split were created. |
 | EDA notebooks | NOT STARTED | Notebook folders exist only as scaffolds. |
-| PP2 evidence | PARTIALLY COMPLETE | Phase 1 dataset evidence and Phase 2 berry model evidence are recorded; price forecasting and integration evidence are still pending. |
+| Limited improvement | COMPLETE | Phase 4 berry dropout 0.35 and forecast extended-lag RF experiments were completed and documented. |
+| PP2 evidence | PARTIALLY COMPLETE | Phase 1-4 dataset/model evidence is recorded; integration validation and final PP2 evidence packaging remain pending. |
 
 ## Dataset Status
 
@@ -271,22 +274,60 @@ Final V2 test result:
 - RandomForest MAE/RMSE/MAPE/R2: 82.4179 / 88.4452 / 4.1679 / -0.4736.
 - Decision: Naive Persistence is the stronger Phase 3 forecasting baseline on the V2 test period.
 
+## Phase 4 Limited Improvement Result
+
+Status: COMPLETE.
+
+Berry selected improvement:
+
+- Phase 2 baseline: MobileNetV2 dropout 0.25.
+- Phase 4 experiment: MobileNetV2 dropout 0.35.
+- Dataset/split: same `berry_split_v2` sample-level train/validation/test split.
+- Final test metrics: accuracy 0.8073, macro F1 0.8068, weighted F1 0.8076.
+- Grade 2 precision/recall/F1: 0.7805 / 0.8889 / 0.8312.
+- Decision: dropout 0.35 did not improve or worsen the saved headline metrics compared with Phase 2, so the Phase 2 V2 model remains the selected PP2 berry baseline.
+
+Berry Phase 4 artifacts:
+
+- `ml/grading_forecast/berry_grading/models/v2_phase4/berry_mobilenetv2_v2_phase4_best.keras`
+- `ml/grading_forecast/berry_grading/models/v2_phase4/berry_classifier_metrics.json`
+- `ml/grading_forecast/berry_grading/models/v2_phase4/berry_model_metadata.json`
+- `ml/grading_forecast/berry_grading/evaluation/_outputs/v2_phase4/confusion_matrix.png`
+
+Forecasting selected improvement:
+
+- Phase 3 baseline: RandomForest with `lag_1`, `lag_2`, `lag_3`, rolling 3/5, date, and change features.
+- Phase 4 experiment: add `lag_4`, `lag_8`, and `lag_12`.
+- Dataset/split: same V2 National Grade 1 average weekly target and same 36 chronological V2 test timestamps.
+- Phase 4 RF MAE/RMSE/MAPE/R2: 78.1641 / 84.8622 / 3.9482 / -0.3566.
+- Decision: extended lags improved over the Phase 3 RF baseline, but did not outperform Naive Persistence.
+
+Forecasting Phase 4 artifacts:
+
+- `ml/grading_forecast/price_forecasting/models/v2_phase4/forecast_model.joblib`
+- `ml/grading_forecast/price_forecasting/models/v2_phase4/forecast_metrics.json`
+- `ml/grading_forecast/price_forecasting/models/v2_phase4/forecast_model_metadata.json`
+- `ml/grading_forecast/price_forecasting/evaluation/_outputs/v2_phase4/actual_vs_predicted.png`
+- `ml/grading_forecast/price_forecasting/evaluation/_outputs/v2_phase4/feature_importances.png`
+- `ml/grading_forecast/price_forecasting/evaluation/_outputs/v2_phase4/residuals.png`
+
 ## Current Blockers
 
-- Backend/mobile integration has not yet been validated against the V2 ONNX artifact.
+- Backend/mobile integration has not yet been validated against the V2/Phase 4 artifacts.
 
 ## Current Decision Record
 
 - Use V1 MobileNetV2 as historical baseline only.
 - Use V2 MobileNetV2 as the primary PP2 berry grading model.
-- Use one limited MobileNetV2 improvement only if time permits.
+- Phase 4 berry dropout 0.35 did not improve the saved test metrics; keep the Phase 2 V2 MobileNetV2 model as the selected PP2 berry baseline.
 - Use National Grade 1 average farm-gate weekly price as the primary forecasting target.
 - Use Naive Persistence as the stronger Phase 3 forecasting baseline because it outperformed RandomForest on the V2 test period.
 - Keep V2 RandomForest as the required ML baseline and evidence that the simple method generalized better on the current short test window.
+- Phase 4 extended-lag RandomForest improved over the Phase 3 RandomForest baseline, but still did not beat Naive Persistence.
 - Do not make ARIMA, SARIMA, XGBoost, Prophet, or LSTM mandatory before PP2.
 - Do not fabricate missing Grade 2 price observations.
 - Do not manually annotate unavailable camera/background/capture metadata for PP2.
 
 ## Next Exact Action
 
-Optional next action from `docs/research/PP2_MASTER_PLAN.md`: Phase 4 - Limited Model Improvement. Do not start Phase 4, Phase 5, or integration until explicitly requested.
+Next action from `docs/research/PP2_MASTER_PLAN.md`: Phase 5 - Integration Validation. Do not start Phase 5 or Phase 6 until explicitly requested.

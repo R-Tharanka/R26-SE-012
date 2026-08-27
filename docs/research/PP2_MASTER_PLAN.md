@@ -418,7 +418,7 @@ CRITICAL. Completed.
 
 ## Phase 4 — Limited Model Improvement
 
-Status: NOT STARTED
+Status: COMPLETE
 
 ### Objective
 
@@ -436,18 +436,13 @@ Shows research iteration beyond "trained one model" while respecting the four-da
 
 ### Exact Tasks
 
-Berry options, choose one:
+Berry selected improvement:
 
-- Tune augmentation strength.
-- Tune dropout.
-- Tune learning rate.
-- Tune number of fine-tuned MobileNetV2 layers.
+- Tune dropout only: Phase 2 dropout 0.25 -> Phase 4 dropout 0.35.
 
-Forecasting options, choose one:
+Forecasting selected improvement:
 
-- Add lag windows such as lag_4, lag_8, lag_12.
-- Add rolling_mean_8 or rolling_std_8.
-- Tune RandomForest n_estimators, max_depth, min_samples_leaf.
+- Add extended historical lag features: `lag_4`, `lag_8`, and `lag_12`.
 
 ### Expected Inputs
 
@@ -455,13 +450,16 @@ Forecasting options, choose one:
 
 ### Expected Outputs
 
-- One improved berry experiment entry.
-- One improved forecast experiment entry.
-- Updated comparison table.
+- Completed berry dropout experiment entry.
+- Completed forecast extended-lag experiment entry.
+- Updated baseline vs improvement comparison tables.
 
 ### Files/Scripts Likely To Be Involved
 
-- Existing training/evaluation scripts with command-line parameters or minimal modifications.
+- `ml/grading_forecast/berry_grading/training/train_berry_classifier.py`
+- `ml/grading_forecast/berry_grading/training/evaluate_berry_classifier.py`
+- `ml/grading_forecast/price_forecasting/training/train_forecast_model_phase4.py`
+- `ml/grading_forecast/price_forecasting/training/evaluate_forecast_model_phase4.py`
 
 ### Validation Criteria
 
@@ -473,6 +471,17 @@ Forecasting options, choose one:
 
 - `EXPERIMENT_LOG.md` and `PP2_RESULTS.md` contain baseline vs improvement comparisons.
 
+Completion result:
+
+- Berry improvement: MobileNetV2 dropout changed from 0.25 to 0.35 and evaluated on the same untouched V2 test split.
+- Berry Phase 4 metrics: accuracy 0.8073, macro F1 0.8068, weighted F1 0.8076, Grade 2 precision/recall/F1 0.7805 / 0.8889 / 0.8312.
+- Berry conclusion: dropout 0.35 did not improve or worsen the saved headline test metrics compared with the Phase 2 V2 baseline.
+- Forecasting improvement: RandomForest extended with `lag_4`, `lag_8`, and `lag_12`.
+- Forecast Phase 4 RandomForest MAE/RMSE/MAPE/R2: 78.1641 / 84.8622 / 3.9482 / -0.3566.
+- Forecast conclusion: extended lags improved over the Phase 3 RandomForest baseline, but did not beat Naive Persistence.
+- Berry artifacts: `ml/grading_forecast/berry_grading/models/v2_phase4/` and `ml/grading_forecast/berry_grading/evaluation/_outputs/v2_phase4/`.
+- Forecast artifacts: `ml/grading_forecast/price_forecasting/models/v2_phase4/` and `ml/grading_forecast/price_forecasting/evaluation/_outputs/v2_phase4/`.
+
 ### Risks
 
 - Improvement does not improve.
@@ -480,11 +489,12 @@ Forecasting options, choose one:
 
 ### Fallback/Contingency
 
-- Present the baseline as the selected PP2 model and list improvement as post-PP2 work.
+- Present the Phase 2 berry baseline as the selected PP2 berry model because the dropout change did not improve test metrics.
+- Present Naive Persistence as the strongest PP2 forecasting method because both RandomForest variants underperformed it.
 
 ### Estimated Priority
 
-HIGH, not critical.
+HIGH. Completed.
 
 ## Phase 5 — Integration Validation
 

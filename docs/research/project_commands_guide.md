@@ -1,4 +1,4 @@
-# Project Commands Guide (Backend + Phase 2 + Phase 3)
+# Project Commands Guide (Backend + PP2 Model Phases)
 
 This guide is a **PowerShell-first** reference for running the backend, rebuilding datasets, training real models, and verifying everything works.
 
@@ -8,6 +8,7 @@ PP2 status update, 2026-08-27:
 - Use explicit V2 paths for any Berry V2 command.
 - Bare no-argument berry commands may target historical V1 artifacts.
 - Price Forecasting V2 baseline training/evaluation is complete; Naive Persistence outperformed RandomForest on the V2 test period.
+- Phase 4 limited improvement is complete; use explicit `v2_phase4` paths to reproduce it.
 
 ---
 
@@ -267,6 +268,61 @@ This evaluation is prepared to compare actual prices, naive persistence predicti
 ```powershell
 .\.venv\Scripts\python.exe ml/grading_forecast/price_forecasting/inference/predict_future_price.py --data-csv data/processed/grading_forecast/price_v2/national_grade1_average_weekly.csv --models-dir ml/grading_forecast/price_forecasting/models/v2 --require-v2-paths
 ```
+
+### 4.9 Phase 4 - Berry limited improvement
+
+Selected change:
+
+- Dropout changed from 0.25 to 0.35.
+- Same V2 sample-level train/validation/test split as Phase 2.
+- Do not use this command for Phase 2 baseline reproduction; it writes to `v2_phase4`.
+
+Training reproduction command:
+
+```powershell
+.\.venv\Scripts\python.exe ml/grading_forecast/berry_grading/training/train_berry_classifier.py --train-dir data/processed/grading_forecast/berry_split_v2/train --val-dir data/processed/grading_forecast/berry_split_v2/val --output-dir ml/grading_forecast/berry_grading/models/v2_phase4 --model-filename berry_mobilenetv2_v2_phase4_best.keras --metadata-version v2_phase4 --batch-size 16 --stage1-epochs 15 --stage2-epochs 5 --stage1-lr 1e-3 --stage2-lr 1e-5 --patience 3 --dropout 0.35
+```
+
+Evaluation command used during Phase 4 finalization:
+
+```powershell
+.\.venv\Scripts\python.exe ml/grading_forecast/berry_grading/training/evaluate_berry_classifier.py --model ml/grading_forecast/berry_grading/models/v2_phase4/berry_mobilenetv2_v2_phase4_best.keras --models-dir ml/grading_forecast/berry_grading/models/v2_phase4 --data-dir data/processed/grading_forecast/berry_split_v2/test --output-dir ml/grading_forecast/berry_grading/evaluation/_outputs/v2_phase4 --use-full-data-dir --split-name test
+```
+
+Completed Phase 4 berry result:
+
+- Accuracy: 0.8073
+- Macro F1: 0.8068
+- Weighted F1: 0.8076
+- Grade 2 precision/recall/F1: 0.7805 / 0.8889 / 0.8312
+- Decision: dropout 0.35 did not improve the saved headline metrics compared with Phase 2.
+
+### 4.10 Phase 4 - Forecasting limited improvement
+
+Selected change:
+
+- Add `lag_4`, `lag_8`, and `lag_12`.
+- Same V2 National Grade 1 average weekly target and same 36 test timestamps as Phase 3.
+- Do not rerun this unless intentionally reproducing Phase 4; it writes to `v2_phase4`.
+
+Training command used:
+
+```powershell
+.\.venv\Scripts\python.exe ml/grading_forecast/price_forecasting/training/train_forecast_model_phase4.py --train-csv data/processed/grading_forecast/price_v2/forecast_train.csv --validation-csv data/processed/grading_forecast/price_v2/forecast_validation.csv --test-csv data/processed/grading_forecast/price_v2/forecast_test.csv --target-csv data/processed/grading_forecast/price_v2/national_grade1_average_weekly.csv --models-dir ml/grading_forecast/price_forecasting/models/v2_phase4 --dataset-version v2 --artifact-version v2_phase4 --seed 42 --n-estimators 400 --min-samples-leaf 1 --n-jobs -1 --require-v2-paths
+```
+
+Evaluation command used:
+
+```powershell
+.\.venv\Scripts\python.exe ml/grading_forecast/price_forecasting/training/evaluate_forecast_model_phase4.py --target-csv data/processed/grading_forecast/price_v2/national_grade1_average_weekly.csv --test-csv data/processed/grading_forecast/price_v2/forecast_test.csv --models-dir ml/grading_forecast/price_forecasting/models/v2_phase4 --phase3-models-dir ml/grading_forecast/price_forecasting/models/v2 --output-dir ml/grading_forecast/price_forecasting/evaluation/_outputs/v2_phase4 --split-name test --require-v2-paths
+```
+
+Completed Phase 4 forecasting result:
+
+- Naive Persistence MAE/RMSE/MAPE/R2: 16.4094 / 22.5208 / 0.8539 / 0.9045
+- Phase 3 RF MAE/RMSE/MAPE/R2: 82.4179 / 88.4452 / 4.1679 / -0.4736
+- Phase 4 extended-lag RF MAE/RMSE/MAPE/R2: 78.1641 / 84.8622 / 3.9482 / -0.3566
+- Decision: extended lags improved over Phase 3 RF, but Naive Persistence remained stronger.
 
 ---
 

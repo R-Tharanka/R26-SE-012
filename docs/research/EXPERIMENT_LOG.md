@@ -34,10 +34,10 @@ This document records dataset versions, model experiments, metrics, observations
 | BERRY-V1-MNV2 | COMPLETE | berry_v1 | image-level/dir train-val split | MobileNetV2 | Historical baseline | 224x224, transfer learning, augmentation, fine-tune top layers | Accuracy 0.7778, weighted F1 0.7447 | `ml/grading_forecast/berry_grading/models/berry_classifier_metrics.json` | Grade 2 recall was weak at 0.3333. No separate test split. | Keep as historical baseline only. |
 | PRICE-V1-RF | COMPLETE | price_v1 | chronological train-test | RandomForestRegressor | Historical forecasting baseline | lag_1..3, rolling 3/5, time features | Test MAE 45.8347, RMSE 47.7556, R2 -6.1315 | `ml/grading_forecast/price_forecasting/models/forecast_metrics.json` | Weak future generalization despite strong train metrics. | Keep as historical baseline only. |
 | BERRY-V2-MNV2 | COMPLETE | berry_v2 | sample-level train-val-test | MobileNetV2 | Primary PP2 berry baseline | ImageNet, 224x224 RGB, batch 16, Adam, sparse categorical cross-entropy, stage1 15 max epochs LR 0.001, stage2 5 max epochs LR 0.00001 | Accuracy 0.8073, macro F1 0.8068, weighted F1 0.8076, Grade 2 precision 0.7805, Grade 2 recall 0.8889, Grade 2 F1 0.8312 | `ml/grading_forecast/berry_grading/models/v2/` | Trained on V2 train/val only, evaluated once on untouched V2 test set. ONNX export succeeded. | Select as PP2 berry baseline. |
-| BERRY-V2-IMPROVE-1 | OPTIONAL | berry_v2 | same as BERRY-V2-MNV2 | MobileNetV2 tuned | Limited improvement | PENDING | PENDING | PENDING | Run only after baseline. | PENDING |
+| BERRY-V2-IMPROVE-1 | COMPLETE | berry_v2 | same as BERRY-V2-MNV2 | MobileNetV2 dropout 0.35 | Limited berry improvement | Same as Phase 2 baseline except dropout 0.25 -> 0.35 | Accuracy 0.8073, macro F1 0.8068, weighted F1 0.8076, Grade 2 precision 0.7805, Grade 2 recall 0.8889, Grade 2 F1 0.8312 | `ml/grading_forecast/berry_grading/models/v2_phase4/` | Saved headline metrics matched Phase 2 baseline; model hash differs from Phase 2. | Do not replace Phase 2 baseline based on this result. |
 | PRICE-V2-NAIVE | COMPLETE | price_v2 | chronological train-val-test | Naive persistence | Required forecast baseline | prediction(t+1) = observed price(t) | MAE 16.4094, RMSE 22.5208, MAPE 0.8539, R2 0.9045 | `ml/grading_forecast/price_forecasting/models/v2/naive_persistence_metrics.json` | Evaluated on same 36 V2 test timestamps as RF. | Selected as stronger Phase 3 forecast baseline. |
 | PRICE-V2-RF | COMPLETE | price_v2 | chronological train-val-test | RandomForestRegressor | Primary PP2 ML forecast baseline | 400 trees, random_state 42, lag/rolling past-only features | MAE 82.4179, RMSE 88.4452, MAPE 4.1679, R2 -0.4736 | `ml/grading_forecast/price_forecasting/models/v2/` | Underperformed naive persistence on the V2 test period. | Keep as required ML baseline; do not claim superiority. |
-| PRICE-V2-IMPROVE-1 | OPTIONAL | price_v2 | same as PRICE-V2-RF | Tuned RandomForest | Limited improvement | PENDING | PENDING | PENDING | Run only after baseline. | PENDING |
+| PRICE-V2-IMPROVE-1 | COMPLETE | price_v2 | same as PRICE-V2-RF | Extended-lag RandomForest | Limited forecast improvement | Phase 3 RF plus `lag_4`, `lag_8`, `lag_12` | MAE 78.1641, RMSE 84.8622, MAPE 3.9482, R2 -0.3566 | `ml/grading_forecast/price_forecasting/models/v2_phase4/` | Improved over Phase 3 RF, but still underperformed Naive Persistence. | Record as limited RF improvement; keep Naive Persistence as strongest forecast baseline. |
 
 ## Required Metric Fields
 
@@ -344,3 +344,157 @@ Limitations:
 - Test period is short: 36 prediction timestamps.
 - No hyperparameter search or advanced time-series model was performed.
 - Initial write attempts for training/evaluation/export hit permission errors and were rerun with permission escalation using the same commands and methodology.
+
+### BERRY-V2-IMPROVE-1
+
+Date: 2026-08-27.
+
+Dataset version: `berry_v2`.
+
+Split version: `data/processed/grading_forecast/berry_split_v2_manifest.csv`.
+
+Objective:
+
+Test one limited berry grading improvement by changing only dropout from the Phase 2 baseline value of 0.25 to 0.35.
+
+Configuration:
+
+- Model: MobileNetV2 transfer learning.
+- ImageNet initialization: true.
+- Input: 224x224 RGB.
+- Batch size: 16.
+- Seed: 42.
+- Stage 1 maximum epochs: 15, learning rate 0.001.
+- Stage 2 maximum epochs: 5, learning rate 0.00001.
+- Fine-tuned MobileNetV2 layers: final 20 layers.
+- Selected improvement variable: dropout 0.35.
+- Same V2 train/validation/test split as Phase 2.
+
+Training command for reproduction:
+
+```powershell
+.\.venv\Scripts\python.exe ml/grading_forecast/berry_grading/training/train_berry_classifier.py --train-dir data/processed/grading_forecast/berry_split_v2/train --val-dir data/processed/grading_forecast/berry_split_v2/val --output-dir ml/grading_forecast/berry_grading/models/v2_phase4 --model-filename berry_mobilenetv2_v2_phase4_best.keras --metadata-version v2_phase4 --batch-size 16 --stage1-epochs 15 --stage2-epochs 5 --stage1-lr 1e-3 --stage2-lr 1e-5 --patience 3 --dropout 0.35
+```
+
+Evaluation command:
+
+```powershell
+.\.venv\Scripts\python.exe ml/grading_forecast/berry_grading/training/evaluate_berry_classifier.py --model ml/grading_forecast/berry_grading/models/v2_phase4/berry_mobilenetv2_v2_phase4_best.keras --models-dir ml/grading_forecast/berry_grading/models/v2_phase4 --data-dir data/processed/grading_forecast/berry_split_v2/test --output-dir ml/grading_forecast/berry_grading/evaluation/_outputs/v2_phase4 --use-full-data-dir --split-name test
+```
+
+Metrics:
+
+- Accuracy: 0.8073.
+- Grade 1 precision/recall/F1: 0.9063 / 0.7632 / 0.8286.
+- Grade 2 precision/recall/F1: 0.7805 / 0.8889 / 0.8312.
+- Grade 3 precision/recall/F1: 0.7500 / 0.7714 / 0.7606.
+- Macro precision/recall/F1: 0.8122 / 0.8078 / 0.8068.
+- Weighted precision/recall/F1: 0.8145 / 0.8073 / 0.8076.
+
+Artifacts:
+
+- `ml/grading_forecast/berry_grading/models/v2_phase4/berry_mobilenetv2_v2_phase4_best.keras`
+- `ml/grading_forecast/berry_grading/models/v2_phase4/class_names.json`
+- `ml/grading_forecast/berry_grading/models/v2_phase4/berry_classifier_metrics.json`
+- `ml/grading_forecast/berry_grading/models/v2_phase4/berry_model_metadata.json`
+- `ml/grading_forecast/berry_grading/evaluation/_outputs/v2_phase4/confusion_matrix.png`
+
+Observation:
+
+The dropout 0.35 model produced the same saved headline test metrics and confusion matrix as the Phase 2 V2 baseline. The Phase 4 model file has a different SHA256 hash from the Phase 2 model, so it is a separate artifact, but it did not produce measurable test-metric improvement.
+
+Decision:
+
+Record the dropout experiment as a valid limited Phase 4 result, but keep `BERRY-V2-MNV2` as the selected PP2 berry grading baseline.
+
+Limitations:
+
+- Only one berry improvement was tested.
+- No hyperparameter search was performed.
+- `training_history.json` was not present in the Phase 4 berry artifact directory during finalization, so exact completed epoch counts are unavailable from saved artifacts.
+
+### PRICE-V2-IMPROVE-1
+
+Date: 2026-08-27.
+
+Dataset version: `price_v2`.
+
+Target definition: National + Grade 1 + average + farm_gate + weekly.
+
+Objective:
+
+Test one limited forecasting improvement by adding longer historical lag features to the Phase 3 RandomForest baseline.
+
+Configuration:
+
+- Model: RandomForestRegressor.
+- `n_estimators`: 400.
+- `random_state`: 42.
+- `n_jobs`: -1.
+- `max_depth`: None.
+- `min_samples_leaf`: 1.
+- Added features: `lag_4`, `lag_8`, `lag_12`.
+- Same 36 V2 test timestamps as Phase 3.
+
+Feature list:
+
+- `lag_1`
+- `lag_2`
+- `lag_3`
+- `lag_4`
+- `lag_8`
+- `lag_12`
+- `rolling_mean_3`
+- `rolling_std_3`
+- `rolling_mean_5`
+- `rolling_std_5`
+- `month`
+- `week_of_year`
+- `price_change_1w`
+- `price_change_pct_1w`
+
+Training command:
+
+```powershell
+.\.venv\Scripts\python.exe ml/grading_forecast/price_forecasting/training/train_forecast_model_phase4.py --train-csv data/processed/grading_forecast/price_v2/forecast_train.csv --validation-csv data/processed/grading_forecast/price_v2/forecast_validation.csv --test-csv data/processed/grading_forecast/price_v2/forecast_test.csv --target-csv data/processed/grading_forecast/price_v2/national_grade1_average_weekly.csv --models-dir ml/grading_forecast/price_forecasting/models/v2_phase4 --dataset-version v2 --artifact-version v2_phase4 --seed 42 --n-estimators 400 --min-samples-leaf 1 --n-jobs -1 --require-v2-paths
+```
+
+Evaluation command:
+
+```powershell
+.\.venv\Scripts\python.exe ml/grading_forecast/price_forecasting/training/evaluate_forecast_model_phase4.py --target-csv data/processed/grading_forecast/price_v2/national_grade1_average_weekly.csv --test-csv data/processed/grading_forecast/price_v2/forecast_test.csv --models-dir ml/grading_forecast/price_forecasting/models/v2_phase4 --phase3-models-dir ml/grading_forecast/price_forecasting/models/v2 --output-dir ml/grading_forecast/price_forecasting/evaluation/_outputs/v2_phase4 --split-name test --require-v2-paths
+```
+
+Final test metrics:
+
+| Method | MAE | RMSE | MAPE | R2 |
+| --- | ---: | ---: | ---: | ---: |
+| Naive Persistence | 16.4094 | 22.5208 | 0.8539 | 0.9045 |
+| Phase 3 RandomForest | 82.4179 | 88.4452 | 4.1679 | -0.4736 |
+| Phase 4 Extended-Lag RandomForest | 78.1641 | 84.8622 | 3.9482 | -0.3566 |
+
+Artifacts:
+
+- `ml/grading_forecast/price_forecasting/models/v2_phase4/forecast_model.joblib`
+- `ml/grading_forecast/price_forecasting/models/v2_phase4/forecast_features.json`
+- `ml/grading_forecast/price_forecasting/models/v2_phase4/forecast_metrics.json`
+- `ml/grading_forecast/price_forecasting/models/v2_phase4/naive_persistence_metrics.json`
+- `ml/grading_forecast/price_forecasting/models/v2_phase4/forecast_model_metadata.json`
+- `ml/grading_forecast/price_forecasting/evaluation/_outputs/v2_phase4/actual_vs_predicted.png`
+- `ml/grading_forecast/price_forecasting/evaluation/_outputs/v2_phase4/feature_importances.png`
+- `ml/grading_forecast/price_forecasting/evaluation/_outputs/v2_phase4/residuals.png`
+
+Observation:
+
+The extended-lag RandomForest improved over the Phase 3 RandomForest baseline on MAE, RMSE, MAPE, and R2. However, Naive Persistence remained much stronger on the same 36 test timestamps.
+
+Decision:
+
+Record the extended-lag result as a valid limited RF improvement, but keep Naive Persistence as the strongest PP2 forecasting method for the current V2 test period.
+
+Limitations:
+
+- Only one forecasting improvement was tested.
+- Missing calendar weeks remain; lags represent previous available observations.
+- Test period contains only 36 prediction timestamps.
+- Grade 2 forecasting remains out of scope.

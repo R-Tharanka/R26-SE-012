@@ -17,6 +17,9 @@ PP2 evidence update, 2026-08-27:
 - The old 360-image processed berry dataset and root-level model artifacts are historical V1 artifacts only.
 - Price Forecasting V2 baseline training/evaluation is complete.
 - Naive Persistence outperformed RandomForest on the V2 forecasting test period.
+- Phase 4 limited improvement is complete.
+- Berry Phase 4 changed only dropout from 0.25 to 0.35 and did not improve saved V2 test metrics.
+- Forecasting Phase 4 added `lag_4`, `lag_8`, and `lag_12`; it improved over Phase 3 RandomForest but still underperformed Naive Persistence.
 
 ---
 
@@ -248,6 +251,53 @@ V2 artifacts:
 - `ml/grading_forecast/price_forecasting/evaluation/_outputs/v2/actual_vs_predicted.png`
 - `ml/grading_forecast/price_forecasting/evaluation/_outputs/v2/feature_importances.png`
 
+### 5.3 Phase 4 limited improvement evaluation
+
+Berry grading limited improvement:
+
+- Selected change: dropout 0.25 -> 0.35.
+- Dataset/split: same `berry_split_v2` sample-level train/validation/test split.
+- Test set: `data/processed/grading_forecast/berry_split_v2/test/`.
+- Test images: 109.
+- Accuracy: 0.8073.
+- Macro F1: 0.8068.
+- Weighted F1: 0.8076.
+- Grade 2 precision/recall/F1: 0.7805 / 0.8889 / 0.8312.
+- Decision: the dropout 0.35 experiment did not improve or worsen the saved headline metrics compared with the Phase 2 V2 baseline.
+
+Berry Phase 4 artifacts:
+
+- `ml/grading_forecast/berry_grading/models/v2_phase4/berry_mobilenetv2_v2_phase4_best.keras`
+- `ml/grading_forecast/berry_grading/models/v2_phase4/berry_classifier_metrics.json`
+- `ml/grading_forecast/berry_grading/models/v2_phase4/berry_model_metadata.json`
+- `ml/grading_forecast/berry_grading/evaluation/_outputs/v2_phase4/confusion_matrix.png`
+
+Forecasting limited improvement:
+
+- Selected change: add `lag_4`, `lag_8`, and `lag_12`.
+- Dataset/split: same V2 National Grade 1 average target and same 36 chronological test timestamps.
+- Past-only feature logic preserved.
+
+| Model | MAE | RMSE | MAPE | R2 |
+| --- | ---: | ---: | ---: | ---: |
+| Naive Persistence | 16.4094 | 22.5208 | 0.8539 | 0.9045 |
+| Phase 3 RandomForest | 82.4179 | 88.4452 | 4.1679 | -0.4736 |
+| Phase 4 Extended-Lag RandomForest | 78.1641 | 84.8622 | 3.9482 | -0.3566 |
+
+Forecasting Phase 4 artifacts:
+
+- `ml/grading_forecast/price_forecasting/models/v2_phase4/forecast_model.joblib`
+- `ml/grading_forecast/price_forecasting/models/v2_phase4/forecast_features.json`
+- `ml/grading_forecast/price_forecasting/models/v2_phase4/forecast_metrics.json`
+- `ml/grading_forecast/price_forecasting/models/v2_phase4/forecast_model_metadata.json`
+- `ml/grading_forecast/price_forecasting/evaluation/_outputs/v2_phase4/actual_vs_predicted.png`
+- `ml/grading_forecast/price_forecasting/evaluation/_outputs/v2_phase4/feature_importances.png`
+- `ml/grading_forecast/price_forecasting/evaluation/_outputs/v2_phase4/residuals.png`
+
+Phase 4 conclusion:
+
+The berry dropout change did not improve the saved test metrics. The forecasting extended-lag change improved over the Phase 3 RandomForest baseline, but Naive Persistence remained the strongest forecasting result on the V2 test period.
+
 ---
 
 ## 6) Model Limitations (Must Be Stated)
@@ -359,7 +409,7 @@ Prepared forecasting V2 commands:
 .\.venv\Scripts\python.exe ml/grading_forecast/price_forecasting/inference/predict_future_price.py --data-csv data/processed/grading_forecast/price_v2/national_grade1_average_weekly.csv --models-dir ml/grading_forecast/price_forecasting/models/v2 --require-v2-paths
 ```
 
-Warning: Phase 3 V2 execution has not run yet. Do not report V2 forecast metrics until the training and evaluation commands are executed and artifacts exist.
+Warning: Phase 3 V2 execution has already run. Rerun these commands only if intentionally reproducing the same baseline, and keep all outputs under explicit V2 paths.
 
 ---
 

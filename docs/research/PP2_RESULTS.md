@@ -302,7 +302,7 @@ Historical comparison:
 | --- | --- | --- | ---: | ---: | ---: | ---: | --- |
 | V1 MobileNetV2 | berry_v1 | legacy train-val | 0.7778 | 0.7447 | 0.7447 | 0.3333 | Historical baseline |
 | V2 MobileNetV2 | berry_v2 | sample-level train-val-test | 0.8073 | 0.8068 | 0.8076 | 0.8889 | Selected PP2 berry baseline |
-| V2 limited improvement | berry_v2 | same split | PENDING | PENDING | PENDING | PENDING | Optional |
+| V2 dropout 0.35 | berry_v2 | same sample-level test split | 0.8073 | 0.8068 | 0.8076 | 0.8889 | Limited Phase 4 experiment; no metric improvement |
 
 Interpretation:
 
@@ -354,11 +354,76 @@ Final comparison:
 | --- | --- | --- | ---: | ---: | ---: | ---: | --- |
 | Naive persistence | National Grade 1 average | 36 identical test timestamps | 16.4094 | 22.5208 | 0.8539 | 0.9045 | Stronger Phase 3 baseline |
 | RandomForest | National Grade 1 average | 36 identical test timestamps | 82.4179 | 88.4452 | 4.1679 | -0.4736 | Required ML baseline, did not outperform naive |
-| Limited improvement | National Grade 1 average | same test | PENDING | PENDING | PENDING | PENDING | Optional |
+| Extended-lag RandomForest | National Grade 1 average | same 36 test timestamps | 78.1641 | 84.8622 | 3.9482 | -0.3566 | Improved over Phase 3 RF, but not over naive |
 
 Interpretation:
 
 Naive Persistence outperformed RandomForest on every final V2 test metric. This does not invalidate the experiment; it is the Phase 3 finding. For PP2, the defensible conclusion is that the simple persistence baseline generalizes better than the current RandomForest configuration on this short and mostly stable test period.
+
+## Phase 4 Limited Improvement Results
+
+Status: COMPLETE.
+
+### Berry Limited Improvement
+
+Selected change:
+
+- Phase 2 baseline dropout: 0.25.
+- Phase 4 dropout: 0.35.
+- All other core settings remained aligned with the Phase 2 MobileNetV2 baseline.
+- Evaluation used the same untouched `berry_split_v2/test` directory with 109 images.
+
+| Model | Accuracy | Macro F1 | Weighted F1 | Grade 2 Precision | Grade 2 Recall | Grade 2 F1 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Phase 2 V2 MobileNetV2 | 0.8073 | 0.8068 | 0.8076 | 0.7805 | 0.8889 | 0.8312 |
+| Phase 4 Dropout 0.35 | 0.8073 | 0.8068 | 0.8076 | 0.7805 | 0.8889 | 0.8312 |
+
+Phase 4 per-class berry metrics:
+
+| Class | Precision | Recall | F1 | Support |
+| --- | ---: | ---: | ---: | ---: |
+| Grade 1 | 0.9063 | 0.7632 | 0.8286 | 38 |
+| Grade 2 | 0.7805 | 0.8889 | 0.8312 | 36 |
+| Grade 3 | 0.7500 | 0.7714 | 0.7606 | 35 |
+
+Berry interpretation:
+
+The dropout 0.35 experiment did not improve or worsen the saved headline test metrics compared with the Phase 2 baseline. This is still a valid Phase 4 finding because the experiment used the same leakage-safe split and records that this limited change did not produce measurable benefit on the V2 test set.
+
+Berry Phase 4 artifacts:
+
+- `ml/grading_forecast/berry_grading/models/v2_phase4/berry_mobilenetv2_v2_phase4_best.keras`
+- `ml/grading_forecast/berry_grading/models/v2_phase4/berry_classifier_metrics.json`
+- `ml/grading_forecast/berry_grading/models/v2_phase4/berry_model_metadata.json`
+- `ml/grading_forecast/berry_grading/evaluation/_outputs/v2_phase4/confusion_matrix.png`
+
+### Forecasting Limited Improvement
+
+Selected change:
+
+- Phase 3 RandomForest baseline features plus `lag_4`, `lag_8`, and `lag_12`.
+- Same V2 National Grade 1 average weekly target.
+- Same 36 V2 test timestamps.
+- Past-only feature construction preserved.
+
+| Model | MAE | RMSE | MAPE | R2 |
+| --- | ---: | ---: | ---: | ---: |
+| Naive Persistence | 16.4094 | 22.5208 | 0.8539 | 0.9045 |
+| Phase 3 RandomForest | 82.4179 | 88.4452 | 4.1679 | -0.4736 |
+| Phase 4 Extended-Lag RandomForest | 78.1641 | 84.8622 | 3.9482 | -0.3566 |
+
+Forecasting interpretation:
+
+The Phase 4 extended-lag RandomForest improved over the Phase 3 RandomForest baseline on all four metrics. However, Naive Persistence remained substantially stronger on the same test period. Therefore, the limited forecasting improvement did not produce the best forecasting model for PP2; it shows a modest RF improvement but confirms the simple persistence baseline as the strongest current forecasting result.
+
+Forecasting Phase 4 artifacts:
+
+- `ml/grading_forecast/price_forecasting/models/v2_phase4/forecast_model.joblib`
+- `ml/grading_forecast/price_forecasting/models/v2_phase4/forecast_metrics.json`
+- `ml/grading_forecast/price_forecasting/models/v2_phase4/forecast_model_metadata.json`
+- `ml/grading_forecast/price_forecasting/evaluation/_outputs/v2_phase4/actual_vs_predicted.png`
+- `ml/grading_forecast/price_forecasting/evaluation/_outputs/v2_phase4/feature_importances.png`
+- `ml/grading_forecast/price_forecasting/evaluation/_outputs/v2_phase4/residuals.png`
 
 ## Integration Evidence
 
