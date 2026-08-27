@@ -1,0 +1,26 @@
+{
+  "exported_at": "2026-08-27T05:29:07+00:00",
+  "git_sha": "2bf0e6ef99d94feeb797cb33d69af9940a817c62",
+  "keras_model_path": "ml\\grading_forecast\\berry_grading\\models\\v2\\berry_mobilenetv2_v2_best.keras",
+  "onnx_model_path": "ml\\grading_forecast\\berry_grading\\models\\v2\\berry_mobilenetv2_v2_best.onnx",
+  "opset": 13,
+  "inputs": [
+    {
+      "name": "image",
+      "dtype": "float32",
+      "shape": [
+        null,
+        224,
+        224,
+        3
+      ]
+    }
+  ],
+  "outputs": [
+    {
+      "name": "probs",
+      "note": "Model output probabilities (softmax) if exported as such."
+    }
+  ],
+  "onnx_graph_name": "tf2onnx"
+}
