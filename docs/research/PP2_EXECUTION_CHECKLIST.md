@@ -55,7 +55,7 @@ Phase 1 validation result: PASSED.
 
 ## Phase 2: Berry Grading V2 Baseline
 
-Status: READY TO TRAIN
+Status: COMPLETE
 
 - [x] Confirm V2 sample-level split exists.
 - [x] Make training script accept explicit V2 train and validation directories.
@@ -64,16 +64,30 @@ Status: READY TO TRAIN
 - [x] Make exporter support explicit V2 Keras, ONNX, and metadata paths.
 - [x] Make inference resolve class names beside an explicit model path.
 - [x] Run lightweight dry-run validation without training.
-- [ ] Train MobileNetV2 baseline on V2 train split.
-- [ ] Use validation split for early stopping/tuning.
-- [ ] Evaluate on V2 test split.
-- [ ] Save metrics JSON.
-- [ ] Save confusion matrix.
-- [ ] Save training curves.
-- [ ] Compare against V1 MobileNetV2.
-- [ ] Inspect Grade 2 recall.
-- [ ] Update `EXPERIMENT_LOG.md`.
-- [ ] Update `PP2_RESULTS.md`.
+- [x] Train MobileNetV2 baseline on V2 train split.
+- [x] Use validation split for early stopping/tuning.
+- [x] Evaluate on V2 test split.
+- [x] Save metrics JSON.
+- [x] Save confusion matrix.
+- [x] Save training curves.
+- [x] Export V2 ONNX model.
+- [x] Save V2 ONNX metadata.
+- [x] Compare against V1 MobileNetV2 as historical reference.
+- [x] Inspect Grade 2 recall.
+- [x] Update `EXPERIMENT_LOG.md`.
+- [x] Update `PP2_RESULTS.md`.
+
+Phase 2 validation result: PASSED.
+
+Evidence:
+
+- V2 Keras model: `ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.keras`
+- V2 ONNX model: `ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.onnx`
+- V2 metrics: `ml/grading_forecast/berry_grading/models/v2/berry_classifier_metrics.json`
+- V2 confusion matrix: `ml/grading_forecast/berry_grading/evaluation/_outputs/v2/confusion_matrix.png`
+- V2 test accuracy: 0.8073.
+- V2 weighted F1: 0.8076.
+- V2 Grade 2 recall: 0.8889.
 
 ## Phase 3: Price Forecasting V2 Baseline
 
@@ -140,7 +154,7 @@ Day 1:
 
 Day 2:
 
-- [ ] Finish Phase 2 baseline.
+- [x] Finish Phase 2 baseline.
 - [ ] Finish Phase 3 baseline.
 
 Day 3:

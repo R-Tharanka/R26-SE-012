@@ -32,7 +32,7 @@ This document records dataset versions, model experiments, metrics, observations
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | BERRY-V1-MNV2 | COMPLETE | berry_v1 | image-level/dir train-val split | MobileNetV2 | Historical baseline | 224x224, transfer learning, augmentation, fine-tune top layers | Accuracy 0.7778, weighted F1 0.7447 | `ml/grading_forecast/berry_grading/models/berry_classifier_metrics.json` | Grade 2 recall was weak at 0.3333. No separate test split. | Keep as historical baseline only. |
 | PRICE-V1-RF | COMPLETE | price_v1 | chronological train-test | RandomForestRegressor | Historical forecasting baseline | lag_1..3, rolling 3/5, time features | Test MAE 45.8347, RMSE 47.7556, R2 -6.1315 | `ml/grading_forecast/price_forecasting/models/forecast_metrics.json` | Weak future generalization despite strong train metrics. | Keep as historical baseline only. |
-| BERRY-V2-MNV2 | READY TO TRAIN | berry_v2 | sample-level train-val-test | MobileNetV2 | Primary PP2 berry baseline | Pipeline supports explicit V2 train/val/test paths; conservative config planned | PENDING | `ml/grading_forecast/berry_grading/models/v2/` | Model has not been trained yet. | PENDING |
+| BERRY-V2-MNV2 | COMPLETE | berry_v2 | sample-level train-val-test | MobileNetV2 | Primary PP2 berry baseline | ImageNet, 224x224 RGB, batch 16, Adam, sparse categorical cross-entropy, stage1 15 max epochs LR 0.001, stage2 5 max epochs LR 0.00001 | Accuracy 0.8073, macro F1 0.8068, weighted F1 0.8076, Grade 2 precision 0.7805, Grade 2 recall 0.8889, Grade 2 F1 0.8312 | `ml/grading_forecast/berry_grading/models/v2/` | Trained on V2 train/val only, evaluated once on untouched V2 test set. ONNX export succeeded. | Select as PP2 berry baseline. |
 | BERRY-V2-IMPROVE-1 | OPTIONAL | berry_v2 | same as BERRY-V2-MNV2 | MobileNetV2 tuned | Limited improvement | PENDING | PENDING | PENDING | Run only after baseline. | PENDING |
 | PRICE-V2-NAIVE | NOT STARTED | price_v2 | chronological train-val-test | Naive persistence | Required forecast baseline | y_next = y_current | PENDING | PENDING | Must be compared on same test period as RF. | PENDING |
 | PRICE-V2-RF | NOT STARTED | price_v2 | chronological train-val-test | RandomForestRegressor | Primary PP2 forecast model | lag/rolling past-only features | PENDING | PENDING | Target: National Grade 1 average farm-gate weekly. | PENDING |
@@ -96,3 +96,95 @@ Observation:
 Decision:
 Limitations:
 ```
+
+## Completed Experiment Details
+
+### BERRY-V2-MNV2
+
+Date: 2026-08-27.
+
+Dataset version: `berry_v2`.
+
+Split version: `data/processed/grading_forecast/berry_split_v2_manifest.csv`.
+
+Image/sample counts:
+
+- Train: 117 samples, 467 images.
+- Validation: 24 samples, 95 images.
+- Test: 27 samples, 109 images.
+- Leakage validation: no `grade + sample_id` group crosses train, validation, and test.
+
+Model/method:
+
+- MobileNetV2 transfer learning.
+- ImageNet initialization.
+- `include_top=False`.
+- 224x224 RGB input.
+- MobileNetV2 preprocessing inside the model.
+- Light augmentation: horizontal flip, rotation 0.06, zoom 0.10, brightness factor 0.12.
+- Classification head: global average pooling, dropout, dense softmax with 3 classes.
+
+Configuration:
+
+- Batch size: 16.
+- Seed: 42.
+- Loss: sparse categorical cross-entropy.
+- Optimizer: Adam.
+- Stage 1: frozen backbone, maximum 15 epochs, learning rate 0.001, patience 3; 14 epochs completed.
+- Stage 2: limited fine-tuning of final MobileNetV2 layers, maximum 5 epochs, learning rate 0.00001, patience 2; 5 epochs completed.
+- Best validation-loss checkpoint: Stage 2 epoch 5, validation loss 0.5248714089, validation accuracy 0.7473683953.
+
+Training command:
+
+```powershell
+.\.venv\Scripts\python.exe ml/grading_forecast/berry_grading/training/train_berry_classifier.py --train-dir data/processed/grading_forecast/berry_split_v2/train --val-dir data/processed/grading_forecast/berry_split_v2/val --output-dir ml/grading_forecast/berry_grading/models/v2 --model-filename berry_mobilenetv2_v2_best.keras --metadata-version v2 --batch-size 16 --stage1-epochs 15 --stage2-epochs 5 --stage1-lr 1e-3 --stage2-lr 1e-5 --patience 3
+```
+
+Evaluation command:
+
+```powershell
+.\.venv\Scripts\python.exe ml/grading_forecast/berry_grading/training/evaluate_berry_classifier.py --model ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.keras --models-dir ml/grading_forecast/berry_grading/models/v2 --data-dir data/processed/grading_forecast/berry_split_v2/test --output-dir ml/grading_forecast/berry_grading/evaluation/_outputs/v2 --use-full-data-dir --split-name test
+```
+
+Export command:
+
+```powershell
+.\.venv\Scripts\python.exe ml/grading_forecast/berry_grading/training/export_berry_model.py --model ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.keras --out ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.onnx --metadata-out ml/grading_forecast/berry_grading/models/v2/onnx_metadata.json
+```
+
+Metrics:
+
+- Accuracy: 0.8073.
+- Grade 1 precision/recall/F1: 0.9063 / 0.7632 / 0.8286.
+- Grade 2 precision/recall/F1: 0.7805 / 0.8889 / 0.8312.
+- Grade 3 precision/recall/F1: 0.7500 / 0.7714 / 0.7606.
+- Macro precision/recall/F1: 0.8122 / 0.8078 / 0.8068.
+- Weighted precision/recall/F1: 0.8145 / 0.8073 / 0.8076.
+- Inference timing: average 78.487 ms, p95 107.546 ms, 80 single-image runs.
+
+Artifacts:
+
+- `ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.keras`
+- `ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.onnx`
+- `ml/grading_forecast/berry_grading/models/v2/class_names.json`
+- `ml/grading_forecast/berry_grading/models/v2/training_history.json`
+- `ml/grading_forecast/berry_grading/models/v2/berry_model_metadata.json`
+- `ml/grading_forecast/berry_grading/models/v2/berry_classifier_metrics.json`
+- `ml/grading_forecast/berry_grading/models/v2/onnx_metadata.json`
+- `ml/grading_forecast/berry_grading/evaluation/_outputs/v2/confusion_matrix.png`
+- `ml/grading_forecast/berry_grading/evaluation/_outputs/v2/training_curves.png`
+
+Observation:
+
+V2 Grade 2 recall improved compared with the historical V1 metric, but V1 and V2 are not directly equivalent experiments because V2 uses the expanded dataset and leakage-safe sample-level split.
+
+Decision:
+
+Use `BERRY-V2-MNV2` as the PP2 berry grading baseline.
+
+Limitations:
+
+- Small dataset: 168 physical sample groups and 671 images.
+- Camera-based visual grading only; no chemical or official SLS certification measurements.
+- Native Windows TensorFlow used CPU only in the observed training environment.
+- Initial write attempts for training/evaluation/export hit permission errors and were rerun with permission escalation using the same commands and methodology.

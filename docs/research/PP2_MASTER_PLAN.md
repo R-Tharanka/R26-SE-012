@@ -1,6 +1,6 @@
 # PP2 Master Plan: Berry Grading and Export Price Forecasting
 
-Last updated: 2026-08-26
+Last updated: 2026-08-27
 
 This plan is designed for the four-day Progress Presentation 2 constraint. It focuses on academically defensible progress, not model proliferation.
 
@@ -233,7 +233,7 @@ For V2 dataset work, use:
 
 ## Phase 2 — Berry Grading V2 Baseline
 
-Status: NOT STARTED
+Status: COMPLETE
 
 ### Objective
 
@@ -272,6 +272,8 @@ Produces a current grading result that can be compared against the historical V1
 - `ml/grading_forecast/berry_grading/models/v2/class_names.json`
 - `ml/grading_forecast/berry_grading/models/v2/training_history.json`
 - `ml/grading_forecast/berry_grading/models/v2/berry_classifier_metrics.json`
+- `ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.onnx`
+- `ml/grading_forecast/berry_grading/models/v2/onnx_metadata.json`
 - `ml/grading_forecast/berry_grading/evaluation/_outputs/v2/confusion_matrix.png`
 - `ml/grading_forecast/berry_grading/evaluation/_outputs/v2/training_curves.png`
 
@@ -297,6 +299,17 @@ Produces a current grading result that can be compared against the historical V1
 - `EXPERIMENT_LOG.md` is updated.
 - `PP2_RESULTS.md` includes V1 vs V2 comparison.
 
+Completion result:
+
+- V2 MobileNetV2 was trained using `berry_split_v2/train` and `berry_split_v2/val`.
+- Final evaluation was performed once on the untouched `berry_split_v2/test` split.
+- Test accuracy: 0.8073.
+- Macro F1: 0.8068.
+- Weighted F1: 0.8076.
+- Grade 2 precision/recall/F1: 0.7805 / 0.8889 / 0.8312.
+- V2 Keras and ONNX artifacts were saved under `ml/grading_forecast/berry_grading/models/v2/`.
+- V2 confusion matrix and training curves were saved under `ml/grading_forecast/berry_grading/evaluation/_outputs/v2/`.
+
 ### Risks
 
 - Training may take too long on CPU.
@@ -312,7 +325,7 @@ Produces a current grading result that can be compared against the historical V1
 
 ### Estimated Priority
 
-CRITICAL.
+CRITICAL. Completed.
 
 ## Phase 3 — Price Forecasting V2 Baseline
 

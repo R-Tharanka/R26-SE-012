@@ -1,6 +1,6 @@
 # PP2 Limitations
 
-Last updated: 2026-08-26
+Last updated: 2026-08-27
 
 This document records limitations that must be stated honestly during PP2.
 
@@ -75,7 +75,10 @@ Berry:
 - V1 MobileNetV2 was trained on an old 360-image dataset.
 - V1 split had no separate test set.
 - V1 Grade 2 recall was weak.
-- V2 performance may be lower after leakage-safe splitting.
+- V2 MobileNetV2 was evaluated on the leakage-safe sample-level test split with accuracy 0.8073, weighted F1 0.8076, and Grade 2 recall 0.8889.
+- V1 and V2 metric differences are not directly equivalent because V2 uses a different expanded dataset and a sample-level train/validation/test methodology.
+- V2 Grade 3 remains the weakest class by F1 in the completed baseline.
+- The completed V2 model is still trained from a small dataset, so external generalization to new devices, lighting conditions, and backgrounds is not proven yet.
 
 Forecasting:
 
@@ -94,6 +97,8 @@ Forecasting:
 ## Script Safety Limitation
 
 Several older scripts still default to V1 output paths. Accidentally running them without V2-specific arguments can overwrite old label or processed CSV artifacts. Before using any old data-preparation script, check its default input/output paths and prefer the V2 scripts created for Phase 1.
+
+For berry model work after Phase 2, do not run the V1 default training/evaluation/export commands unless the intention is explicitly to reproduce V1. Use the explicit V2 arguments recorded in `docs/research/EXPERIMENT_LOG.md` and keep all V2 model outputs under `ml/grading_forecast/berry_grading/models/v2/`.
 
 ## PP2 Scope Limitations
 

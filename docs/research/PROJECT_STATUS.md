@@ -6,11 +6,13 @@ This document is the current source of truth for the PP2 recovery work for the i
 
 ## Current Phase
 
-Current phase: Phase 2 - Berry Grading V2 Baseline
+Current phase: Phase 3 - Price Forecasting V2 Baseline
 
 Phase 0, Repository and Research Audit, is complete.
 
 Phase 1, Dataset V2 Preparation and Audit, is complete. Raw datasets and V1 artifacts were preserved. No model training was performed during Phase 1.
+
+Phase 2, Berry Grading V2 Baseline, is complete. The V2 MobileNetV2 model was trained on the sample-level V2 train/validation split, evaluated once on the untouched V2 test split, and exported to ONNX under V2-specific artifact paths.
 
 ## Project Scope
 
@@ -58,12 +60,12 @@ The SLS 105 Part 1: 2022 reference includes visual, physical, and chemical requi
 | Flutter UI | PARTIALLY COMPLETED | Component screens and API client exist; PP2 needs only demo validation, not new UI work. |
 | Firebase storage | EXISTS BUT NEEDS LIVE VALIDATION | Safe fallback exists when Firebase is not configured. |
 | Berry V1 model | COMPLETED BUT OUTDATED | MobileNetV2 model exists, trained on old 360-image processed dataset. |
-| Berry V2 pipeline | READY TO TRAIN | Training/evaluation/export/inference scripts now support explicit V2 paths without overwriting V1 artifacts. |
+| Berry V2 model | COMPLETE | MobileNetV2 V2 baseline trained, tested, and exported under `ml/grading_forecast/berry_grading/models/v2/`. |
 | Forecast V1 model | COMPLETED BUT OUTDATED | RandomForest artifact exists, trained on old processed price data through 2026-04-21. |
 | Berry V2 data | PREPARED | V2 manifest, audit summary, and leakage-safe sample-level train/validation/test split were created. |
 | Price V2 data | PREPARED | V2 cleaned data, National Grade 1 average weekly target, coverage summary, and chronological split were created. |
 | EDA notebooks | NOT STARTED | Notebook folders exist only as scaffolds. |
-| PP2 evidence | PARTIALLY COMPLETE | Phase 1 dataset evidence is recorded; model metrics and integration evidence are still pending. |
+| PP2 evidence | PARTIALLY COMPLETE | Phase 1 dataset evidence and Phase 2 berry model evidence are recorded; price forecasting and integration evidence are still pending. |
 
 ## Dataset Status
 
@@ -197,9 +199,9 @@ V1 artifacts are useful as historical baselines and software integration evidenc
 - `ml/grading_forecast/price_forecasting/data/clean_price_data.py`, `prepare_forecast_training_data.py`, and `create_forecast_split.py` default to V1 processed output filenames.
 - For PP2 V2 work, use the new V2-specific scripts and output paths unless an old script is explicitly parameterized and checked first.
 
-## Berry V2 Pipeline Readiness
+## Berry V2 Model Result
 
-Status: READY TO TRAIN, but model training has not been performed yet.
+Status: COMPLETE.
 
 The berry training pipeline now supports the authoritative V2 data flow:
 
@@ -210,27 +212,38 @@ Required V2 output locations:
 - Models: `ml/grading_forecast/berry_grading/models/v2/`
 - Evaluation plots: `ml/grading_forecast/berry_grading/evaluation/_outputs/v2/`
 
-Validation performed:
+Phase 2 artifacts:
 
-- Syntax checks passed for berry training, evaluation, export, and inference scripts.
-- Training dry-run resolved train images as 155 Grade 1, 156 Grade 2, and 156 Grade 3.
-- Training dry-run resolved validation images as 31 Grade 1, 32 Grade 2, and 32 Grade 3.
-- Evaluation dry-run resolved the full V2 test directory and V2 metrics/plot paths.
-- Export dry-run resolved V2 Keras, ONNX, and metadata paths.
-- Inference dry-run resolved the V2 ONNX path and class-name path beside it.
+- `ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.keras`
+- `ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.onnx`
+- `ml/grading_forecast/berry_grading/models/v2/class_names.json`
+- `ml/grading_forecast/berry_grading/models/v2/training_history.json`
+- `ml/grading_forecast/berry_grading/models/v2/berry_model_metadata.json`
+- `ml/grading_forecast/berry_grading/models/v2/berry_classifier_metrics.json`
+- `ml/grading_forecast/berry_grading/models/v2/onnx_metadata.json`
+- `ml/grading_forecast/berry_grading/evaluation/_outputs/v2/confusion_matrix.png`
+- `ml/grading_forecast/berry_grading/evaluation/_outputs/v2/training_curves.png`
+
+Final V2 test result:
+
+- Test images: 109.
+- Accuracy: 0.8073.
+- Macro F1: 0.8068.
+- Weighted F1: 0.8076.
+- Grade 2 precision: 0.7805.
+- Grade 2 recall: 0.8889.
+- Grade 2 F1: 0.8312.
 
 Environment note:
 
-- TensorFlow is not available in the current shell.
-- tf2onnx is not available in the current shell.
-- onnxruntime and Pillow are available.
+- Training/export used the project `.venv`, where TensorFlow and tf2onnx are available.
+- Native Windows TensorFlow ran on CPU; GPU support was not available in that environment.
 
 ## Current Blockers
 
 - Naive persistence baseline has not been properly recorded for forecasting comparison.
-- V2 MobileNetV2 has not been trained on the sample-level split.
 - V2 RandomForest and naive persistence forecasting baselines have not been run.
-- No V2 model metrics, plots, or final experiment comparison table exists yet.
+- Backend/mobile integration has not yet been validated against the V2 ONNX artifact.
 
 ## Current Decision Record
 
@@ -245,4 +258,4 @@ Environment note:
 
 ## Next Exact Action
 
-Execute Phase 2 from `docs/research/PP2_MASTER_PLAN.md`: Berry Grading V2 Baseline. Do not start Phase 3 until the Phase 2 action is explicitly requested or scheduled.
+Execute Phase 3 from `docs/research/PP2_MASTER_PLAN.md`: Price Forecasting V2 Baseline. Do not start Phase 4 or Phase 5 until Phase 3 is explicitly requested and completed.

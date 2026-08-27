@@ -2,6 +2,13 @@
 
 This guide is a **PowerShell-first** reference for running the backend, rebuilding datasets, training real models, and verifying everything works.
 
+PP2 status update, 2026-08-27:
+
+- Berry V2 MobileNetV2 baseline training, test evaluation, and ONNX export are complete.
+- Use explicit V2 paths for any Berry V2 command.
+- Bare no-argument berry commands may target historical V1 artifacts.
+- Price Forecasting V2 training has not started yet.
+
 ---
 
 ## Where to run commands
@@ -116,6 +123,13 @@ python -m pytest -q backend\tests
 
 Run these if you changed raw data or need to recreate processed CSVs/processed images.
 
+Important for PP2 V2:
+
+- Do not rerun dataset-generation commands unless you intentionally want to rebuild inputs.
+- The current V2 berry dataset and sample-level split are already prepared.
+- The current V2 price cleaned data and chronological split are already prepared.
+- The commands below are legacy/V1-oriented unless they are explicitly parameterized.
+
 ### 3.1 Validate berry labels + images
 
 ```powershell
@@ -159,46 +173,59 @@ python -m pip install -U pip setuptools wheel
 pip install -r ml\grading_forecast\requirements-training.txt
 ```
 
-### 4.2 Train berry grading model (MobileNetV2)
+### 4.2 Berry grading model, PP2 V2 baseline
+
+The PP2 V2 baseline has already been trained and evaluated. Do not rerun this command unless you are intentionally reproducing the same baseline.
+
+Training command used:
 
 ```powershell
-python ml\grading_forecast\berry_grading\training\train_berry_classifier.py
+.\.venv\Scripts\python.exe ml/grading_forecast/berry_grading/training/train_berry_classifier.py --train-dir data/processed/grading_forecast/berry_split_v2/train --val-dir data/processed/grading_forecast/berry_split_v2/val --output-dir ml/grading_forecast/berry_grading/models/v2 --model-filename berry_mobilenetv2_v2_best.keras --metadata-version v2 --batch-size 16 --stage1-epochs 15 --stage2-epochs 5 --stage1-lr 1e-3 --stage2-lr 1e-5 --patience 3
 ```
 
-Expected outputs in `ml\grading_forecast\berry_grading\models\`:
+Expected V2 outputs in `ml\grading_forecast\berry_grading\models\v2\`:
 
-- `berry_mobilenetv2_best.keras`
+- `berry_mobilenetv2_v2_best.keras`
 - `class_names.json`
 - `training_history.json`
 - `berry_model_metadata.json`
 
-### 4.3 Evaluate berry model
+### 4.3 Evaluate berry model on V2 test split
 
 ```powershell
-python ml\grading_forecast\berry_grading\training\evaluate_berry_classifier.py
+.\.venv\Scripts\python.exe ml/grading_forecast/berry_grading/training/evaluate_berry_classifier.py --model ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.keras --models-dir ml/grading_forecast/berry_grading/models/v2 --data-dir data/processed/grading_forecast/berry_split_v2/test --output-dir ml/grading_forecast/berry_grading/evaluation/_outputs/v2 --use-full-data-dir --split-name test
 ```
 
 Expected:
 
-- `ml\grading_forecast\berry_grading\models\berry_classifier_metrics.json`
-- Plots under `ml\grading_forecast\berry_grading\evaluation\_outputs\`
+- `ml\grading_forecast\berry_grading\models\v2\berry_classifier_metrics.json`
+- `ml\grading_forecast\berry_grading\evaluation\_outputs\v2\confusion_matrix.png`
+- `ml\grading_forecast\berry_grading\evaluation\_outputs\v2\training_curves.png`
 
-### 4.4 Export berry model to ONNX (backend uses this)
+Completed V2 test result:
+
+- Accuracy: 0.8073
+- Weighted F1: 0.8076
+- Grade 2 precision/recall/F1: 0.7805 / 0.8889 / 0.8312
+
+### 4.4 Export berry V2 model to ONNX
 
 ```powershell
-python ml\grading_forecast\berry_grading\training\export_berry_model.py
+.\.venv\Scripts\python.exe ml/grading_forecast/berry_grading/training/export_berry_model.py --model ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.keras --out ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.onnx --metadata-out ml/grading_forecast/berry_grading/models/v2/onnx_metadata.json
 ```
 
 Expected:
 
-- `ml\grading_forecast\berry_grading\models\berry_mobilenetv2_best.onnx`
-- `ml\grading_forecast\berry_grading\models\onnx_metadata.json`
+- `ml\grading_forecast\berry_grading\models\v2\berry_mobilenetv2_v2_best.onnx`
+- `ml\grading_forecast\berry_grading\models\v2\onnx_metadata.json`
 
-### 4.5 Test real berry inference (CLI)
+### 4.5 Test real berry inference with V2 model (CLI)
 
 ```powershell
-python ml\grading_forecast\berry_grading\inference\predict_berry_grade.py path\to\test.jpg
+.\.venv\Scripts\python.exe ml/grading_forecast/berry_grading/inference/predict_berry_grade.py path\to\test.jpg --model ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.keras --class-names ml/grading_forecast/berry_grading/models/v2/class_names.json
 ```
+
+Historical V1 artifacts remain in `ml\grading_forecast\berry_grading\models\`. Do not overwrite them when working with V2.
 
 ### 4.6 Train forecast model (RandomForestRegressor)
 

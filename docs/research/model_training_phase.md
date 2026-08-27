@@ -9,6 +9,14 @@ It focuses on:
 
 Important: This is a **camera-based visual estimation** system. It **does not** measure moisture, piperine, volatile oil, ash, or bulk density, and it must **not** be presented as official SLS certification.
 
+PP2 evidence update, 2026-08-27:
+
+- Berry V2 MobileNetV2 baseline training, final test evaluation, and ONNX export are complete.
+- The V2 berry baseline uses the sample-level split under `data/processed/grading_forecast/berry_split_v2/`.
+- V2 model artifacts are stored under `ml/grading_forecast/berry_grading/models/v2/`.
+- The old 360-image processed berry dataset and root-level model artifacts are historical V1 artifacts only.
+- Price Forecasting V2 training has not started yet.
+
 ---
 
 ## 1) Model Architectures
@@ -35,12 +43,37 @@ Important: This is a **camera-based visual estimation** system. It **does not** 
 
 ### 2.1 Berry grading dataset
 
+Current PP2 V2 dataset:
+
+- V2 split directory:
+  - `data/processed/grading_forecast/berry_split_v2/`
+- Split folders:
+  - `train/`, `val/`, `test/`
+- V2 manifest:
+  - `data/annotations/grading_forecast/berry_grading_labels_v2.csv`
+- V2 split manifest:
+  - `data/processed/grading_forecast/berry_split_v2_manifest.csv`
+- Dataset size:
+  - 671 images from 168 physical sample groups
+  - Grade 1: 224 images
+  - Grade 2: 224 images
+  - Grade 3: 223 images
+- Leakage-safe split:
+  - Train: 117 samples, 467 images
+  - Validation: 24 samples, 95 images
+  - Test: 27 samples, 109 images
+  - No `grade + sample_id` group crosses train, validation, and test.
+
+Historical V1 dataset:
+
 - Processed dataset directory:
   - `data/processed/grading_forecast/berry_images_processed/`
 - Class folders:
   - `grade_1/`, `grade_2/`, `grade_3/`
-- Current dataset size (expected):
+- Dataset size:
   - 360 images total (120 per class)
+- Status:
+  - Historical only. Do not use this directory for PP2 V2 training.
 
 ### 2.2 Forecasting dataset
 
@@ -133,10 +166,30 @@ Class weights:
 - Precision / Recall / F1-score
 - Confusion matrix + classification report
 
+Completed PP2 V2 result:
+
+- Test set: `data/processed/grading_forecast/berry_split_v2/test/`
+- Test images: 109
+- Accuracy: 0.8073
+- Macro F1: 0.8068
+- Weighted F1: 0.8076
+- Grade 2 precision: 0.7805
+- Grade 2 recall: 0.8889
+- Grade 2 F1: 0.8312
+- Confusion matrix:
+
+```text
+[[29,  3,  6],
+ [ 1, 32,  3],
+ [ 2,  6, 27]]
+```
+
 Artifacts:
 
-- `ml/grading_forecast/berry_grading/models/berry_classifier_metrics.json`
-- Confusion matrix image + training curves saved under `ml/grading_forecast/berry_grading/evaluation/_outputs/` (generated locally)
+- V2 metrics: `ml/grading_forecast/berry_grading/models/v2/berry_classifier_metrics.json`
+- V2 confusion matrix: `ml/grading_forecast/berry_grading/evaluation/_outputs/v2/confusion_matrix.png`
+- V2 training curves: `ml/grading_forecast/berry_grading/evaluation/_outputs/v2/training_curves.png`
+- V1 historical metrics: `ml/grading_forecast/berry_grading/models/berry_classifier_metrics.json`
 
 ### 5.2 Forecasting evaluation
 
@@ -217,12 +270,33 @@ Each model stores a metadata JSON (v1 baseline) including:
 
 ## 9) How To Run (High Level)
 
-Berry grading:
+Berry grading V2 baseline commands used for PP2:
 
-- Train: `python ml/grading_forecast/berry_grading/training/train_berry_classifier.py`
-- Evaluate: `python ml/grading_forecast/berry_grading/training/evaluate_berry_classifier.py`
-- Export ONNX: `python ml/grading_forecast/berry_grading/training/export_berry_model.py`
-- CLI inference: `python ml/grading_forecast/berry_grading/inference/predict_berry_grade.py <image_path>`
+Train:
+
+```powershell
+.\.venv\Scripts\python.exe ml/grading_forecast/berry_grading/training/train_berry_classifier.py --train-dir data/processed/grading_forecast/berry_split_v2/train --val-dir data/processed/grading_forecast/berry_split_v2/val --output-dir ml/grading_forecast/berry_grading/models/v2 --model-filename berry_mobilenetv2_v2_best.keras --metadata-version v2 --batch-size 16 --stage1-epochs 15 --stage2-epochs 5 --stage1-lr 1e-3 --stage2-lr 1e-5 --patience 3
+```
+
+Evaluate on the untouched V2 test split:
+
+```powershell
+.\.venv\Scripts\python.exe ml/grading_forecast/berry_grading/training/evaluate_berry_classifier.py --model ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.keras --models-dir ml/grading_forecast/berry_grading/models/v2 --data-dir data/processed/grading_forecast/berry_split_v2/test --output-dir ml/grading_forecast/berry_grading/evaluation/_outputs/v2 --use-full-data-dir --split-name test
+```
+
+Export ONNX:
+
+```powershell
+.\.venv\Scripts\python.exe ml/grading_forecast/berry_grading/training/export_berry_model.py --model ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.keras --out ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.onnx --metadata-out ml/grading_forecast/berry_grading/models/v2/onnx_metadata.json
+```
+
+CLI inference with explicit V2 model:
+
+```powershell
+.\.venv\Scripts\python.exe ml/grading_forecast/berry_grading/inference/predict_berry_grade.py path\to\test.jpg --model ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.keras --class-names ml/grading_forecast/berry_grading/models/v2/class_names.json
+```
+
+Warning: the no-argument berry training/evaluation/export commands may still target historical V1 defaults. For PP2 V2 evidence, use the explicit V2 paths above.
 
 Forecasting:
 
@@ -239,4 +313,3 @@ Forecasting:
 - Add probability calibration (temperature scaling) for confidence reliability.
 - Export and validate TensorFlow Lite model for on-device mobile inference.
 - Expand forecasting to district-level and multiple grades once dataset coverage supports it.
-

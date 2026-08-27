@@ -2,7 +2,7 @@
 
 Last updated: 2026-08-27
 
-This document is reserved for PP2 evidence. It currently contains audit results and placeholders for V2 experiments that have not been run yet.
+This document records PP2 evidence from completed audit, dataset preparation, and baseline experiments. Metrics are included only when backed by saved artifacts.
 
 ## Current Result Status
 
@@ -10,9 +10,9 @@ Phase 0 audit result: COMPLETE.
 
 Phase 1 dataset preparation result: COMPLETE.
 
-Berry V2 pre-training pipeline preparation: COMPLETE.
+Phase 2 Berry Grading V2 baseline result: COMPLETE.
 
-No V2 model has been trained yet. No V2 metrics should be claimed until the corresponding experiment is executed.
+No Phase 3 forecasting V2 model has been trained yet. No forecasting V2 metrics should be claimed until the corresponding experiment is executed.
 
 ## Dataset Evidence From Audit
 
@@ -237,23 +237,76 @@ The V1 RandomForest model showed overfitting or poor future generalization. This
 
 ## V2 Berry Results
 
-Status: READY TO TRAIN.
+Status: COMPLETE.
 
-Pipeline readiness:
+Source artifacts:
 
-- Training can now explicitly use `berry_split_v2/train` and `berry_split_v2/val`.
-- Evaluation can now explicitly use the untouched `berry_split_v2/test`.
-- V2 artifacts resolve to `ml/grading_forecast/berry_grading/models/v2/`.
-- V2 plots resolve to `ml/grading_forecast/berry_grading/evaluation/_outputs/v2/`.
-- Dry-run validation passed; no V2 model has been trained.
+- Model: `ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.keras`
+- ONNX: `ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.onnx`
+- Metrics: `ml/grading_forecast/berry_grading/models/v2/berry_classifier_metrics.json`
+- Metadata: `ml/grading_forecast/berry_grading/models/v2/berry_model_metadata.json`
+- Training history: `ml/grading_forecast/berry_grading/models/v2/training_history.json`
+- Confusion matrix: `ml/grading_forecast/berry_grading/evaluation/_outputs/v2/confusion_matrix.png`
+- Training curves: `ml/grading_forecast/berry_grading/evaluation/_outputs/v2/training_curves.png`
 
-Planned table:
+V2 training summary:
+
+- Dataset: `berry_v2`.
+- Split: sample-level train/validation/test.
+- Train: 117 samples, 467 images.
+- Validation: 24 samples, 95 images.
+- Test: 27 samples, 109 images.
+- Training input: `data/processed/grading_forecast/berry_split_v2/train/`.
+- Validation input: `data/processed/grading_forecast/berry_split_v2/val/`.
+- Test input: `data/processed/grading_forecast/berry_split_v2/test/`.
+- Model: MobileNetV2, ImageNet initialization, `include_top=False`.
+- Input: 224x224 RGB.
+- Optimizer/loss: Adam with sparse categorical cross-entropy.
+- Stage 1: frozen backbone, maximum 15 epochs, learning rate 0.001, patience 3; 14 epochs completed.
+- Stage 2: limited fine-tuning, maximum 5 epochs, learning rate 0.00001, patience 2; 5 epochs completed.
+- Recorded training duration: 1216.447 seconds.
+- Evaluation duration: 31.934 seconds.
+- ONNX export duration: 10.209 seconds.
+
+V2 final test metrics:
+
+| Metric | Result |
+| --- | ---: |
+| Accuracy | 0.8073 |
+| Macro precision | 0.8122 |
+| Macro recall | 0.8078 |
+| Macro F1 | 0.8068 |
+| Weighted precision | 0.8145 |
+| Weighted recall | 0.8073 |
+| Weighted F1 | 0.8076 |
+
+Per-class V2 test metrics:
+
+| Class | Precision | Recall | F1 | Support |
+| --- | ---: | ---: | ---: | ---: |
+| Grade 1 | 0.9063 | 0.7632 | 0.8286 | 38 |
+| Grade 2 | 0.7805 | 0.8889 | 0.8312 | 36 |
+| Grade 3 | 0.7500 | 0.7714 | 0.7606 | 35 |
+
+Confusion matrix:
+
+```text
+[[29,  3,  6],
+ [ 1, 32,  3],
+ [ 2,  6, 27]]
+```
+
+Historical comparison:
 
 | Experiment | Dataset | Split | Accuracy | Macro F1 | Weighted F1 | Grade 2 Recall | Decision |
 | --- | --- | --- | ---: | ---: | ---: | ---: | --- |
 | V1 MobileNetV2 | berry_v1 | legacy train-val | 0.7778 | 0.7447 | 0.7447 | 0.3333 | Historical baseline |
-| V2 MobileNetV2 | berry_v2 | sample-level train-val-test | PENDING | PENDING | PENDING | PENDING | PENDING |
+| V2 MobileNetV2 | berry_v2 | sample-level train-val-test | 0.8073 | 0.8068 | 0.8076 | 0.8889 | Selected PP2 berry baseline |
 | V2 limited improvement | berry_v2 | same split | PENDING | PENDING | PENDING | PENDING | Optional |
+
+Interpretation:
+
+The V2 model is the selected PP2 berry grading baseline because it was trained on the expanded V2 dataset, used the leakage-safe sample-level split, and was evaluated once on the untouched V2 test set. The V1 and V2 metrics are useful for historical comparison, but they are not directly equivalent experiments because V1 used the older 360-image dataset and did not include the same sample-level train/validation/test methodology.
 
 ## V2 Forecast Results
 
