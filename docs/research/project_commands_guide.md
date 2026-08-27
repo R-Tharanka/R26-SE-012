@@ -227,34 +227,39 @@ Expected:
 
 Historical V1 artifacts remain in `ml\grading_forecast\berry_grading\models\`. Do not overwrite them when working with V2.
 
-### 4.6 Train forecast model (RandomForestRegressor)
+### 4.6 Train forecast model, PP2 V2 RandomForest
 
 ```powershell
-python ml\grading_forecast\price_forecasting\training\train_forecast_model.py
+.\.venv\Scripts\python.exe ml/grading_forecast/price_forecasting/training/train_forecast_model.py --train-csv data/processed/grading_forecast/price_v2/forecast_train.csv --validation-csv data/processed/grading_forecast/price_v2/forecast_validation.csv --test-csv data/processed/grading_forecast/price_v2/forecast_test.csv --target-csv data/processed/grading_forecast/price_v2/national_grade1_average_weekly.csv --models-dir ml/grading_forecast/price_forecasting/models/v2 --dataset-version v2 --artifact-version v2 --seed 42 --n-estimators 400 --min-samples-leaf 1 --n-jobs -1 --require-v2-paths
 ```
 
-Expected outputs in `ml\grading_forecast\price_forecasting\models\`:
+Expected V2 outputs in `ml\grading_forecast\price_forecasting\models\v2\`:
 
 - `forecast_model.joblib`
 - `forecast_features.json`
 - `forecast_metrics.json`
 - `forecast_model_metadata.json`
 
-### 4.7 Evaluate forecast model
+Important: this is the prepared Phase 3 command. Do not run it until Phase 3 execution is explicitly started.
+
+### 4.7 Evaluate forecast model, PP2 V2 same test timestamps
 
 ```powershell
-python ml\grading_forecast\price_forecasting\training\evaluate_forecast_model.py
+.\.venv\Scripts\python.exe ml/grading_forecast/price_forecasting/training/evaluate_forecast_model.py --target-csv data/processed/grading_forecast/price_v2/national_grade1_average_weekly.csv --test-csv data/processed/grading_forecast/price_v2/forecast_test.csv --models-dir ml/grading_forecast/price_forecasting/models/v2 --output-dir ml/grading_forecast/price_forecasting/evaluation/_outputs/v2 --split-name test --require-v2-paths
 ```
 
 Expected:
 
-- Updated `ml\grading_forecast\price_forecasting\models\forecast_metrics.json`
-- Plots under `ml\grading_forecast\price_forecasting\evaluation\_outputs\`
+- Updated `ml\grading_forecast\price_forecasting\models\v2\forecast_metrics.json`
+- `ml\grading_forecast\price_forecasting\models\v2\naive_persistence_metrics.json`
+- Plots under `ml\grading_forecast\price_forecasting\evaluation\_outputs\v2\`
+
+This evaluation is prepared to compare actual prices, naive persistence predictions, and RandomForest predictions on the same 36 V2 test timestamps.
 
 ### 4.8 Test real forecast inference (CLI)
 
 ```powershell
-python ml\grading_forecast\price_forecasting\inference\predict_future_price.py
+.\.venv\Scripts\python.exe ml/grading_forecast/price_forecasting/inference/predict_future_price.py --data-csv data/processed/grading_forecast/price_v2/national_grade1_average_weekly.csv --models-dir ml/grading_forecast/price_forecasting/models/v2 --require-v2-paths
 ```
 
 ---

@@ -84,6 +84,8 @@ Forecasting:
 
 - V1 RandomForest had poor test R2.
 - Price forecasting is short-horizon only.
+- Phase 3 V2 forecasting metrics have not been generated yet.
+- V2 lag and rolling features use previous available observations, not guaranteed previous calendar weeks, because the source has missing weekly intervals.
 - No macroeconomic, export volume, weather, exchange rate, or global market features are included before PP2.
 - RandomForest may not outperform naive persistence.
 
@@ -99,6 +101,8 @@ Forecasting:
 Several older scripts still default to V1 output paths. Accidentally running them without V2-specific arguments can overwrite old label or processed CSV artifacts. Before using any old data-preparation script, check its default input/output paths and prefer the V2 scripts created for Phase 1.
 
 For berry model work after Phase 2, do not run the V1 default training/evaluation/export commands unless the intention is explicitly to reproduce V1. Use the explicit V2 arguments recorded in `docs/research/EXPERIMENT_LOG.md` and keep all V2 model outputs under `ml/grading_forecast/berry_grading/models/v2/`.
+
+For price forecasting after Phase 3 preparation, do not run the no-argument forecasting commands for V2 work. Use explicit `price_v2`, `models/v2`, and `_outputs/v2` paths so V1 artifacts are not overwritten.
 
 ## PP2 Scope Limitations
 

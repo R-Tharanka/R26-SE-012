@@ -331,6 +331,8 @@ CRITICAL. Completed.
 
 Status: NOT STARTED
 
+Pre-execution pipeline preparation: COMPLETE. The experiment itself has not been executed, and no V2 forecast metrics should be claimed yet.
+
 ### Objective
 
 Build and evaluate the V2 forecasting baseline using the primary target: National + Grade 1 + average + farm_gate + weekly.

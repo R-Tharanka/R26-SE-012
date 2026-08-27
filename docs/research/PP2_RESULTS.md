@@ -12,6 +12,8 @@ Phase 1 dataset preparation result: COMPLETE.
 
 Phase 2 Berry Grading V2 baseline result: COMPLETE.
 
+Phase 3 forecasting V2 pipeline preparation result: COMPLETE.
+
 No Phase 3 forecasting V2 model has been trained yet. No forecasting V2 metrics should be claimed until the corresponding experiment is executed.
 
 ## Dataset Evidence From Audit
@@ -310,7 +312,18 @@ The V2 model is the selected PP2 berry grading baseline because it was trained o
 
 ## V2 Forecast Results
 
-Status: NOT STARTED.
+Status: PIPELINE READY, EXPERIMENT NOT STARTED.
+
+Pre-execution implementation evidence:
+
+- Training can be pointed explicitly at `data/processed/grading_forecast/price_v2/forecast_train.csv`.
+- Evaluation can use `data/processed/grading_forecast/price_v2/national_grade1_average_weekly.csv` as full historical context and evaluate exactly the 36 dates in `forecast_test.csv`.
+- Naive persistence is defined as `prediction(t+1) = observed price(t)`.
+- Naive persistence and RandomForest are prepared to evaluate on the same test timestamps.
+- RandomForest outputs are isolated under `ml/grading_forecast/price_forecasting/models/v2/`.
+- Forecast evaluation plots are isolated under `ml/grading_forecast/price_forecasting/evaluation/_outputs/v2/`.
+- Dry-run validation confirmed 36 planned prediction timestamps and past-only feature dates before each prediction date.
+- No Phase 3 training, final evaluation metrics, or final plots have been generated yet.
 
 Planned table:
 

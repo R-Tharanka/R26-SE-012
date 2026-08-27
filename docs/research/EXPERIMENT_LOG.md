@@ -25,6 +25,7 @@ This document records dataset versions, model experiments, metrics, observations
 | Entry ID | Status | Scope | Files Updated | Validation Result | Notes |
 | --- | --- | --- | --- | --- | --- |
 | PIPELINE-BERRY-V2-SAFE | COMPLETE | Berry grading V2 pre-training pipeline | `train_berry_classifier.py`, `evaluate_berry_classifier.py`, `export_berry_model.py`, `predict_berry_grade.py` | PASSED | Added explicit V2 train/val/test and output-path support. Dry-runs resolve to `berry_split_v2` and `models/v2`. No model training performed. |
+| PIPELINE-PRICE-V2-SAFE | COMPLETE | Price forecasting V2 pre-execution pipeline | `train_forecast_model.py`, `evaluate_forecast_model.py`, `export_forecast_model.py`, `predict_future_price.py` | PASSED | Added explicit V2 path checks, dry-runs, same-test-timestamp evaluation plan, naive persistence metrics support, and V2 output-path support. No RandomForest training or final test evaluation performed. |
 
 ## Experiment Register
 
@@ -96,6 +97,43 @@ Observation:
 Decision:
 Limitations:
 ```
+
+## Prepared Phase 3 Commands
+
+These commands are prepared for Phase 3 execution. Do not run them until Phase 3 execution is explicitly started.
+
+RandomForest training command:
+
+```powershell
+.\.venv\Scripts\python.exe ml/grading_forecast/price_forecasting/training/train_forecast_model.py --train-csv data/processed/grading_forecast/price_v2/forecast_train.csv --validation-csv data/processed/grading_forecast/price_v2/forecast_validation.csv --test-csv data/processed/grading_forecast/price_v2/forecast_test.csv --target-csv data/processed/grading_forecast/price_v2/national_grade1_average_weekly.csv --models-dir ml/grading_forecast/price_forecasting/models/v2 --dataset-version v2 --artifact-version v2 --seed 42 --n-estimators 400 --min-samples-leaf 1 --n-jobs -1 --require-v2-paths
+```
+
+Same-test-timestamp evaluation command:
+
+```powershell
+.\.venv\Scripts\python.exe ml/grading_forecast/price_forecasting/training/evaluate_forecast_model.py --target-csv data/processed/grading_forecast/price_v2/national_grade1_average_weekly.csv --test-csv data/processed/grading_forecast/price_v2/forecast_test.csv --models-dir ml/grading_forecast/price_forecasting/models/v2 --output-dir ml/grading_forecast/price_forecasting/evaluation/_outputs/v2 --split-name test --require-v2-paths
+```
+
+Forecast export-manifest command:
+
+```powershell
+.\.venv\Scripts\python.exe ml/grading_forecast/price_forecasting/training/export_forecast_model.py --models-dir ml/grading_forecast/price_forecasting/models/v2 --require-v2-paths
+```
+
+V2 inference command after model creation:
+
+```powershell
+.\.venv\Scripts\python.exe ml/grading_forecast/price_forecasting/inference/predict_future_price.py --data-csv data/processed/grading_forecast/price_v2/national_grade1_average_weekly.csv --models-dir ml/grading_forecast/price_forecasting/models/v2 --require-v2-paths
+```
+
+Dry-run validation result from pre-execution preparation:
+
+- Training dry-run resolves to V2 train/validation/test/target paths and `models/v2`.
+- Training feature rows available from V2 train split: 156 from 162 input rows.
+- Evaluation dry-run resolves to V2 target/test/model/output paths.
+- Evaluation dry-run predicts exactly 36 timestamps, matching the 36-row V2 test split.
+- `feature_date_before_prediction_date` is true for planned test predictions.
+- No Phase 3 model training, final evaluation metrics, or final plots were generated during preparation.
 
 ## Completed Experiment Details
 

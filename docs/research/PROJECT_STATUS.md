@@ -14,6 +14,8 @@ Phase 1, Dataset V2 Preparation and Audit, is complete. Raw datasets and V1 arti
 
 Phase 2, Berry Grading V2 Baseline, is complete. The V2 MobileNetV2 model was trained on the sample-level V2 train/validation split, evaluated once on the untouched V2 test split, and exported to ONNX under V2-specific artifact paths.
 
+Phase 3 pre-execution pipeline preparation is complete. The forecasting scripts now support explicit V2 input/output paths, same-test-timestamp naive-vs-RandomForest evaluation, and dry-run validation. Phase 3 model execution is still not started.
+
 ## Project Scope
 
 Full research project: Multimodal AI-Based Pest, Disease Detection and Export Price Prediction System for Black Pepper.
@@ -62,6 +64,7 @@ The SLS 105 Part 1: 2022 reference includes visual, physical, and chemical requi
 | Berry V1 model | COMPLETED BUT OUTDATED | MobileNetV2 model exists, trained on old 360-image processed dataset. |
 | Berry V2 model | COMPLETE | MobileNetV2 V2 baseline trained, tested, and exported under `ml/grading_forecast/berry_grading/models/v2/`. |
 | Forecast V1 model | COMPLETED BUT OUTDATED | RandomForest artifact exists, trained on old processed price data through 2026-04-21. |
+| Forecast V2 pipeline | READY | Pre-execution implementation completed; no Phase 3 training/evaluation metrics have been generated yet. |
 | Berry V2 data | PREPARED | V2 manifest, audit summary, and leakage-safe sample-level train/validation/test split were created. |
 | Price V2 data | PREPARED | V2 cleaned data, National Grade 1 average weekly target, coverage summary, and chronological split were created. |
 | EDA notebooks | NOT STARTED | Notebook folders exist only as scaffolds. |
@@ -241,8 +244,7 @@ Environment note:
 
 ## Current Blockers
 
-- Naive persistence baseline has not been properly recorded for forecasting comparison.
-- V2 RandomForest and naive persistence forecasting baselines have not been run.
+- V2 RandomForest and naive persistence forecasting baselines have not been run yet.
 - Backend/mobile integration has not yet been validated against the V2 ONNX artifact.
 
 ## Current Decision Record
@@ -258,4 +260,4 @@ Environment note:
 
 ## Next Exact Action
 
-Execute Phase 3 from `docs/research/PP2_MASTER_PLAN.md`: Price Forecasting V2 Baseline. Do not start Phase 4 or Phase 5 until Phase 3 is explicitly requested and completed.
+Execute Phase 3 from `docs/research/PP2_MASTER_PLAN.md`: Price Forecasting V2 Baseline. Use the explicit V2 commands from `docs/research/EXPERIMENT_LOG.md` and do not start Phase 4 or Phase 5 until Phase 3 is explicitly requested and completed.

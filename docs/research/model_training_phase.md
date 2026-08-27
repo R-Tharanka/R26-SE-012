@@ -77,6 +77,25 @@ Historical V1 dataset:
 
 ### 2.2 Forecasting dataset
 
+Current PP2 V2 dataset:
+
+- Full target series:
+  - `data/processed/grading_forecast/price_v2/national_grade1_average_weekly.csv`
+- Chronological split:
+  - `data/processed/grading_forecast/price_v2/forecast_train.csv`
+  - `data/processed/grading_forecast/price_v2/forecast_validation.csv`
+  - `data/processed/grading_forecast/price_v2/forecast_test.csv`
+- Target:
+  - National + Grade 1 + average + farm_gate + weekly
+- Target observations:
+  - 232
+- Split:
+  - Train: 162 rows, 2021-02-22 to 2025-03-18
+  - Validation: 34 rows, 2025-03-25 to 2025-11-25
+  - Test: 36 rows, 2025-12-02 to 2026-08-18
+
+Historical V1 dataset:
+
 - Cleaned weekly price dataset:
   - `data/processed/grading_forecast/cleaned_price_data.csv`
 - Forecast training series (National + Grade 1 + average):
@@ -84,6 +103,8 @@ Historical V1 dataset:
 - Chronological split:
   - `data/processed/grading_forecast/train_forecast_data.csv`
   - `data/processed/grading_forecast/test_forecast_data.csv`
+- Status:
+  - Historical only for PP2 V2 forecasting. Do not use these files for Phase 3 V2 metrics.
 
 ---
 
@@ -300,10 +321,25 @@ Warning: the no-argument berry training/evaluation/export commands may still tar
 
 Forecasting:
 
-- Train: `python ml/grading_forecast/price_forecasting/training/train_forecast_model.py`
-- Evaluate: `python ml/grading_forecast/price_forecasting/training/evaluate_forecast_model.py`
-- Export manifest: `python ml/grading_forecast/price_forecasting/training/export_forecast_model.py`
-- CLI inference: `python ml/grading_forecast/price_forecasting/inference/predict_future_price.py`
+Prepared forecasting V2 commands:
+
+```powershell
+.\.venv\Scripts\python.exe ml/grading_forecast/price_forecasting/training/train_forecast_model.py --train-csv data/processed/grading_forecast/price_v2/forecast_train.csv --validation-csv data/processed/grading_forecast/price_v2/forecast_validation.csv --test-csv data/processed/grading_forecast/price_v2/forecast_test.csv --target-csv data/processed/grading_forecast/price_v2/national_grade1_average_weekly.csv --models-dir ml/grading_forecast/price_forecasting/models/v2 --dataset-version v2 --artifact-version v2 --seed 42 --n-estimators 400 --min-samples-leaf 1 --n-jobs -1 --require-v2-paths
+```
+
+```powershell
+.\.venv\Scripts\python.exe ml/grading_forecast/price_forecasting/training/evaluate_forecast_model.py --target-csv data/processed/grading_forecast/price_v2/national_grade1_average_weekly.csv --test-csv data/processed/grading_forecast/price_v2/forecast_test.csv --models-dir ml/grading_forecast/price_forecasting/models/v2 --output-dir ml/grading_forecast/price_forecasting/evaluation/_outputs/v2 --split-name test --require-v2-paths
+```
+
+```powershell
+.\.venv\Scripts\python.exe ml/grading_forecast/price_forecasting/training/export_forecast_model.py --models-dir ml/grading_forecast/price_forecasting/models/v2 --require-v2-paths
+```
+
+```powershell
+.\.venv\Scripts\python.exe ml/grading_forecast/price_forecasting/inference/predict_future_price.py --data-csv data/processed/grading_forecast/price_v2/national_grade1_average_weekly.csv --models-dir ml/grading_forecast/price_forecasting/models/v2 --require-v2-paths
+```
+
+Warning: Phase 3 V2 execution has not run yet. Do not report V2 forecast metrics until the training and evaluation commands are executed and artifacts exist.
 
 ---
 

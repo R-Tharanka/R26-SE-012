@@ -93,17 +93,26 @@ Evidence:
 
 Status: NOT STARTED
 
-- [ ] Confirm V2 National Grade 1 average target exists.
-- [ ] Confirm chronological split exists.
-- [ ] Implement/evaluate naive persistence baseline.
+- [x] Confirm V2 National Grade 1 average target exists.
+- [x] Confirm chronological split exists.
+- [x] Prepare naive persistence baseline implementation.
+- [x] Prepare same-test-timestamp naive-vs-RandomForest evaluation.
+- [x] Prepare explicit V2 output directories.
+- [x] Verify dry-run path resolution without training/evaluation.
+- [x] Update docs for Phase 3 pipeline preparation only.
+- [ ] Execute/evaluate naive persistence baseline.
 - [ ] Train/evaluate RandomForest.
-- [ ] Use past-only lag/rolling features.
+- [x] Confirm past-only lag/rolling feature logic.
 - [ ] Save metrics JSON.
 - [ ] Save actual vs predicted plot.
 - [ ] Save feature importance plot if available.
 - [ ] Compare naive vs RandomForest.
 - [ ] Update `EXPERIMENT_LOG.md`.
 - [ ] Update `PP2_RESULTS.md`.
+
+Phase 3 pipeline preparation result: PASSED.
+
+Important: Phase 3 experiment execution is still NOT STARTED. No forecast model V2 metrics should be reported yet.
 
 ## Phase 4: Limited Model Improvement
 
