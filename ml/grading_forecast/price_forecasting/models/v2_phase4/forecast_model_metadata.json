@@ -1,0 +1,107 @@
+{
+  "model_name": "random_forest_regressor",
+  "phase": "phase4",
+  "improvement": "extended_lag_features",
+  "version": "v2_phase4",
+  "dataset_version": "v2",
+  "trained_at": "2026-08-27T16:03:39+00:00",
+  "seed": 42,
+  "git_sha": "a938e44e8afc36adcc44f49b55f7fad348c24ac4",
+  "train_csv": "data\\processed\\grading_forecast\\price_v2\\forecast_train.csv",
+  "validation_csv": "data\\processed\\grading_forecast\\price_v2\\forecast_validation.csv",
+  "test_csv": "data\\processed\\grading_forecast\\price_v2\\forecast_test.csv",
+  "target_csv": "data\\processed\\grading_forecast\\price_v2\\national_grade1_average_weekly.csv",
+  "target_definition": {
+    "commodity": "black_pepper",
+    "country": "Sri Lanka",
+    "district": "National",
+    "grade": "Grade 1",
+    "price_type": "average",
+    "market_level": "farm_gate",
+    "frequency": "weekly"
+  },
+  "split_strategy": "chronological_train_validation_test",
+  "split_inputs": {
+    "target": {
+      "rows": 232,
+      "start": "2021-02-22",
+      "end": "2026-08-18"
+    },
+    "train": {
+      "rows": 162,
+      "start": "2021-02-22",
+      "end": "2025-03-18"
+    },
+    "validation": {
+      "rows": 34,
+      "start": "2025-03-25",
+      "end": "2025-11-25"
+    },
+    "test": {
+      "rows": 36,
+      "start": "2025-12-02",
+      "end": "2026-08-18"
+    }
+  },
+  "feature_spec_hash": "65fbb2f19bc626df",
+  "feature_spec": {
+    "lags": [
+      1,
+      2,
+      3,
+      4,
+      8,
+      12
+    ],
+    "rolling_windows": [
+      3,
+      5
+    ],
+    "eps": 1.0,
+    "feature_names": [
+      "lag_1",
+      "lag_2",
+      "lag_3",
+      "lag_4",
+      "lag_8",
+      "lag_12",
+      "rolling_mean_3",
+      "rolling_std_3",
+      "rolling_mean_5",
+      "rolling_std_5",
+      "month",
+      "week_of_year",
+      "price_change_1w",
+      "price_change_pct_1w"
+    ]
+  },
+  "n_rows": 149,
+  "date_range": {
+    "start": "2022-04-05",
+    "end": "2025-03-11"
+  },
+  "rf_params": {
+    "bootstrap": true,
+    "ccp_alpha": 0.0,
+    "criterion": "squared_error",
+    "max_depth": null,
+    "max_features": 1.0,
+    "max_leaf_nodes": null,
+    "max_samples": null,
+    "min_impurity_decrease": 0.0,
+    "min_samples_leaf": 1,
+    "min_samples_split": 2,
+    "min_weight_fraction_leaf": 0.0,
+    "monotonic_cst": null,
+    "n_estimators": 400,
+    "n_jobs": -1,
+    "oob_score": false,
+    "random_state": 42,
+    "verbose": 0,
+    "warm_start": false
+  },
+  "phase3_baseline_comparison": {
+    "note": "Phase 3 RF used lags=[1,2,3], rolling_windows=[3,5]. Phase 4 adds lag_4, lag_8, lag_12.",
+    "phase3_model_path": "ml/grading_forecast/price_forecasting/models/v2/forecast_model.joblib"
+  }
+}
