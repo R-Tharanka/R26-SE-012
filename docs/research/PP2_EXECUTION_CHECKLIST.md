@@ -1,6 +1,6 @@
 # PP2 Execution Checklist
 
-Last updated: 2026-08-26
+Last updated: 2026-08-27
 
 Use this checklist phase-by-phase. Do not jump to model training before Phase 1 is complete.
 
@@ -55,9 +55,15 @@ Phase 1 validation result: PASSED.
 
 ## Phase 2: Berry Grading V2 Baseline
 
-Status: NOT STARTED
+Status: READY TO TRAIN
 
-- [ ] Confirm V2 sample-level split exists.
+- [x] Confirm V2 sample-level split exists.
+- [x] Make training script accept explicit V2 train and validation directories.
+- [x] Make training script accept V2 output directory.
+- [x] Make evaluator accept explicit V2 model, test data, and output directories.
+- [x] Make exporter support explicit V2 Keras, ONNX, and metadata paths.
+- [x] Make inference resolve class names beside an explicit model path.
+- [x] Run lightweight dry-run validation without training.
 - [ ] Train MobileNetV2 baseline on V2 train split.
 - [ ] Use validation split for early stopping/tuning.
 - [ ] Evaluate on V2 test split.

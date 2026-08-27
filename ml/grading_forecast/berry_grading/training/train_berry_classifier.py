@@ -58,6 +58,15 @@ def _count_per_class(root: Path, class_names: list[str]) -> dict[str, int]:
     return counts
 
 
+def _validate_class_dirs(root: Path, class_names: list[str], *, label: str) -> None:
+    missing = [c for c in class_names if not (root / c).is_dir()]
+    if missing:
+        raise ValueError(f"{label} is missing class directories: {missing}. Root: {root}")
+    empty = [c for c in class_names if not _iter_image_files(root / c)]
+    if empty:
+        raise ValueError(f"{label} has empty class directories: {empty}. Root: {root}")
+
+
 def _ensure_stratified_split_dir(
     dataset_root: Path,
     split_root: Path,
@@ -237,7 +246,37 @@ def main(argv: list[str] | None = None) -> int:
         "--data-dir",
         type=Path,
         default=None,
-        help="Dataset root with class subfolders (grade_1/grade_2/grade_3).",
+        help="Legacy dataset root with class subfolders; uses Keras validation_split unless --train-dir/--val-dir are provided.",
+    )
+    parser.add_argument(
+        "--train-dir",
+        type=Path,
+        default=None,
+        help="Explicit training directory with grade_1/grade_2/grade_3 subfolders. Use for V2.",
+    )
+    parser.add_argument(
+        "--val-dir",
+        type=Path,
+        default=None,
+        help="Explicit validation directory with grade_1/grade_2/grade_3 subfolders. Use for V2.",
+    )
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=None,
+        help="Directory for model artifacts. Use models/v2 for V2 to avoid overwriting V1.",
+    )
+    parser.add_argument(
+        "--model-filename",
+        type=str,
+        default="berry_mobilenetv2_best.keras",
+        help="Keras model filename inside output directory.",
+    )
+    parser.add_argument(
+        "--metadata-version",
+        type=str,
+        default="v1",
+        help="Dataset/model version recorded in metadata.",
     )
     parser.add_argument("--batch-size", type=int, default=16, help="Batch size.")
     parser.add_argument("--seed", type=int, default=42, help="Deterministic seed.")
@@ -253,52 +292,126 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Always create and use a deterministic stratified directory split.",
     )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Validate paths and print resolved configuration without importing TensorFlow or training.",
+    )
     args = parser.parse_args(argv)
 
     _set_seeds(args.seed)
 
     repo_root = _repo_root()
+    if (args.train_dir is None) != (args.val_dir is None):
+        print("Both --train-dir and --val-dir must be provided together.")
+        return 2
+
+    explicit_split = args.train_dir is not None and args.val_dir is not None
     data_dir = args.data_dir or (
         repo_root / "data" / "processed" / "grading_forecast" / "berry_images_processed"
     )
-    if not data_dir.exists():
+    train_dir_arg = args.train_dir
+    val_dir_arg = args.val_dir
+
+    if explicit_split:
+        assert train_dir_arg is not None and val_dir_arg is not None
+        if not train_dir_arg.exists():
+            print(f"Missing training directory: {train_dir_arg}")
+            return 2
+        if not val_dir_arg.exists():
+            print(f"Missing validation directory: {val_dir_arg}")
+            return 2
+    elif not data_dir.exists():
         print(f"Missing dataset directory: {data_dir}")
         return 2
 
-    models_dir = repo_root / "ml" / "grading_forecast" / "berry_grading" / "models"
-    models_dir.mkdir(parents=True, exist_ok=True)
+    models_dir = args.output_dir or (repo_root / "ml" / "grading_forecast" / "berry_grading" / "models")
 
     class_names = ["grade_1", "grade_2", "grade_3"]
+    if explicit_split:
+        _validate_class_dirs(train_dir_arg, class_names, label="--train-dir")
+        _validate_class_dirs(val_dir_arg, class_names, label="--val-dir")
+    else:
+        _validate_class_dirs(data_dir, class_names, label="--data-dir")
+
+    best_path = models_dir / args.model_filename
+    history_path = models_dir / "training_history.json"
+    meta_path = models_dir / "berry_model_metadata.json"
+
+    if args.dry_run:
+        payload = {
+            "mode": "dry_run",
+            "explicit_split": bool(explicit_split),
+            "dataset_dir": None if explicit_split else str(data_dir),
+            "legacy_data_dir": str(data_dir) if explicit_split else None,
+            "train_dir": str(train_dir_arg) if train_dir_arg is not None else None,
+            "val_dir": str(val_dir_arg) if val_dir_arg is not None else None,
+            "output_dir": str(models_dir),
+            "model_path": str(best_path),
+            "history_path": str(history_path),
+            "metadata_path": str(meta_path),
+            "metadata_version": str(args.metadata_version),
+            "class_dirs": class_names,
+            "train_counts": _count_per_class(train_dir_arg, class_names) if train_dir_arg is not None else None,
+            "val_counts": _count_per_class(val_dir_arg, class_names) if val_dir_arg is not None else None,
+            "uses_v1_default_data_dir": not explicit_split and data_dir.name == "berry_images_processed",
+        }
+        print(json.dumps(payload, indent=2))
+        return 0
+
+    models_dir.mkdir(parents=True, exist_ok=True)
     class_names_path = models_dir / "class_names.json"
     class_names_path.write_text(json.dumps([c.replace("_", " ").title() for c in class_names], indent=2), encoding="utf-8")
 
     # Create initial split using the required Keras API.
     import tensorflow as tf
 
-    train_ds = tf.keras.utils.image_dataset_from_directory(
-        data_dir,
-        labels="inferred",
-        label_mode="int",
-        class_names=class_names,
-        image_size=(224, 224),
-        batch_size=args.batch_size,
-        shuffle=True,
-        seed=args.seed,
-        validation_split=args.val_split,
-        subset="training",
-    )
-    val_ds = tf.keras.utils.image_dataset_from_directory(
-        data_dir,
-        labels="inferred",
-        label_mode="int",
-        class_names=class_names,
-        image_size=(224, 224),
-        batch_size=args.batch_size,
-        shuffle=False,
-        seed=args.seed,
-        validation_split=args.val_split,
-        subset="validation",
-    )
+    if explicit_split:
+        assert train_dir_arg is not None and val_dir_arg is not None
+        train_ds = tf.keras.utils.image_dataset_from_directory(
+            train_dir_arg,
+            labels="inferred",
+            label_mode="int",
+            class_names=class_names,
+            image_size=(224, 224),
+            batch_size=args.batch_size,
+            shuffle=True,
+            seed=args.seed,
+        )
+        val_ds = tf.keras.utils.image_dataset_from_directory(
+            val_dir_arg,
+            labels="inferred",
+            label_mode="int",
+            class_names=class_names,
+            image_size=(224, 224),
+            batch_size=args.batch_size,
+            shuffle=False,
+        )
+    else:
+        train_ds = tf.keras.utils.image_dataset_from_directory(
+            data_dir,
+            labels="inferred",
+            label_mode="int",
+            class_names=class_names,
+            image_size=(224, 224),
+            batch_size=args.batch_size,
+            shuffle=True,
+            seed=args.seed,
+            validation_split=args.val_split,
+            subset="training",
+        )
+        val_ds = tf.keras.utils.image_dataset_from_directory(
+            data_dir,
+            labels="inferred",
+            label_mode="int",
+            class_names=class_names,
+            image_size=(224, 224),
+            batch_size=args.batch_size,
+            shuffle=False,
+            seed=args.seed,
+            validation_split=args.val_split,
+            subset="validation",
+        )
 
     # Compute label distribution; if it drifts, enforce stratified directory split.
     train_counts = _dataset_label_counts(train_ds)
@@ -310,8 +423,8 @@ def main(argv: list[str] | None = None) -> int:
         values = list(counts.values())
         return (max(values) - min(values)) <= tol
 
-    use_dir_split = bool(args.force_stratified_dir_split) or not (
-        _balanced_enough(train_counts) and _balanced_enough(val_counts)
+    use_dir_split = (not explicit_split) and (
+        bool(args.force_stratified_dir_split) or not (_balanced_enough(train_counts) and _balanced_enough(val_counts))
     )
     split_dir_used: dict[str, str] | None = None
     if use_dir_split:
@@ -365,10 +478,6 @@ def main(argv: list[str] | None = None) -> int:
     stage1 = StageConfig(name="stage1_frozen", epochs=args.stage1_epochs, learning_rate=args.stage1_lr, patience=args.patience)
     stage2 = StageConfig(name="stage2_finetune", epochs=args.stage2_epochs, learning_rate=args.stage2_lr, patience=max(2, args.patience // 2))
 
-    best_path = models_dir / "berry_mobilenetv2_best.keras"
-    history_path = models_dir / "training_history.json"
-    meta_path = models_dir / "berry_model_metadata.json"
-
     callbacks = [
         tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=stage1.patience, restore_best_weights=True),
         tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss", factor=0.5, patience=max(2, stage1.patience // 2)),
@@ -411,14 +520,17 @@ def main(argv: list[str] | None = None) -> int:
     # Model metadata (versioning + reproducibility).
     meta: dict[str, Any] = {
         "model_name": "berry_mobilenetv2",
-        "version": "v1",
+        "version": str(args.metadata_version),
         "trained_at": _utc_now_iso(),
         "seed": int(args.seed),
         "image_size": [224, 224],
         "classes": json.loads(class_names_path.read_text(encoding="utf-8")),
-        "dataset_dir": str(data_dir),
+        "dataset_dir": None if explicit_split else str(data_dir),
         "split": {
-            "val_ratio": float(args.val_split),
+            "strategy": "explicit_train_val_directories" if explicit_split else "keras_validation_split_or_v1_dir_split",
+            "train_dir": str(train_dir_arg) if train_dir_arg is not None else None,
+            "val_dir": str(val_dir_arg) if val_dir_arg is not None else None,
+            "val_ratio": None if explicit_split else float(args.val_split),
             "train_counts": {str(k): int(v) for k, v in train_counts.items()},
             "val_counts": {str(k): int(v) for k, v in val_counts.items()},
             "dir_split_used": split_dir_used,
@@ -445,4 +557,3 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

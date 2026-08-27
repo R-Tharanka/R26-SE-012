@@ -1,6 +1,6 @@
 # Project Status: Berry Grading and Export Price Forecasting
 
-Last updated: 2026-08-26
+Last updated: 2026-08-27
 
 This document is the current source of truth for the PP2 recovery work for the individual component: Berry Grading and Export Price Forecasting.
 
@@ -58,6 +58,7 @@ The SLS 105 Part 1: 2022 reference includes visual, physical, and chemical requi
 | Flutter UI | PARTIALLY COMPLETED | Component screens and API client exist; PP2 needs only demo validation, not new UI work. |
 | Firebase storage | EXISTS BUT NEEDS LIVE VALIDATION | Safe fallback exists when Firebase is not configured. |
 | Berry V1 model | COMPLETED BUT OUTDATED | MobileNetV2 model exists, trained on old 360-image processed dataset. |
+| Berry V2 pipeline | READY TO TRAIN | Training/evaluation/export/inference scripts now support explicit V2 paths without overwriting V1 artifacts. |
 | Forecast V1 model | COMPLETED BUT OUTDATED | RandomForest artifact exists, trained on old processed price data through 2026-04-21. |
 | Berry V2 data | PREPARED | V2 manifest, audit summary, and leakage-safe sample-level train/validation/test split were created. |
 | Price V2 data | PREPARED | V2 cleaned data, National Grade 1 average weekly target, coverage summary, and chronological split were created. |
@@ -195,6 +196,34 @@ V1 artifacts are useful as historical baselines and software integration evidenc
 - `ml/grading_forecast/berry_grading/preprocessing/prepare_training_images.py` defaults to `data/processed/grading_forecast/berry_images_processed`, so accidental execution may overwrite or mix into the old processed image directory.
 - `ml/grading_forecast/price_forecasting/data/clean_price_data.py`, `prepare_forecast_training_data.py`, and `create_forecast_split.py` default to V1 processed output filenames.
 - For PP2 V2 work, use the new V2-specific scripts and output paths unless an old script is explicitly parameterized and checked first.
+
+## Berry V2 Pipeline Readiness
+
+Status: READY TO TRAIN, but model training has not been performed yet.
+
+The berry training pipeline now supports the authoritative V2 data flow:
+
+`data/raw/berry_images/` -> Phase 1 V2 preparation -> `berry_split_v2/train` and `berry_split_v2/val` -> MobileNetV2 training -> V2 model artifacts -> `berry_split_v2/test` final evaluation.
+
+Required V2 output locations:
+
+- Models: `ml/grading_forecast/berry_grading/models/v2/`
+- Evaluation plots: `ml/grading_forecast/berry_grading/evaluation/_outputs/v2/`
+
+Validation performed:
+
+- Syntax checks passed for berry training, evaluation, export, and inference scripts.
+- Training dry-run resolved train images as 155 Grade 1, 156 Grade 2, and 156 Grade 3.
+- Training dry-run resolved validation images as 31 Grade 1, 32 Grade 2, and 32 Grade 3.
+- Evaluation dry-run resolved the full V2 test directory and V2 metrics/plot paths.
+- Export dry-run resolved V2 Keras, ONNX, and metadata paths.
+- Inference dry-run resolved the V2 ONNX path and class-name path beside it.
+
+Environment note:
+
+- TensorFlow is not available in the current shell.
+- tf2onnx is not available in the current shell.
+- onnxruntime and Pillow are available.
 
 ## Current Blockers
 

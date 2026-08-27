@@ -39,16 +39,42 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Export berry MobileNetV2 Keras model to ONNX (training environment).")
     parser.add_argument("--model", type=Path, default=None, help="Path to best .keras model.")
     parser.add_argument("--out", type=Path, default=None, help="Output .onnx path.")
+    parser.add_argument(
+        "--metadata-out",
+        type=Path,
+        default=None,
+        help="Output ONNX metadata JSON path. Defaults beside the selected ONNX output.",
+    )
     parser.add_argument("--opset", type=int, default=13, help="ONNX opset (default 13).")
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Print resolved export paths without importing TensorFlow/tf2onnx or writing files.",
+    )
     args = parser.parse_args(argv)
 
     repo_root = _repo_root()
-    models_dir = repo_root / "ml" / "grading_forecast" / "berry_grading" / "models"
-    models_dir.mkdir(parents=True, exist_ok=True)
+    default_models_dir = repo_root / "ml" / "grading_forecast" / "berry_grading" / "models"
 
-    keras_path = args.model or (models_dir / "berry_mobilenetv2_best.keras")
-    onnx_path = args.out or (models_dir / "berry_mobilenetv2_best.onnx")
-    meta_path = models_dir / "onnx_metadata.json"
+    keras_path = args.model or (default_models_dir / "berry_mobilenetv2_best.keras")
+    onnx_path = args.out or keras_path.with_suffix(".onnx")
+    meta_path = args.metadata_out or (onnx_path.parent / "onnx_metadata.json")
+
+    if args.dry_run:
+        payload = {
+            "mode": "dry_run",
+            "keras_model_path": str(keras_path),
+            "keras_model_exists": keras_path.exists(),
+            "onnx_model_path": str(onnx_path),
+            "metadata_path": str(meta_path),
+            "berry_model_metadata_path": str(keras_path.parent / "berry_model_metadata.json"),
+            "opset": int(args.opset),
+        }
+        print(json.dumps(payload, indent=2))
+        return 0
+
+    onnx_path.parent.mkdir(parents=True, exist_ok=True)
+    meta_path.parent.mkdir(parents=True, exist_ok=True)
 
     if not keras_path.exists():
         print(f"Missing .keras model: {keras_path}")
@@ -84,7 +110,7 @@ def main(argv: list[str] | None = None) -> int:
     meta_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
     # Update berry_model_metadata.json export flags if present.
-    berry_meta = models_dir / "berry_model_metadata.json"
+    berry_meta = keras_path.parent / "berry_model_metadata.json"
     if berry_meta.exists():
         try:
             data = json.loads(berry_meta.read_text(encoding="utf-8"))
@@ -102,4 +128,3 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

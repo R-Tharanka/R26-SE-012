@@ -1,6 +1,6 @@
 # PP2 Results
 
-Last updated: 2026-08-26
+Last updated: 2026-08-27
 
 This document is reserved for PP2 evidence. It currently contains audit results and placeholders for V2 experiments that have not been run yet.
 
@@ -9,6 +9,8 @@ This document is reserved for PP2 evidence. It currently contains audit results 
 Phase 0 audit result: COMPLETE.
 
 Phase 1 dataset preparation result: COMPLETE.
+
+Berry V2 pre-training pipeline preparation: COMPLETE.
 
 No V2 model has been trained yet. No V2 metrics should be claimed until the corresponding experiment is executed.
 
@@ -235,7 +237,15 @@ The V1 RandomForest model showed overfitting or poor future generalization. This
 
 ## V2 Berry Results
 
-Status: NOT STARTED.
+Status: READY TO TRAIN.
+
+Pipeline readiness:
+
+- Training can now explicitly use `berry_split_v2/train` and `berry_split_v2/val`.
+- Evaluation can now explicitly use the untouched `berry_split_v2/test`.
+- V2 artifacts resolve to `ml/grading_forecast/berry_grading/models/v2/`.
+- V2 plots resolve to `ml/grading_forecast/berry_grading/evaluation/_outputs/v2/`.
+- Dry-run validation passed; no V2 model has been trained.
 
 Planned table:
 
