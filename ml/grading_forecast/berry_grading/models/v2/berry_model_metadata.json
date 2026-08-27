@@ -1,0 +1,57 @@
+{
+  "model_name": "berry_mobilenetv2",
+  "version": "v2",
+  "trained_at": "2026-08-27T03:20:57+00:00",
+  "seed": 42,
+  "image_size": [
+    224,
+    224
+  ],
+  "classes": [
+    "Grade 1",
+    "Grade 2",
+    "Grade 3"
+  ],
+  "dataset_dir": null,
+  "split": {
+    "strategy": "explicit_train_val_directories",
+    "train_dir": "data\\processed\\grading_forecast\\berry_split_v2\\train",
+    "val_dir": "data\\processed\\grading_forecast\\berry_split_v2\\val",
+    "val_ratio": null,
+    "train_counts": {
+      "2": 156,
+      "0": 155,
+      "1": 156
+    },
+    "val_counts": {
+      "0": 31,
+      "1": 32,
+      "2": 32
+    },
+    "dir_split_used": null
+  },
+  "augmentation": {
+    "flip": true,
+    "rotation": 0.06,
+    "zoom": 0.1,
+    "brightness_factor": 0.12
+  },
+  "stage1": {
+    "name": "stage1_frozen",
+    "epochs": 15,
+    "learning_rate": 0.001,
+    "patience": 3
+  },
+  "stage2": {
+    "name": "stage2_finetune",
+    "epochs": 5,
+    "learning_rate": 1e-05,
+    "patience": 2
+  },
+  "export_formats_present": {
+    "keras": true,
+    "onnx": false,
+    "tflite": false
+  },
+  "git_sha": "9db62a702c670b314cda0f0bea3c9f5ad4b00334"
+}
