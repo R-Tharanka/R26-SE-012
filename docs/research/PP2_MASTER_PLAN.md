@@ -566,7 +566,7 @@ Completion result:
 - Analyze endpoint returned HTTP 200 with grading, forecast, recommendation, and storage fields.
 - Firebase was not configured; storage safely returned `saved_to_firebase: false`.
 - Runtime evidence is recorded in `docs/research/PP2_INTEGRATION_VALIDATION.md`.
-- Important runtime distinction: current backend does not automatically load PP2 V2 or Phase 4 artifact directories. Research metrics remain V2 evidence, while the current backend demo uses legacy/root grading ONNX and forecast fallback behavior.
+- Important runtime distinction at Phase 5 validation time: the backend did not automatically load PP2 V2 or Phase 4 artifact directories. Research metrics remained V2 evidence, while the Phase 5 backend demo used legacy/root grading ONNX and forecast fallback behavior. Later Phase 8/9 post-PP2 runtime work integrated Berry V2 runtime and Naive Persistence forecast runtime.
 
 ### Risks
 

@@ -20,6 +20,8 @@ Phase 5 Integration Validation result: COMPLETE with runtime limitations.
 
 Phase 6 PP2 Evidence and Documentation result: COMPLETE.
 
+Post-PP2 runtime update: Phase 8 integrated the selected Berry V2 ONNX into the backend runtime, and Phase 9 changed the price forecast runtime from `demo_baseline` to the validated `naive_persistence` method using the V2 National Grade 1 average weekly target.
+
 ## Final PP2 Evidence Summary
 
 ### V2 Dataset Summary
@@ -514,11 +516,12 @@ Observed endpoint details:
 - Analyze decision: `SELL_EXPORT`.
 - Analyze storage: `saved_to_firebase: false`.
 
-Runtime model/fallback interpretation:
+Runtime model/fallback interpretation at Phase 5 validation time:
 
-- The current backend code resolves berry grading ONNX from the legacy/root artifact path: `ml/grading_forecast/berry_grading/models/berry_mobilenetv2_best.onnx`.
-- The current backend does not automatically load the PP2 V2 or Phase 4 berry model directories.
-- The price forecast endpoint returned `demo_baseline`, not the Phase 3 or Phase 4 V2 forecasting models.
+- At Phase 5, the backend resolved berry grading ONNX from the legacy/root artifact path: `ml/grading_forecast/berry_grading/models/berry_mobilenetv2_best.onnx`.
+- Phase 8 later changed the berry runtime to `BERRY-V2-MNV2`: `ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.onnx`.
+- At Phase 5, the price forecast endpoint returned `demo_baseline`, not the Phase 3 or Phase 4 V2 forecasting models.
+- Phase 9 later changed the real application forecast runtime to `naive_persistence` using `data/processed/grading_forecast/price_v2/national_grade1_average_weekly.csv`.
 - Firebase was not configured; the analyze response still completed with storage fallback.
 
 Mobile inspection:
@@ -561,7 +564,7 @@ The V1 implementation established a working end-to-end baseline. After PP1, the 
 - Berry improvement: dropout 0.35 was tested as one limited Phase 4 change and did not improve the saved test metrics.
 - Forecasting baseline: Naive Persistence strongly outperformed the Phase 3 RandomForest on the same 36 test timestamps.
 - Forecasting improvement: adding `lag_4`, `lag_8`, and `lag_12` improved RandomForest, but it still remained worse than Naive Persistence.
-- Integration validation: FastAPI endpoints started and returned usable responses; current runtime grading used the legacy/root ONNX artifact and forecasting used `demo_baseline`.
-- Limitations: camera grading is not official SLS certification; Grade 2 forecasting is out of scope; backend runtime artifact paths still need V2 integration after PP2.
+- Integration validation: FastAPI endpoints started and returned usable responses during Phase 5; later Phase 8/9 work integrated Berry V2 runtime and Naive Persistence forecast runtime.
+- Limitations: camera grading is not official SLS certification; Grade 2 forecasting is out of scope; recommendation logic, Firebase, Flutter E2E, and final integrated validation remain pending.
 - Current conclusion: PP2 has defensible V2 datasets, completed baseline experiments, one limited improvement per subproblem, honest limitations, and a known backend demo path.
-- Future work: connect backend runtime to selected V2 artifacts, validate Flutter live flow, collect more data, improve forecasting features, and perform broader post-PP2 model evaluation.
+- Future work: validate recommendations using real runtime outputs, validate Flutter live flow, configure Firebase if required, collect more data, improve forecasting features, and perform broader post-PP2 model evaluation.

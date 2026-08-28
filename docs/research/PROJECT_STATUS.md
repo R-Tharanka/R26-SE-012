@@ -6,7 +6,7 @@ This document is the current source of truth for the PP2 recovery work for the i
 
 ## Current Phase
 
-Current phase: Phase 8 Berry V2 Runtime Integration complete. Next work is Phase 9 Forecast Runtime Integration / Runtime Forecasting-Method Decision.
+Current phase: Phase 9 Forecast Runtime Integration / Runtime Forecasting-Method Decision complete. Next work is Phase 10 Recommendation & Decision Logic.
 
 Phase 0, Repository and Research Audit, is complete.
 
@@ -25,6 +25,8 @@ Phase 6, PP2 Evidence and Documentation, is complete. Final PP2 result tables, s
 Phase 7, Existing Implementation Audit, is complete. The current backend/mobile runtime behavior, model paths, fallback behavior, recommendation logic, Firebase/storage behavior, Flutter API contract, and Phase 8+ pending work were documented. No application code was changed during Phase 7.
 
 Phase 8, Berry V2 Runtime Integration, is complete. The berry grading backend service now loads `BERRY-V2-MNV2` from `ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.onnx`. The existing API contract was preserved. Forecasting, recommendation rules, Firebase, and Flutter were not changed during Phase 8.
+
+Phase 9, Forecast Runtime Integration / Runtime Forecasting-Method Decision, is complete. The backend price forecast service now uses the V2 National Grade 1 average weekly target and the validated `naive_persistence` method instead of `demo_baseline` for the real application forecasting path. Berry grading, recommendation rules, Firebase, Flutter, datasets, training, evaluation, and model artifacts were not changed during Phase 9.
 
 ## Project Scope
 
@@ -82,6 +84,7 @@ The SLS 105 Part 1: 2022 reference includes visual, physical, and chemical requi
 | PP2 evidence | COMPLETE | Phase 1-6 dataset, model, integration, limitations, speaking points, and evidence references are recorded for PP2. |
 | Existing implementation audit | COMPLETE | Phase 7 identified that runtime berry grading used the legacy/root ONNX model before Phase 8, runtime forecasting can return `demo_baseline`, Firebase is optional/fail-safe, and Flutter end-to-end validation remains pending. |
 | Berry V2 runtime integration | COMPLETE | Phase 8 updated the berry grading service to load `BERRY-V2-MNV2` from `ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.onnx` and verified one V2 test image through the service path. |
+| Forecast runtime integration | COMPLETE | Phase 9 selected Naive Persistence for runtime because it is the strongest validated V2 forecasting method and no inspected requirement forced the weaker trained RF artifact into runtime. |
 
 ## Dataset Status
 
@@ -323,10 +326,9 @@ Forecasting Phase 4 artifacts:
 
 ## Current Blockers
 
-- Forecast runtime currently does not automatically load PP2 V2 or Phase 4 artifact directories.
-- Forecast runtime currently uses the legacy/root forecast model directory and can return `demo_baseline` because default raw input candidates do not point to the V2 forecasting dataset.
 - Firebase was not configured during Phase 5.
 - Flutter API integration exists, but end-to-end Flutter validation remains pending.
+- Recommendation logic still needs validation using the real Phase 8 and Phase 9 runtime outputs.
 
 ## Phase 7 Existing Implementation Audit Result
 
@@ -336,7 +338,7 @@ Audit findings:
 
 - At Phase 7 audit time, berry runtime used the legacy/root ONNX model: `ml/grading_forecast/berry_grading/models/berry_mobilenetv2_best.onnx`.
 - Berry V2 research model exists separately: `ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.onnx`.
-- Forecast runtime currently uses the legacy/root forecast model directory and can return `demo_baseline` because default raw input candidates do not point to the V2 forecasting dataset.
+- At Phase 7 audit time, forecast runtime used the legacy/root forecast model directory and could return `demo_baseline` because default raw input candidates did not point to the V2 forecasting dataset.
 - Forecast V2 RandomForest and Phase 4 RandomForest artifacts exist separately under `ml/grading_forecast/price_forecasting/models/v2/` and `ml/grading_forecast/price_forecasting/models/v2_phase4/`.
 - Naive Persistence is currently the strongest research forecasting method on the V2 test period.
 - Recommendation logic exists and still needs validation using real runtime research outputs.
@@ -366,6 +368,37 @@ Validation evidence:
 - The berry grading service no longer selects the legacy/root ONNX filename during normal real-model loading.
 
 No forecasting, recommendation-rule, Firebase, Flutter, dataset, training, or model-artifact changes were made during Phase 8.
+
+## Phase 9 Forecast Runtime Integration Result
+
+Status: COMPLETE.
+
+Requirement decision:
+
+- Official/research documents checked: `docs/references/TAF_R26-SE-012.pdf`, `docs/references/R26-SE-012_IT22079268_PremathilakaGGRT.pdf`, `docs/research/PROJECT_STATUS.md`, `docs/research/PP2_RESULTS.md`, and `docs/research/Pending Work Plan — Berry Grading & Price Forecasting.md`.
+- Confirmed requirement: short-term price forecasting using machine-learning/time-series techniques.
+- Not confirmed: a strict requirement that the application runtime must use a trained RandomForest artifact even when a validated time-series baseline performs better.
+- Runtime decision: use `naive_persistence`, because it is the strongest validated forecasting method on the V2 test period.
+
+Runtime configuration:
+
+- Method/model ID: `naive_persistence`.
+- Runtime target data: `data/processed/grading_forecast/price_v2/national_grade1_average_weekly.csv`.
+- Metrics source: `ml/grading_forecast/price_forecasting/models/v2/naive_persistence_metrics.json`.
+- Latest observed target price used by runtime validation: 2026-08-18, 1886.14 LKR/kg, rounded to `1886` for the existing integer API schema.
+
+Validation evidence:
+
+- Service-level forecast validation returned model `naive_persistence`.
+- Current price: `1886`.
+- Predicted price: `1886`.
+- Trend: `stable`.
+- Saved metric fields returned by the existing API schema: MAE `16.4094`, RMSE `22.5208`.
+- Same input produced the same forecast on repeat.
+- Missing-file validation returned `forecast_unavailable`, not `demo_baseline`.
+- The real application forecasting path no longer returns fabricated demo values.
+
+No berry grading, recommendation-rule, Firebase, Flutter, dataset, training, evaluation, or model-artifact changes were made during Phase 9.
 
 ## Phase 6 Evidence and Documentation Result
 
@@ -430,4 +463,4 @@ Mobile status:
 
 ## Next Exact Action
 
-Phase 9: Forecast Runtime Integration / Runtime Forecasting-Method Decision. Do not start model improvement or Flutter end-to-end work before the runtime forecasting decision is made.
+Phase 10: Recommendation & Decision Logic. Validate that recommendations use the real Phase 8 berry runtime output and Phase 9 forecast runtime output before Firebase, Flutter end-to-end, or UI/UX work.

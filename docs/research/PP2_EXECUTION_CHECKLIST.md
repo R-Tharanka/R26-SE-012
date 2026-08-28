@@ -225,7 +225,7 @@ Evidence:
 
 - At Phase 7 audit time, berry runtime used legacy/root ONNX: `ml/grading_forecast/berry_grading/models/berry_mobilenetv2_best.onnx`.
 - Berry V2 research ONNX exists separately: `ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.onnx`.
-- Forecast runtime uses legacy/root forecast model directory and can return `demo_baseline` because default raw input candidates do not point to the V2 forecasting dataset.
+- At Phase 7 audit time, forecast runtime used the legacy/root forecast model directory and could return `demo_baseline` because default raw input candidates did not point to the V2 forecasting dataset.
 - Forecast V2 RandomForest and Phase 4 RandomForest artifacts exist separately under `ml/grading_forecast/price_forecasting/models/v2/` and `ml/grading_forecast/price_forecasting/models/v2_phase4/`.
 - Naive Persistence remains the strongest research forecasting method on the V2 test period.
 - Firebase/storage is optional/fail-safe and was not configured during Phase 5.
@@ -235,7 +235,7 @@ Evidence:
 ## Phase 8+ Pending Work
 
 - [x] Berry V2 runtime integration.
-- [ ] Forecast runtime integration and runtime forecasting-method decision.
+- [x] Forecast runtime integration and runtime forecasting-method decision.
 - [ ] Recommendation validation using real runtime research outputs.
 - [ ] Firebase/storage validation if required.
 - [ ] Error handling/API hardening.
@@ -270,6 +270,37 @@ Evidence:
 - Test image: `data/processed/grading_forecast/berry_split_v2/test/grade_1/sample_002/20260508_152537.jpg`.
 - Service validation result: predicted `Grade 1`, confidence `0.88`, quality score `82.3`, and explanation identified `BERRY-V2-MNV2`.
 - Legacy/root ONNX filename is no longer selected by the berry grading service.
+
+## Phase 9: Forecast Runtime Integration / Runtime Forecasting-Method Decision
+
+Status: COMPLETE
+
+- [x] Official project/TAF requirement regarding ML forecasting was checked.
+- [x] Runtime forecasting method was explicitly selected.
+- [x] Current `demo_baseline` real-application behavior was removed.
+- [x] Actual research-backed forecasting logic is connected.
+- [x] Correct runtime data/artifact source is verified.
+- [x] Forecast output is deterministic/reproducible.
+- [x] Current/latest price is real data.
+- [x] Predicted price is research-backed.
+- [x] Forecast method/model identifier is returned.
+- [x] Focused backend/service-level validation passed.
+- [x] Relevant research documentation updated.
+- [x] PP2 execution checklist updated.
+- [x] No unrelated application areas were modified.
+
+Phase 9 validation result: PASSED.
+
+Evidence:
+
+- Requirement decision: inspected official/research documents require short-term price forecasting using machine-learning/time-series techniques, but no inspected requirement explicitly forced the application runtime to use a trained RandomForest artifact when Naive Persistence is the stronger validated forecasting method.
+- Selected runtime method: `naive_persistence`.
+- Runtime data source: `data/processed/grading_forecast/price_v2/national_grade1_average_weekly.csv`.
+- Runtime metrics source: `ml/grading_forecast/price_forecasting/models/v2/naive_persistence_metrics.json`.
+- Focused service validation returned model `naive_persistence`, current price `1886`, predicted price `1886`, trend `stable`, MAE `16.4094`, and RMSE `22.5208`.
+- Repeat validation with the same input returned the same forecast.
+- Missing-file validation returned `forecast_unavailable` instead of fabricated demo values.
+- No berry grading, recommendation-rule, Firebase, Flutter, dataset, training, evaluation, or model-artifact changes were made.
 
 ## Four-Day Schedule Tracker
 

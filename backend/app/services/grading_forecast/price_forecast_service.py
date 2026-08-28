@@ -17,6 +17,22 @@ from app.schemas.grading_forecast import ForecastMetrics, ForecastResult, TrendE
 
 MOVING_AVG_WINDOW = 3
 EVAL_MIN_RECORDS = 6
+RUNTIME_FORECAST_MODEL_ID = "naive_persistence"
+RUNTIME_FORECAST_TARGET_RELATIVE_PATH = (
+    Path("data")
+    / "processed"
+    / "grading_forecast"
+    / "price_v2"
+    / "national_grade1_average_weekly.csv"
+)
+RUNTIME_NAIVE_METRICS_RELATIVE_PATH = (
+    Path("ml")
+    / "grading_forecast"
+    / "price_forecasting"
+    / "models"
+    / "v2"
+    / "naive_persistence_metrics.json"
+)
 
 
 @dataclass(frozen=True)
@@ -34,6 +50,14 @@ def _default_input_paths(*, repo_root: Path) -> tuple[Path, Path]:
     real = repo_root / "data" / "raw" / "market_prices" / "black_pepper_prices.csv"
     sample = repo_root / "data" / "raw" / "market_prices" / "sample_black_pepper_prices.csv"
     return real, sample
+
+
+def _runtime_target_csv(*, repo_root: Path) -> Path:
+    return repo_root / RUNTIME_FORECAST_TARGET_RELATIVE_PATH
+
+
+def _runtime_naive_metrics_path(*, repo_root: Path) -> Path:
+    return repo_root / RUNTIME_NAIVE_METRICS_RELATIVE_PATH
 
 
 def _default_output_path(*, repo_root: Path) -> Path:
@@ -93,11 +117,9 @@ def _load_forecast_model_bundle(models_dir_override: Path | None = None) -> tupl
 
 def select_input_csv_path(*, repo_root: Path | None = None) -> Path | None:
     root = repo_root or _repo_root()
-    real, sample = _default_input_paths(repo_root=root)
-    if real.is_file():
-        return real
-    if sample.is_file():
-        return sample
+    target_csv = _runtime_target_csv(repo_root=root)
+    if target_csv.is_file():
+        return target_csv
     return None
 
 
@@ -263,6 +285,48 @@ def clean_price_csv(
     return cleaned
 
 
+def load_observed_price_points(input_csv_path: Path) -> list[PricePoint]:
+    """
+    Load observed price points without filling, interpolation, or synthetic rows.
+    """
+
+    rows = _load_csv_rows(input_csv_path)
+    detected = _detect_columns(rows)
+    if detected is None:
+        return []
+    date_col, price_col = detected
+
+    by_date: dict[dt.date, list[float]] = defaultdict(list)
+    for row in rows:
+        date = _parse_date(row.get(date_col))
+        price = _parse_price(row.get(price_col))
+        if date is None or price is None:
+            continue
+        by_date[date].append(price)
+
+    points: list[PricePoint] = []
+    for date in sorted(by_date):
+        values = by_date[date]
+        if values:
+            points.append(PricePoint(date=date, price_lkr_per_kg=int(round(sum(values) / len(values)))))
+    return points
+
+
+def _load_runtime_naive_metrics(repo_root: Path) -> ForecastMetrics:
+    metrics_path = _runtime_naive_metrics_path(repo_root=repo_root)
+    if not metrics_path.is_file():
+        return ForecastMetrics(mae=None, rmse=None)
+    try:
+        payload = json.loads(metrics_path.read_text(encoding="utf-8"))
+        metrics = payload.get("metrics") or {}
+        return ForecastMetrics(
+            mae=round(float(metrics["mae"]), 4) if metrics.get("mae") is not None else None,
+            rmse=round(float(metrics["rmse"]), 4) if metrics.get("rmse") is not None else None,
+        )
+    except Exception:
+        return ForecastMetrics(mae=None, rmse=None)
+
+
 def evaluate_one_step_ahead_metrics(points: list[PricePoint]) -> ForecastMetrics:
     if len(points) < EVAL_MIN_RECORDS:
         return ForecastMetrics(mae=None, rmse=None)
@@ -324,6 +388,17 @@ def _demo_forecast(seed_hint: str | None) -> ForecastResult:
     )
 
 
+def _unavailable_forecast() -> ForecastResult:
+    return ForecastResult(
+        model="forecast_unavailable",
+        current_price_lkr_per_kg=0,
+        predicted_price_lkr_per_kg=0,
+        trend=TrendEnum.stable,
+        forecast_period="next_period",
+        metrics=ForecastMetrics(mae=None, rmse=None),
+    )
+
+
 def build_price_forecast(
     seed_hint: str | None,
     *,
@@ -332,10 +407,11 @@ def build_price_forecast(
     models_dir_override: Path | None = None,
 ) -> ForecastResult:
     """
-    Build a baseline price forecast.
+    Build the runtime price forecast from the selected research-backed method.
 
-    - Uses real CSV if present, otherwise sample CSV, otherwise demo fallback.
-    - Never raises; any error falls back to deterministic demo forecast.
+    - Uses the V2 National Grade 1 average weekly target by default.
+    - Uses Naive Persistence because it is the strongest validated V2 forecasting method.
+    - Never raises; data/configuration problems return an explicit unavailable state.
     """
 
     try:
@@ -345,47 +421,17 @@ def build_price_forecast(
             input_csv = select_input_csv_path(repo_root=root)
 
         if input_csv is None or not input_csv.is_file():
-            return _demo_forecast(seed_hint=seed_hint)
+            return _unavailable_forecast()
 
-        # Prefer real model if artifacts exist.
-        model_bundle = _load_forecast_model_bundle(models_dir_override)
-        if model_bundle is not None:
-            model_obj, spec = model_bundle
-
-            series_csv = csv_path_override or _default_forecast_series_csv(repo_root=root) or input_csv
-            if series_csv is not None and series_csv.is_file():
-                points_for_model = clean_price_csv(series_csv, output_csv_path=None)
-                predicted = _predict_next_price(points_for_model, spec=spec, model=model_obj)
-                if predicted is not None and points_for_model:
-                    current = points_for_model[-1].price_lkr_per_kg
-                    return ForecastResult(
-                        model="random_forest_regressor_v1",
-                        current_price_lkr_per_kg=int(current),
-                        predicted_price_lkr_per_kg=int(max(0, int(round(predicted)))),
-                        trend=_trend(int(current), int(max(0, int(round(predicted))))),
-                        forecast_period="next_period",
-                        metrics=ForecastMetrics(mae=None, rmse=None),
-                    )
-
-        output_csv = cleaned_output_path_override or _default_output_path(repo_root=root)
-        points = clean_price_csv(input_csv, output_csv_path=output_csv)
-
+        points = load_observed_price_points(input_csv)
         if not points:
-            return _demo_forecast(seed_hint=seed_hint)
+            return _unavailable_forecast()
 
-        # Fallback baseline: moving average / naive.
-        current = points[-1].price_lkr_per_kg
-        if len(points) == 1:
-            predicted = current
-            model_name = "naive_baseline"
-        else:
-            window = points[-min(MOVING_AVG_WINDOW, len(points)) :]
-            predicted = int(round(sum(p.price_lkr_per_kg for p in window) / len(window)))
-            model_name = "moving_average_baseline"
-
-        metrics = evaluate_one_step_ahead_metrics(points)
+        current = int(points[-1].price_lkr_per_kg)
+        predicted = current
+        metrics = _load_runtime_naive_metrics(root)
         return ForecastResult(
-            model=model_name,
+            model=RUNTIME_FORECAST_MODEL_ID,
             current_price_lkr_per_kg=int(current),
             predicted_price_lkr_per_kg=int(max(0, predicted)),
             trend=_trend(int(current), int(max(0, predicted))),
@@ -393,7 +439,7 @@ def build_price_forecast(
             metrics=metrics,
         )
     except Exception:
-        return _demo_forecast(seed_hint=seed_hint)
+        return _unavailable_forecast()
 
 
 def _std(values: list[float]) -> float:

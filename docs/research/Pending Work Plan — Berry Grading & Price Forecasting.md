@@ -105,9 +105,9 @@ Create a short implementation map:
 | --- | --- | --- | --- |
 | Berry model | At Phase 7 audit time, runtime used legacy/root ONNX: `ml/grading_forecast/berry_grading/models/berry_mobilenetv2_best.onnx` | Integrate selected V2 ONNX if required for final runtime | Completed in Phase 8 |
 | Berry V2 research artifact | V2 ONNX exists separately: `ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.onnx` | Keep distinct from runtime until integration is intentionally performed | Verified |
-| Forecast | Runtime uses legacy/root forecast model directory and may return `demo_baseline` because default raw input candidates do not point to V2 forecasting data | Decide and integrate selected runtime forecasting method | Pending Phase 9 |
+| Forecast | Runtime now uses `naive_persistence` with `data/processed/grading_forecast/price_v2/national_grade1_average_weekly.csv` | Keep forecasting decision documented; validate recommendation using real outputs next | Completed in Phase 9 |
 | Forecast V2 research artifacts | V2 RF and Phase 4 RF artifacts exist separately under `models/v2/` and `models/v2_phase4/` | Do not claim runtime use until wired and validated | Verified |
-| Strongest research forecast | Naive Persistence is strongest on the V2 test period | Decide whether runtime should use Naive Persistence or an ML artifact | Pending Phase 9 |
+| Strongest research forecast | Naive Persistence is strongest on the V2 test period | Runtime selected Naive Persistence after requirement check | Completed in Phase 9 |
 | Recommendation | Existing rule logic is implemented | Validate using real research outputs after runtime integration | Pending Phase 10 |
 | Storage | Firebase storage is optional/fail-safe; Phase 5 had Firebase unconfigured | Configure and validate only if required | Pending Phase 12 |
 | API | Existing endpoints and fallback/error behavior identified | Harden only after model/runtime decisions | Pending Phase 11 |
@@ -209,6 +209,8 @@ Service-level runtime validation returned a valid prediction and identified `BER
 
 # Phase 9 — Price Forecasting Runtime Integration
 
+Status: COMPLETE
+
 ### Objective
 
 Remove the `demo_baseline` runtime behavior and connect the application to your actual forecasting methodology.
@@ -285,6 +287,34 @@ demo_baseline
 for the real application flow.
 
 It returns a genuine research-backed forecast.
+
+### Phase 9 completion evidence
+
+Requirement decision:
+
+The checked project documents require short-term price forecasting using machine-learning/time-series techniques, but no inspected requirement explicitly forced the application runtime to use a trained RandomForest artifact when a validated time-series baseline performs better. Naive Persistence was selected because it is the strongest validated forecasting method on the V2 test period.
+
+Runtime forecast configuration:
+
+```text
+Method: naive_persistence
+Target data: data/processed/grading_forecast/price_v2/national_grade1_average_weekly.csv
+Metrics source: ml/grading_forecast/price_forecasting/models/v2/naive_persistence_metrics.json
+```
+
+Focused service-level validation returned:
+
+```text
+model: naive_persistence
+current_price_lkr_per_kg: 1886
+predicted_price_lkr_per_kg: 1886
+trend: stable
+metrics.mae: 16.4094
+metrics.rmse: 22.5208
+deterministic repeat: true
+```
+
+Missing-file validation returned `model: forecast_unavailable` instead of fabricated demo values. The real application forecasting path no longer returns `demo_baseline`. No berry grading, recommendation-rule, Firebase, Flutter, dataset, training, evaluation, or model-artifact changes were made during Phase 9.
 
 ---
 
@@ -761,7 +791,7 @@ Phase 16 → Final validation
 | 6      | PP2 documentation                | ✅ Complete                  |
 | **7**  | **Implementation audit**         | ✅ Complete                  |
 | **8**  | **Berry V2 runtime integration** | ✅ Complete                  |
-| **9**  | **Forecast runtime integration** | 🔴 Pending                  |
+| **9**  | **Forecast runtime integration** | ✅ Complete                  |
 | **10** | **Recommendation verification**  | 🟠 Pending                  |
 | **11** | **Backend error handling**       | 🟠 Pending                  |
 | **12** | **Firebase**                     | 🟡 Conditional              |
