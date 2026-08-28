@@ -6,7 +6,7 @@ This document is the current source of truth for the PP2 recovery work for the i
 
 ## Current Phase
 
-Current phase: Phase 7 Existing Implementation Audit complete. Next work is Phase 8 Berry V2 Runtime Integration.
+Current phase: Phase 8 Berry V2 Runtime Integration complete. Next work is Phase 9 Forecast Runtime Integration / Runtime Forecasting-Method Decision.
 
 Phase 0, Repository and Research Audit, is complete.
 
@@ -23,6 +23,8 @@ Phase 5, Integration Validation, is complete with runtime limitations. The backe
 Phase 6, PP2 Evidence and Documentation, is complete. Final PP2 result tables, speaking points, limitations, and evidence references are recorded.
 
 Phase 7, Existing Implementation Audit, is complete. The current backend/mobile runtime behavior, model paths, fallback behavior, recommendation logic, Firebase/storage behavior, Flutter API contract, and Phase 8+ pending work were documented. No application code was changed during Phase 7.
+
+Phase 8, Berry V2 Runtime Integration, is complete. The berry grading backend service now loads `BERRY-V2-MNV2` from `ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.onnx`. The existing API contract was preserved. Forecasting, recommendation rules, Firebase, and Flutter were not changed during Phase 8.
 
 ## Project Scope
 
@@ -78,7 +80,8 @@ The SLS 105 Part 1: 2022 reference includes visual, physical, and chemical requi
 | EDA notebooks | NOT STARTED | Notebook folders exist only as scaffolds. |
 | Limited improvement | COMPLETE | Phase 4 berry dropout 0.35 and forecast extended-lag RF experiments were completed and documented. |
 | PP2 evidence | COMPLETE | Phase 1-6 dataset, model, integration, limitations, speaking points, and evidence references are recorded for PP2. |
-| Existing implementation audit | COMPLETE | Phase 7 identified that runtime berry grading currently uses the legacy/root ONNX model, runtime forecasting can return `demo_baseline`, Firebase is optional/fail-safe, and Flutter end-to-end validation remains pending. |
+| Existing implementation audit | COMPLETE | Phase 7 identified that runtime berry grading used the legacy/root ONNX model before Phase 8, runtime forecasting can return `demo_baseline`, Firebase is optional/fail-safe, and Flutter end-to-end validation remains pending. |
+| Berry V2 runtime integration | COMPLETE | Phase 8 updated the berry grading service to load `BERRY-V2-MNV2` from `ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.onnx` and verified one V2 test image through the service path. |
 
 ## Dataset Status
 
@@ -320,8 +323,7 @@ Forecasting Phase 4 artifacts:
 
 ## Current Blockers
 
-- Current backend runtime does not automatically load PP2 V2 or Phase 4 artifact directories.
-- Berry runtime currently uses the legacy/root ONNX model: `ml/grading_forecast/berry_grading/models/berry_mobilenetv2_best.onnx`.
+- Forecast runtime currently does not automatically load PP2 V2 or Phase 4 artifact directories.
 - Forecast runtime currently uses the legacy/root forecast model directory and can return `demo_baseline` because default raw input candidates do not point to the V2 forecasting dataset.
 - Firebase was not configured during Phase 5.
 - Flutter API integration exists, but end-to-end Flutter validation remains pending.
@@ -332,7 +334,7 @@ Status: COMPLETE.
 
 Audit findings:
 
-- Berry runtime currently uses the legacy/root ONNX model: `ml/grading_forecast/berry_grading/models/berry_mobilenetv2_best.onnx`.
+- At Phase 7 audit time, berry runtime used the legacy/root ONNX model: `ml/grading_forecast/berry_grading/models/berry_mobilenetv2_best.onnx`.
 - Berry V2 research model exists separately: `ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.onnx`.
 - Forecast runtime currently uses the legacy/root forecast model directory and can return `demo_baseline` because default raw input candidates do not point to the V2 forecasting dataset.
 - Forecast V2 RandomForest and Phase 4 RandomForest artifacts exist separately under `ml/grading_forecast/price_forecasting/models/v2/` and `ml/grading_forecast/price_forecasting/models/v2_phase4/`.
@@ -343,6 +345,27 @@ Audit findings:
 - Existing error handling and fallback behavior were identified.
 
 Phase 7 changed documentation only. No backend, Flutter, dataset, model artifact, or configuration file was modified.
+
+## Phase 8 Berry V2 Runtime Integration Result
+
+Status: COMPLETE.
+
+Runtime change:
+
+- Previous berry runtime model: `ml/grading_forecast/berry_grading/models/berry_mobilenetv2_best.onnx`.
+- New berry runtime model: `ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.onnx`.
+- Runtime model ID: `BERRY-V2-MNV2`.
+
+Validation evidence:
+
+- V2 artifact exists with sidecar `class_names.json` containing `Grade 1`, `Grade 2`, and `Grade 3`.
+- ONNX metadata records input shape `[null, 224, 224, 3]`.
+- Runtime preprocessing remains RGB letterbox to 224x224 with raw 0..255 float32 input because the ONNX graph includes MobileNetV2 preprocessing.
+- Service-level validation used `data/processed/grading_forecast/berry_split_v2/test/grade_1/sample_002/20260508_152537.jpg`.
+- Validation returned predicted grade `Grade 1`, confidence `0.88`, quality score `82.3`, and explanation identifying `BERRY-V2-MNV2` with the V2 ONNX path.
+- The berry grading service no longer selects the legacy/root ONNX filename during normal real-model loading.
+
+No forecasting, recommendation-rule, Firebase, Flutter, dataset, training, or model-artifact changes were made during Phase 8.
 
 ## Phase 6 Evidence and Documentation Result
 
@@ -382,7 +405,7 @@ Validated endpoints:
 
 Runtime model/fallback status:
 
-- Berry grading runtime uses legacy/root artifacts: `ml/grading_forecast/berry_grading/models/berry_mobilenetv2_best.onnx` and `class_names.json`.
+- During Phase 5, berry grading runtime used legacy/root artifacts: `ml/grading_forecast/berry_grading/models/berry_mobilenetv2_best.onnx` and `class_names.json`. Phase 8 later changed the berry runtime to `BERRY-V2-MNV2`.
 - Price forecasting runtime returned `demo_baseline`; it did not use the Phase 3 or Phase 4 V2 forecasting research artifacts.
 - Storage returned `saved_to_firebase: false` because Firebase was not configured.
 
@@ -407,4 +430,4 @@ Mobile status:
 
 ## Next Exact Action
 
-Phase 8: Berry V2 Runtime Integration. After that, continue with forecast runtime integration, recommendation validation, Firebase/storage validation if required, error handling/API hardening, manual cross-component integration, Flutter end-to-end validation, UI/UX improvements, and final integrated validation.
+Phase 9: Forecast Runtime Integration / Runtime Forecasting-Method Decision. Do not start model improvement or Flutter end-to-end work before the runtime forecasting decision is made.

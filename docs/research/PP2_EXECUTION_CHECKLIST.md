@@ -223,7 +223,7 @@ Phase 7 validation result: PASSED.
 
 Evidence:
 
-- Berry runtime currently uses legacy/root ONNX: `ml/grading_forecast/berry_grading/models/berry_mobilenetv2_best.onnx`.
+- At Phase 7 audit time, berry runtime used legacy/root ONNX: `ml/grading_forecast/berry_grading/models/berry_mobilenetv2_best.onnx`.
 - Berry V2 research ONNX exists separately: `ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.onnx`.
 - Forecast runtime uses legacy/root forecast model directory and can return `demo_baseline` because default raw input candidates do not point to the V2 forecasting dataset.
 - Forecast V2 RandomForest and Phase 4 RandomForest artifacts exist separately under `ml/grading_forecast/price_forecasting/models/v2/` and `ml/grading_forecast/price_forecasting/models/v2_phase4/`.
@@ -234,7 +234,7 @@ Evidence:
 
 ## Phase 8+ Pending Work
 
-- [ ] Berry V2 runtime integration.
+- [x] Berry V2 runtime integration.
 - [ ] Forecast runtime integration and runtime forecasting-method decision.
 - [ ] Recommendation validation using real runtime research outputs.
 - [ ] Firebase/storage validation if required.
@@ -243,6 +243,33 @@ Evidence:
 - [ ] Later Flutter end-to-end validation.
 - [ ] Later UI/UX improvements.
 - [ ] Final integrated validation.
+
+## Phase 8: Berry V2 Runtime Integration
+
+Status: COMPLETE
+
+- [x] Verify V2 ONNX artifact exists.
+- [x] Verify V2 class names sidecar exists.
+- [x] Verify V2 ONNX metadata/preprocessing requirements from saved artifacts.
+- [x] Update berry grading runtime loader to use `BERRY-V2-MNV2`.
+- [x] Prevent silent legacy/root ONNX selection in normal berry runtime loading.
+- [x] Preserve existing grading API response structure.
+- [x] Validate one existing V2 test image through the berry service path.
+- [x] Confirm runtime evidence identifies `BERRY-V2-MNV2`.
+- [x] Confirm no forecasting, recommendation, Firebase, Flutter, dataset, training, or model-artifact changes were made.
+
+Phase 8 validation result: PASSED.
+
+Evidence:
+
+- New runtime model: `ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.onnx`.
+- Runtime model ID: `BERRY-V2-MNV2`.
+- V2 class order: `Grade 1`, `Grade 2`, `Grade 3`.
+- V2 ONNX input shape: `[null, 224, 224, 3]`.
+- Runtime preprocessing: RGB letterbox to 224x224, raw 0..255 float32 input into ONNX graph with MobileNetV2 preprocessing inside the model.
+- Test image: `data/processed/grading_forecast/berry_split_v2/test/grade_1/sample_002/20260508_152537.jpg`.
+- Service validation result: predicted `Grade 1`, confidence `0.88`, quality score `82.3`, and explanation identified `BERRY-V2-MNV2`.
+- Legacy/root ONNX filename is no longer selected by the berry grading service.
 
 ## Four-Day Schedule Tracker
 

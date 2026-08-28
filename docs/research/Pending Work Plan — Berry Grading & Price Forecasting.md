@@ -103,7 +103,7 @@ Create a short implementation map:
 
 | Area | Current implementation | Required implementation | Status |
 | --- | --- | --- | --- |
-| Berry model | Runtime currently uses legacy/root ONNX: `ml/grading_forecast/berry_grading/models/berry_mobilenetv2_best.onnx` | Integrate selected V2 ONNX if required for final runtime | Pending Phase 8 |
+| Berry model | At Phase 7 audit time, runtime used legacy/root ONNX: `ml/grading_forecast/berry_grading/models/berry_mobilenetv2_best.onnx` | Integrate selected V2 ONNX if required for final runtime | Completed in Phase 8 |
 | Berry V2 research artifact | V2 ONNX exists separately: `ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.onnx` | Keep distinct from runtime until integration is intentionally performed | Verified |
 | Forecast | Runtime uses legacy/root forecast model directory and may return `demo_baseline` because default raw input candidates do not point to V2 forecasting data | Decide and integrate selected runtime forecasting method | Pending Phase 9 |
 | Forecast V2 research artifacts | V2 RF and Phase 4 RF artifacts exist separately under `models/v2/` and `models/v2_phase4/` | Do not claim runtime use until wired and validated | Verified |
@@ -122,6 +122,8 @@ This phase should be cheap and should prevent unnecessary Codex work.
 ---
 
 # Phase 8 — Berry V2 Runtime Integration
+
+Status: COMPLETE
 
 ### Objective
 
@@ -185,6 +187,23 @@ The response should identify the **V2 runtime model**, not the legacy artifact.
 You can demonstrate:
 
 > "The backend is using the PP2 V2 MobileNetV2 artifact."
+
+### Phase 8 completion evidence
+
+Runtime berry grading now resolves the selected PP2 model:
+
+```text
+BERRY-V2-MNV2
+ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.onnx
+```
+
+Validation used one existing V2 test image:
+
+```text
+data/processed/grading_forecast/berry_split_v2/test/grade_1/sample_002/20260508_152537.jpg
+```
+
+Service-level runtime validation returned a valid prediction and identified `BERRY-V2-MNV2` with the V2 ONNX path in the grading explanation. The legacy/root ONNX filename is no longer selected by the berry grading service. No dataset, model artifact, forecasting code, Firebase code, Flutter code, or recommendation logic was changed during Phase 8.
 
 ---
 
@@ -741,7 +760,7 @@ Phase 16 → Final validation
 | 5      | Initial integration validation   | ✅ Complete with limitations |
 | 6      | PP2 documentation                | ✅ Complete                  |
 | **7**  | **Implementation audit**         | ✅ Complete                  |
-| **8**  | **Berry V2 runtime integration** | 🔴 Pending                  |
+| **8**  | **Berry V2 runtime integration** | ✅ Complete                  |
 | **9**  | **Forecast runtime integration** | 🔴 Pending                  |
 | **10** | **Recommendation verification**  | 🟠 Pending                  |
 | **11** | **Backend error handling**       | 🟠 Pending                  |

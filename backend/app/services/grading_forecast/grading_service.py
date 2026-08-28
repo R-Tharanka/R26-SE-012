@@ -29,6 +29,16 @@ GRADE_ANCHOR_SCORES: dict[GradeEnum, float] = {
     GradeEnum.grade_3: 55.0,
 }
 
+RUNTIME_MODEL_ID = "BERRY-V2-MNV2"
+RUNTIME_MODEL_RELATIVE_PATH = (
+    Path("ml")
+    / "grading_forecast"
+    / "berry_grading"
+    / "models"
+    / "v2"
+    / "berry_mobilenetv2_v2_best.onnx"
+)
+
 
 def _quality_band(value: float, *, good_threshold: float, medium_threshold: float) -> str:
     if value >= good_threshold:
@@ -53,6 +63,12 @@ def _repo_root() -> Path:
 
 def _models_dir(repo_root: Path) -> Path:
     return repo_root / "ml" / "grading_forecast" / "berry_grading" / "models"
+
+
+def _runtime_model_paths(repo_root: Path) -> tuple[Path, Path]:
+    onnx_path = repo_root / RUNTIME_MODEL_RELATIVE_PATH
+    class_names_path = onnx_path.parent / "class_names.json"
+    return onnx_path, class_names_path
 
 
 def _letterbox_224(img: Image.Image) -> Image.Image:
@@ -85,9 +101,9 @@ def _softmax(x: np.ndarray) -> np.ndarray:
 
 
 @lru_cache(maxsize=1)
-def _onnx_session_bundle() -> tuple[object, str, list[str]] | None:
+def _onnx_session_bundle() -> tuple[object, str, list[str], str, Path] | None:
     """
-    Returns (onnx_session, input_name, class_names) or None if unavailable.
+    Returns (onnx_session, input_name, class_names, model_id, model_path) or None if unavailable.
 
     Never raises: backend must fall back gracefully when model artifacts are missing.
     """
@@ -100,26 +116,27 @@ def _onnx_session_bundle() -> tuple[object, str, list[str]] | None:
         return None
 
     root = _repo_root()
-    models_dir = _models_dir(root)
-    onnx_path = models_dir / "berry_mobilenetv2_best.onnx"
-    class_names_path = models_dir / "class_names.json"
+    onnx_path, class_names_path = _runtime_model_paths(root)
     if not onnx_path.is_file() or not class_names_path.is_file():
         return None
 
     try:
         class_names = list(json.loads(class_names_path.read_text(encoding="utf-8")))
+        expected_class_names = ["Grade 1", "Grade 2", "Grade 3"]
+        if class_names[:3] != expected_class_names:
+            return None
         sess = ort.InferenceSession(str(onnx_path), providers=["CPUExecutionProvider"])
         input_name = sess.get_inputs()[0].name
-        return sess, input_name, class_names
+        return sess, input_name, class_names, RUNTIME_MODEL_ID, onnx_path
     except Exception:
         return None
 
 
-def _predict_grade_with_onnx(image_bytes: bytes) -> tuple[GradeEnum, float, dict[GradeEnum, float]] | None:
+def _predict_grade_with_onnx(image_bytes: bytes) -> tuple[GradeEnum, float, dict[GradeEnum, float], str, Path] | None:
     bundle = _onnx_session_bundle()
     if bundle is None:
         return None
-    sess, input_name, class_names = bundle
+    sess, input_name, class_names, model_id, model_path = bundle
 
     try:
         img = Image.open(io.BytesIO(image_bytes))  # type: ignore[name-defined]
@@ -156,7 +173,7 @@ def _predict_grade_with_onnx(image_bytes: bytes) -> tuple[GradeEnum, float, dict
         pred_grade = enums[idx]
         confidence = float(probs[idx])
         prob_map: dict[GradeEnum, float] = {enums[i]: float(probs[i]) for i in range(min(3, len(enums)))}
-        return pred_grade, confidence, prob_map
+        return pred_grade, confidence, prob_map, model_id, model_path
     except Exception:
         return None
 
@@ -191,14 +208,16 @@ def build_grading_result(image_bytes: bytes | None, image_name: str | None) -> G
 
     model_pred = None
     if image_bytes:
-        # Prefer real ONNX model if present; otherwise fall back to heuristic grading.
+        # Prefer the selected PP2 V2 ONNX model if present; otherwise fall back to heuristic grading.
         model_pred = _predict_grade_with_onnx(image_bytes)
 
     if model_pred is not None:
-        predicted_grade, conf, prob_map = model_pred
+        predicted_grade, conf, prob_map, model_id, model_path = model_pred
         confidence = round(max(0.0, min(1.0, float(conf))), 2)
         quality_score = round(max(0.0, min(100.0, _expected_quality_score(prob_map))), 1)
     else:
+        model_id = None
+        model_path = None
         defect_free_score = 1.0 - visual_features.defect_ratio
         score_01 = (
             0.35 * visual_features.color_uniformity_score
@@ -284,7 +303,9 @@ def build_grading_result(image_bytes: bytes | None, image_name: str | None) -> G
     elif model_pred is None:
         explanation.append("Real grading model not available; heuristic grading was used.")
     else:
-        explanation.append("Real grading model (ONNX) was used for predicted grade.")
+        explanation.append(
+            f"Runtime model {model_id} was used for predicted grade: {model_path.as_posix()}."
+        )
 
     return GradingResult(
         predicted_grade=predicted_grade,
