@@ -9,7 +9,7 @@ It focuses on:
 
 Important: This is a **camera-based visual estimation** system. It **does not** measure moisture, piperine, volatile oil, ash, or bulk density, and it must **not** be presented as official SLS certification.
 
-PP2 evidence update, 2026-08-27:
+PP2 evidence update, 2026-08-28:
 
 - Berry V2 MobileNetV2 baseline training, final test evaluation, and ONNX export are complete.
 - The V2 berry baseline uses the sample-level split under `data/processed/grading_forecast/berry_split_v2/`.
@@ -20,6 +20,8 @@ PP2 evidence update, 2026-08-27:
 - Phase 4 limited improvement is complete.
 - Berry Phase 4 changed only dropout from 0.25 to 0.35 and did not improve saved V2 test metrics.
 - Forecasting Phase 4 added `lag_4`, `lag_8`, and `lag_12`; it improved over Phase 3 RandomForest but still underperformed Naive Persistence.
+- Phase 5 integration validation is complete with runtime limitations.
+- Phase 6 PP2 evidence documentation is complete.
 
 ---
 

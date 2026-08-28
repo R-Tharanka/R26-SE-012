@@ -1,6 +1,6 @@
 # PP2 Results
 
-Last updated: 2026-08-27
+Last updated: 2026-08-28
 
 This document records PP2 evidence from completed audit, dataset preparation, and baseline experiments. Metrics are included only when backed by saved artifacts.
 
@@ -13,6 +13,65 @@ Phase 1 dataset preparation result: COMPLETE.
 Phase 2 Berry Grading V2 baseline result: COMPLETE.
 
 Phase 3 Price Forecasting V2 baseline result: COMPLETE.
+
+Phase 4 Limited Model Improvement result: COMPLETE.
+
+Phase 5 Integration Validation result: COMPLETE with runtime limitations.
+
+Phase 6 PP2 Evidence and Documentation result: COMPLETE.
+
+## Final PP2 Evidence Summary
+
+### V2 Dataset Summary
+
+| Dataset | Primary Artifact | Size | Split | Key Validation |
+| --- | --- | --- | --- | --- |
+| Berry images V2 | `data/processed/grading_forecast/berry_dataset_v2_summary.json` | 671 images, 168 physical samples | Train 467 images, validation 95, test 109 | Sample-level split, no sample crosses splits |
+| Price target V2 | `data/processed/grading_forecast/price_v2/price_v2_coverage_summary.json` | 232 National Grade 1 average weekly observations | Train 162 rows, validation 34, test 36 | Chronological split, no fabricated weeks, Grade 2 not imputed |
+
+### Berry Grading Experiments
+
+| Experiment | Dataset/Split | Model | Accuracy | Macro F1 | Weighted F1 | Grade 2 Precision | Grade 2 Recall | Grade 2 F1 | Conclusion |
+| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| Phase 2 baseline | `berry_v2`, sample-level V2 test | MobileNetV2 dropout 0.25 | 0.8073 | 0.8068 | 0.8076 | 0.7805 | 0.8889 | 0.8312 | Selected PP2 berry baseline |
+| Phase 4 limited improvement | Same V2 test split | MobileNetV2 dropout 0.35 | 0.8073 | 0.8068 | 0.8076 | 0.7805 | 0.8889 | 0.8312 | Did not improve saved test metrics |
+
+### Forecasting Experiments
+
+Target: National + Grade 1 + average + farm_gate + weekly.
+
+| Experiment | Method | Test Rows | MAE | RMSE | MAPE | R2 | Conclusion |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | --- |
+| Phase 3 baseline | Naive Persistence | 36 | 16.4094 | 22.5208 | 0.8539 | 0.9045 | Strongest current forecasting result |
+| Phase 3 baseline | RandomForest, original 11 features | 36 | 82.4179 | 88.4452 | 4.1679 | -0.4736 | Required ML baseline, underperformed naive |
+| Phase 4 limited improvement | RandomForest plus `lag_4`, `lag_8`, `lag_12` | 36 | 78.1641 | 84.8622 | 3.9482 | -0.3566 | Improved over Phase 3 RF, still worse than naive |
+
+### Integration Validation
+
+| Item | Result | Runtime Evidence |
+| --- | --- | --- |
+| FastAPI startup | PASS | Backend started on `http://127.0.0.1:8000` |
+| Health endpoint | PASS | HTTP 200, `status: ok` |
+| Price forecast endpoint | PASS with fallback | HTTP 200, runtime model `demo_baseline` |
+| Grade-only endpoint | PASS | HTTP 200, response indicated real ONNX grading model use |
+| Analyze endpoint | PASS | HTTP 200 with grading, forecast, recommendation, and storage |
+| Firebase storage | Safe fallback | `saved_to_firebase: false` |
+| Flutter | Inspected only | API service points to backend endpoints; Flutter was not run |
+
+### Evidence Map
+
+| Evidence Item | Source |
+| --- | --- |
+| Berry V2 dataset counts and split | `data/processed/grading_forecast/berry_dataset_v2_summary.json` |
+| Price V2 target counts and split | `data/processed/grading_forecast/price_v2/price_v2_coverage_summary.json` |
+| Phase 2 berry baseline metrics | `ml/grading_forecast/berry_grading/models/v2/berry_classifier_metrics.json` |
+| Phase 4 berry dropout metrics | `ml/grading_forecast/berry_grading/models/v2_phase4/berry_classifier_metrics.json` |
+| Phase 3 naive and RF metrics | `ml/grading_forecast/price_forecasting/models/v2/forecast_metrics.json`, `naive_persistence_metrics.json` |
+| Phase 4 forecast metrics | `ml/grading_forecast/price_forecasting/models/v2_phase4/forecast_metrics.json` |
+| Phase 5 API validation | `docs/research/PP2_INTEGRATION_VALIDATION.md` |
+| Berry confusion matrix figure | `ml/grading_forecast/berry_grading/evaluation/_outputs/v2/confusion_matrix.png` |
+| Forecast actual-vs-predicted figure | `ml/grading_forecast/price_forecasting/evaluation/_outputs/v2/actual_vs_predicted.png` |
+| Phase 4 forecast figures | `ml/grading_forecast/price_forecasting/evaluation/_outputs/v2_phase4/actual_vs_predicted.png`, `feature_importances.png`, `residuals.png` |
 
 ## Dataset Evidence From Audit
 
@@ -474,6 +533,9 @@ Validated API endpoints:
 - `POST /api/v1/grading-forecast/grade-only`
 - `GET /api/v1/grading-forecast/price-forecast`
 - `POST /api/v1/grading-forecast/analyze`
+
+Documented but not separately called during the Phase 5 pass:
+
 - `POST /api/v1/grading-forecast/recommend`
 
 Expected PP2 evidence:
@@ -489,3 +551,17 @@ Expected PP2 evidence:
 Recommended narrative:
 
 The V1 implementation established a working end-to-end baseline. After PP1, the datasets were expanded substantially. The PP2 work corrects the methodology by creating V2 datasets, preventing berry sample leakage, selecting a defensible price forecasting target, comparing against simple baselines, and validating integration with the shared mobile/backend architecture.
+
+## PP2 Speaking Points
+
+- Research problem: support black pepper farmers/export preparation with camera-based berry grading, short-term price forecasting, and a sell/wait/process recommendation flow.
+- Data preparation: PP2 rebuilt the dataset foundation as V2, with 671 berry images from 168 physical samples and a sample-level split to prevent leakage.
+- Price target: forecasting uses National Grade 1 average farm-gate weekly price because Grade 2 coverage is too sparse for a defensible primary target.
+- Berry baseline: the V2 MobileNetV2 model achieved 0.8073 accuracy and 0.8076 weighted F1 on the untouched V2 test split.
+- Berry improvement: dropout 0.35 was tested as one limited Phase 4 change and did not improve the saved test metrics.
+- Forecasting baseline: Naive Persistence strongly outperformed the Phase 3 RandomForest on the same 36 test timestamps.
+- Forecasting improvement: adding `lag_4`, `lag_8`, and `lag_12` improved RandomForest, but it still remained worse than Naive Persistence.
+- Integration validation: FastAPI endpoints started and returned usable responses; current runtime grading used the legacy/root ONNX artifact and forecasting used `demo_baseline`.
+- Limitations: camera grading is not official SLS certification; Grade 2 forecasting is out of scope; backend runtime artifact paths still need V2 integration after PP2.
+- Current conclusion: PP2 has defensible V2 datasets, completed baseline experiments, one limited improvement per subproblem, honest limitations, and a known backend demo path.
+- Future work: connect backend runtime to selected V2 artifacts, validate Flutter live flow, collect more data, improve forecasting features, and perform broader post-PP2 model evaluation.

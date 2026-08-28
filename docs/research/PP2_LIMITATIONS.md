@@ -1,6 +1,6 @@
 # PP2 Limitations
 
-Last updated: 2026-08-27
+Last updated: 2026-08-28
 
 This document records limitations that must be stated honestly during PP2.
 
@@ -131,3 +131,7 @@ Not required before PP2:
 - Full Firebase deployment validation.
 - TFLite/on-device inference.
 - Production deployment.
+
+## Phase 6 Documentation Limitation
+
+Phase 6 was documentation-only. It organized and verified existing evidence for PP2 presentation readiness. It did not rerun experiments, recalculate metrics, regenerate figures, start the backend, run Flutter, modify datasets, or modify model artifacts.

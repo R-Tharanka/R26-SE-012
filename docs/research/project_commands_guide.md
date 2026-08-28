@@ -2,13 +2,15 @@
 
 This guide is a **PowerShell-first** reference for running the backend, rebuilding datasets, training real models, and verifying everything works.
 
-PP2 status update, 2026-08-27:
+PP2 status update, 2026-08-28:
 
 - Berry V2 MobileNetV2 baseline training, test evaluation, and ONNX export are complete.
 - Use explicit V2 paths for any Berry V2 command.
 - Bare no-argument berry commands may target historical V1 artifacts.
 - Price Forecasting V2 baseline training/evaluation is complete; Naive Persistence outperformed RandomForest on the V2 test period.
 - Phase 4 limited improvement is complete; use explicit `v2_phase4` paths to reproduce it.
+- Phase 5 backend integration validation is complete with runtime limitations.
+- Phase 6 evidence documentation is complete.
 
 ---
 

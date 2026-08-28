@@ -1,6 +1,6 @@
 # Experiment Log: Berry Grading and Export Price Forecasting
 
-Last updated: 2026-08-27
+Last updated: 2026-08-28
 
 This document records dataset versions, model experiments, metrics, observations, and model-selection reasoning. Do not enter fabricated metrics. Use `PENDING` until an experiment is actually run.
 
@@ -32,6 +32,12 @@ This document records dataset versions, model experiments, metrics, observations
 | Entry ID | Status | Scope | Evidence | Validation Result | Notes |
 | --- | --- | --- | --- | --- | --- |
 | INTEGRATION-PHASE5-BACKEND | COMPLETE | Backend grading forecast API | `docs/research/PP2_INTEGRATION_VALIDATION.md` | PASSED WITH LIMITATIONS | FastAPI started and health, price forecast, grade-only, and analyze endpoints returned HTTP 200. Runtime grading used the legacy/root ONNX artifact. Runtime forecasting returned `demo_baseline`. Firebase storage was not configured and returned `saved_to_firebase: false`. |
+
+## Documentation Finalization Entries
+
+| Entry ID | Status | Scope | Evidence | Validation Result | Notes |
+| --- | --- | --- | --- | --- | --- |
+| DOCS-PHASE6-PP2-EVIDENCE | COMPLETE | PP2 evidence and documentation | `PP2_RESULTS.md`, `PROJECT_STATUS.md`, `PP2_LIMITATIONS.md`, `PP2_EXECUTION_CHECKLIST.md`, `PP2_MASTER_PLAN.md` | PASSED | Final dataset, berry, forecasting, integration, evidence-map, limitations, and speaking-point sections were completed from existing saved artifacts only. No experiments or API calls were run during Phase 6. |
 
 ## Experiment Register
 

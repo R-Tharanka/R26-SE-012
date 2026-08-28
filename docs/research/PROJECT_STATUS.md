@@ -1,12 +1,12 @@
 # Project Status: Berry Grading and Export Price Forecasting
 
-Last updated: 2026-08-27
+Last updated: 2026-08-28
 
 This document is the current source of truth for the PP2 recovery work for the individual component: Berry Grading and Export Price Forecasting.
 
 ## Current Phase
 
-Current phase: Phase 6 - PP2 Evidence and Documentation (not started)
+Current phase: PP2 phase execution complete. Next work is post-PP2 follow-up.
 
 Phase 0, Repository and Research Audit, is complete.
 
@@ -18,7 +18,9 @@ Phase 3, Price Forecasting V2 Baseline, is complete. Naive Persistence and Rando
 
 Phase 4, Limited Model Improvement, is complete. The berry dropout experiment and forecasting extended-lag experiment were completed on the same V2 splits.
 
-Phase 5, Integration Validation, is complete with runtime limitations. The backend API demo path is known and recorded. Phase 6 has not started.
+Phase 5, Integration Validation, is complete with runtime limitations. The backend API demo path is known and recorded.
+
+Phase 6, PP2 Evidence and Documentation, is complete. Final PP2 result tables, speaking points, limitations, and evidence references are recorded.
 
 ## Project Scope
 
@@ -73,7 +75,7 @@ The SLS 105 Part 1: 2022 reference includes visual, physical, and chemical requi
 | Price V2 data | PREPARED | V2 cleaned data, National Grade 1 average weekly target, coverage summary, and chronological split were created. |
 | EDA notebooks | NOT STARTED | Notebook folders exist only as scaffolds. |
 | Limited improvement | COMPLETE | Phase 4 berry dropout 0.35 and forecast extended-lag RF experiments were completed and documented. |
-| PP2 evidence | PARTIALLY COMPLETE | Phase 1-5 dataset/model/integration evidence is recorded; final PP2 evidence packaging remains pending. |
+| PP2 evidence | COMPLETE | Phase 1-6 dataset, model, integration, limitations, speaking points, and evidence references are recorded for PP2. |
 
 ## Dataset Status
 
@@ -315,8 +317,24 @@ Forecasting Phase 4 artifacts:
 
 ## Current Blockers
 
-- Phase 6 final PP2 evidence packaging has not started.
 - Current backend runtime does not automatically load PP2 V2 or Phase 4 artifact directories.
+
+## Phase 6 Evidence and Documentation Result
+
+Status: COMPLETE.
+
+Completed documentation outputs:
+
+- Final dataset summary table in `docs/research/PP2_RESULTS.md`.
+- Final berry experiment table in `docs/research/PP2_RESULTS.md`.
+- Final forecast experiment table in `docs/research/PP2_RESULTS.md`.
+- Final integration validation table in `docs/research/PP2_RESULTS.md`.
+- Evidence map in `docs/research/PP2_RESULTS.md`.
+- PP2 speaking points in `docs/research/PP2_RESULTS.md`.
+- Final limitations in `docs/research/PP2_LIMITATIONS.md`.
+- Phase execution checklist in `docs/research/PP2_EXECUTION_CHECKLIST.md`.
+
+Phase 6 was documentation-only. No model training, evaluation, backend execution, Flutter execution, dataset modification, or artifact regeneration was performed during Phase 6.
 
 ## Phase 5 Integration Validation Result
 
@@ -364,4 +382,4 @@ Mobile status:
 
 ## Next Exact Action
 
-Next action from `docs/research/PP2_MASTER_PLAN.md`: Phase 6 - PP2 Evidence and Documentation. Do not start Phase 6 until explicitly requested.
+Post-PP2 next work: update backend runtime configuration to load the selected V2 research artifacts, validate the Flutter flow end to end, collect more data, and continue model/forecasting improvements after the presentation.
