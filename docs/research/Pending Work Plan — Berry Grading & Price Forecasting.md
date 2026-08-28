@@ -1,0 +1,752 @@
+# Pending Work Plan — Berry Grading & Price Forecasting
+
+## Overall objective
+
+Bring your already-trained research models into the actual application, make the backend use the correct research artifacts, verify the decision-support logic, harden the backend, and then manually integrate/test the remaining application-level pieces.
+
+```text
+PHASE 7
+Existing Implementation Audit
+        ↓
+PHASE 8
+Berry V2 Runtime Integration
+        ↓
+PHASE 9
+Price Forecasting Runtime Integration
+        ↓
+PHASE 10
+Recommendation & Decision Logic
+        ↓
+PHASE 11
+Backend Reliability & Error Handling
+        ↓
+PHASE 12
+Firebase / Persistence
+        ↓
+PHASE 13
+Manual Cross-Component Integration
+        ↓
+PHASE 14
+Manual Flutter E2E Validation
+        ↓
+PHASE 15
+UI/UX Improvement
+        ↓
+PHASE 16
+Final Component Validation & Documentation
+```
+
+I would use this order.
+
+---
+
+# Phase 7 — Existing Implementation Audit
+
+Status: COMPLETE
+
+### Objective
+
+Understand exactly how your current component works before changing anything.
+
+### Why first?
+
+You already tested the application and it works technically, but the runtime is using:
+
+* legacy berry model
+* `demo_baseline` forecasting
+
+So we need to know **where those are selected and loaded**.
+
+### Tasks
+
+Inspect:
+
+* FastAPI routes
+* FastAPI request/response schemas
+* grading service
+* forecasting service
+* model loading code
+* inference code
+* recommendation logic
+* Firebase/storage code
+* configuration/environment variables
+* Flutter API service
+* existing grading/forecast screens
+
+Trace:
+
+```text
+Flutter
+  ↓
+API request
+  ↓
+FastAPI route
+  ↓
+Service
+  ↓
+Berry model
+  ↓
+Forecast
+  ↓
+Recommendation
+  ↓
+Storage
+  ↓
+API response
+  ↓
+Flutter
+```
+
+### Deliverable
+
+Create a short implementation map:
+
+| Area | Current implementation | Required implementation | Status |
+| --- | --- | --- | --- |
+| Berry model | Runtime currently uses legacy/root ONNX: `ml/grading_forecast/berry_grading/models/berry_mobilenetv2_best.onnx` | Integrate selected V2 ONNX if required for final runtime | Pending Phase 8 |
+| Berry V2 research artifact | V2 ONNX exists separately: `ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.onnx` | Keep distinct from runtime until integration is intentionally performed | Verified |
+| Forecast | Runtime uses legacy/root forecast model directory and may return `demo_baseline` because default raw input candidates do not point to V2 forecasting data | Decide and integrate selected runtime forecasting method | Pending Phase 9 |
+| Forecast V2 research artifacts | V2 RF and Phase 4 RF artifacts exist separately under `models/v2/` and `models/v2_phase4/` | Do not claim runtime use until wired and validated | Verified |
+| Strongest research forecast | Naive Persistence is strongest on the V2 test period | Decide whether runtime should use Naive Persistence or an ML artifact | Pending Phase 9 |
+| Recommendation | Existing rule logic is implemented | Validate using real research outputs after runtime integration | Pending Phase 10 |
+| Storage | Firebase storage is optional/fail-safe; Phase 5 had Firebase unconfigured | Configure and validate only if required | Pending Phase 12 |
+| API | Existing endpoints and fallback/error behavior identified | Harden only after model/runtime decisions | Pending Phase 11 |
+| Flutter | API service and relevant screens exist | End-to-end Flutter validation still pending | Pending Phase 14 |
+
+### Validation
+
+Phase 7 was completed as an audit-only pass. No application code, model artifacts, datasets, backend configuration, or Flutter files were changed.
+
+This phase should be cheap and should prevent unnecessary Codex work.
+
+---
+
+# Phase 8 — Berry V2 Runtime Integration
+
+### Objective
+
+Make the actual application use your **selected PP2 berry model**.
+
+Your selected model is:
+
+```text
+BERRY-V2-MNV2
+```
+
+Artifact:
+
+```text
+ml/grading_forecast/berry_grading/models/v2/
+    berry_mobilenetv2_v2_best.onnx
+```
+
+### Tasks
+
+1. Identify current legacy model-loading code.
+2. Change the PP2 runtime path to V2.
+3. Load the correct:
+
+   * ONNX model
+   * class names
+   * metadata if required.
+4. Prevent accidental use of the legacy model.
+5. Preserve existing API contract unless a change is genuinely necessary.
+6. Ensure inference preprocessing matches the training pipeline:
+
+   * 224×224
+   * RGB
+   * MobileNetV2 preprocessing
+   * correct class ordering.
+
+### Critical validation
+
+Use one or more known images from:
+
+```text
+berry_split_v2/test
+```
+
+and verify:
+
+```text
+Image
+ ↓
+Backend
+ ↓
+V2 ONNX
+ ↓
+Prediction
+```
+
+The response should identify the **V2 runtime model**, not the legacy artifact.
+
+### Completion criteria
+
+You can demonstrate:
+
+> "The backend is using the PP2 V2 MobileNetV2 artifact."
+
+---
+
+# Phase 9 — Price Forecasting Runtime Integration
+
+### Objective
+
+Remove the `demo_baseline` runtime behavior and connect the application to your actual forecasting methodology.
+
+This phase requires an important research/engineering decision.
+
+Your results are:
+
+```text
+Naive Persistence
+MAE = 16.4094
+R² = 0.9045
+```
+
+versus:
+
+```text
+Random Forest
+MAE = 82.4179
+R² = -0.4736
+```
+
+and:
+
+```text
+Extended-Lag Random Forest
+MAE = 78.1641
+R² = -0.3566
+```
+
+Therefore **Naive Persistence is your strongest current forecasting method**.
+
+### Recommended implementation
+
+Use:
+
+```text
+Latest available price
+        ↓
+Naive Persistence
+        ↓
+Next-period predicted price
+```
+
+rather than forcing Random Forest into the application merely because it is a trained ML model.
+
+However, there is one thing to check against your official project/TAF requirements:
+
+> If the final project explicitly requires the application itself to use a trained ML forecasting model, then you may need to use the Random Forest artifact despite Naive Persistence being the stronger benchmark.
+
+So **Phase 9 should begin by checking that requirement**, rather than making an assumption.
+
+### Tasks
+
+* Remove/disable `demo_baseline` for the real application path.
+* Implement the selected forecasting method.
+* Load the correct V2 data/artifact if applicable.
+* Make forecast output deterministic and reproducible.
+* Return:
+
+  * current/latest price
+  * predicted price
+  * trend/direction if already part of your design
+  * forecasting method/model identifier.
+
+### Completion criteria
+
+The API no longer returns:
+
+```text
+demo_baseline
+```
+
+for the real application flow.
+
+It returns a genuine research-backed forecast.
+
+---
+
+# Phase 10 — Recommendation & Decision Logic
+
+### Objective
+
+Ensure the final recommendation is based on **real grading + real forecasting outputs**.
+
+Your component's actual purpose isn't just:
+
+```text
+Image → Grade
+```
+
+or:
+
+```text
+Price → Forecast
+```
+
+It is:
+
+```text
+Berry Grade
+      +
+Price Forecast
+      ↓
+Decision Support
+      ↓
+Sell / Wait / Process
+```
+
+### Tasks
+
+Audit the existing recommendation logic.
+
+Determine:
+
+* What inputs does it use?
+* Is it using the actual predicted grade?
+* Is it using the actual forecast?
+* Does it use fallback/demo values?
+* Are thresholds hard-coded?
+* Are edge cases handled?
+* Are recommendation rules consistent with your project's existing requirements?
+
+### Important
+
+**Don't invent new recommendation rules during this phase.**
+
+First preserve the rules already defined in your project.
+
+If the existing rules are incomplete or ambiguous, identify that explicitly.
+
+### Test cases
+
+Create representative cases such as:
+
+```text
+Grade 1 + favorable price trend
+Grade 1 + unfavorable price trend
+Grade 2 + favorable trend
+Grade 2 + unfavorable trend
+Grade 3 + favorable trend
+Grade 3 + unfavorable trend
+```
+
+Then verify the recommendation.
+
+### Completion criteria
+
+You can explain:
+
+> "The recommendation is generated from the actual grading and forecasting outputs."
+
+---
+
+# Phase 11 — Backend Reliability & Error Handling
+
+### Objective
+
+Make your component robust enough for real application usage.
+
+This is separate from model accuracy.
+
+### Handle
+
+#### Image errors
+
+* missing image
+* invalid format
+* corrupted image
+* excessively large image
+* unreadable image
+
+#### Model errors
+
+* model file missing
+* model cannot load
+* inference failure
+* invalid class mapping
+
+#### Forecast errors
+
+* insufficient historical data
+* malformed price data
+* missing latest observation
+* invalid prediction
+
+#### API errors
+
+* malformed request
+* timeout
+* internal exception
+* dependency failure
+
+### Important rule
+
+Do **not** silently fall back to demo/heuristic behavior if the final application is supposed to show research results.
+
+A dangerous situation is:
+
+```text
+V2 model unavailable
+       ↓
+silently use legacy/demo model
+       ↓
+user sees result
+```
+
+That makes evaluation difficult and can produce misleading research evidence.
+
+Prefer an explicit error or clearly labeled fallback.
+
+### Completion criteria
+
+The backend fails **safely and transparently**.
+
+---
+
+# Phase 12 — Firebase / Persistence
+
+### Objective
+
+Decide and implement the required storage behavior.
+
+Current state:
+
+```text
+Firebase not configured
+saved_to_firebase: false
+```
+
+### First task
+
+Determine whether Firebase storage is:
+
+**A. Required final functionality**
+
+or
+
+**B. Optional supporting functionality**
+
+If required:
+
+1. Configure credentials securely.
+2. Configure environment variables.
+3. Test save operation.
+4. Test retrieval if applicable.
+5. Verify stored result structure.
+6. Verify failures don't crash analysis.
+
+If optional:
+
+> Document it as optional and don't spend significant time on it before the core model/runtime integration.
+
+### Security
+
+Never hard-code:
+
+* service account keys
+* Firebase secrets
+* credentials
+
+into the repository.
+
+---
+
+# Phase 13 — Manual Cross-Component Integration
+
+**You said you will do this manually later.**
+
+So this phase is intentionally outside the immediate Codex work.
+
+### Objective
+
+Integrate your completed component with the other members' components.
+
+Verify:
+
+```text
+Other component
+      ↓
+Shared backend
+      ↓
+Your grading/forecasting
+      ↓
+Recommendation
+```
+
+Check:
+
+* API contracts
+* DTOs
+* endpoint paths
+* authentication
+* response structures
+* database/storage dependencies
+* error handling
+* naming consistency
+
+### Completion criteria
+
+Your component works with the **actual integrated project**, not only in isolation.
+
+---
+
+# Phase 14 — Manual Flutter End-to-End Validation
+
+Again, you will handle this manually.
+
+### Objective
+
+Validate the complete real-world flow.
+
+```text
+Flutter
+   ↓
+Select/capture image
+   ↓
+Upload
+   ↓
+FastAPI
+   ↓
+V2 Berry Model
+   ↓
+Forecast
+   ↓
+Recommendation
+   ↓
+Response
+   ↓
+Flutter
+```
+
+Test:
+
+* successful analysis
+* invalid image
+* slow network
+* backend unavailable
+* retry
+* different berry grades
+* forecast response
+* recommendation response
+
+### Important
+
+Compare:
+
+**Backend response**
+
+against
+
+**Flutter displayed result**
+
+to ensure the UI isn't transforming values incorrectly.
+
+---
+
+# Phase 15 — UI/UX Improvement
+
+Do this **after the backend is stable**.
+
+Otherwise you're polishing a broken pipeline.
+
+### Main screens
+
+#### 1. Input
+
+* camera/gallery
+* image preview
+* clear image
+* analyze button
+* validation
+
+#### 2. Processing
+
+Show:
+
+> Analyzing berry quality...
+
+rather than leaving the user wondering whether the application is frozen.
+
+#### 3. Results
+
+Display:
+
+```text
+Berry Grade
+Grade 2
+
+Price Forecast
+Current: Rs. XXXX/kg
+Forecast: Rs. XXXX/kg
+
+Trend
+Increasing / Decreasing / Stable
+
+Recommendation
+WAIT
+```
+
+Use the existing project design system rather than unnecessarily redesigning everything.
+
+#### 4. Error state
+
+Provide:
+
+> Analysis failed. Please try again.
+
+instead of a raw exception.
+
+### Completion criteria
+
+A user can understand:
+
+1. What grade was predicted?
+2. What price is expected?
+3. What should they do?
+4. Why was that recommendation given?
+
+---
+
+# Phase 16 — Final Component Validation
+
+This is your final gate.
+
+## Berry grading
+
+Verify:
+
+* V2 model is actually loaded.
+* Correct preprocessing.
+* Correct class mapping.
+* Multiple images tested.
+* Predictions returned successfully.
+* No unintended legacy fallback.
+* Inference latency recorded if useful.
+
+## Forecasting
+
+Verify:
+
+* No `demo_baseline`.
+* Correct forecasting method.
+* Correct input data.
+* Prediction generated successfully.
+* Trend calculation works.
+* No future-data leakage in runtime.
+
+## Recommendation
+
+Verify:
+
+* Real grade used.
+* Real forecast used.
+* Correct rule applied.
+* Edge cases handled.
+
+## Backend
+
+Verify:
+
+* endpoints
+* validation
+* errors
+* model loading
+* response schema
+
+## Firebase
+
+If required:
+
+* save
+* retrieve/verify
+* failure handling
+
+## Flutter
+
+You will manually verify:
+
+* API call
+* loading
+* results
+* errors
+* retry
+* UI consistency
+
+---
+
+# The phases you should give Codex
+
+Since you specifically want to **save tokens/credits**, I would **not give Codex all 10 phases at once**.
+
+Use it incrementally.
+
+### Codex Task 1
+
+**Phase 7 — Audit only**
+
+> Inspect the existing FastAPI and Flutter implementation for the berry grading and price forecasting component. Trace the complete request flow, identify the current berry model-loading path, current forecasting implementation, recommendation logic, Firebase/storage behavior, and relevant configuration. Compare the current implementation against the PP2 research artifacts documented in `docs/research/EXPERIMENT_LOG.md`, `PROJECT_STATUS.md`, and `PP2_LIMITATIONS.md`. Do not modify any files. Do not train models. Do not run the project. Do not modify datasets. Return a concise file-by-file implementation map and identify exactly what must change to make the application use the selected PP2 research artifacts.
+
+That's the **only task I'd run first**.
+
+Then:
+
+### Codex Task 2
+
+Phase 8 — Berry runtime.
+
+### Codex Task 3
+
+Phase 9 — Forecast runtime.
+
+### Codex Task 4
+
+Phase 10 — Recommendation audit/fix.
+
+### Codex Task 5
+
+Phase 11 — Error handling/hardening.
+
+### Codex Task 6
+
+Phase 12 — Firebase, **only if required**.
+
+Then **you manually handle**:
+
+```text
+Phase 13 → Cross-component integration
+Phase 14 → Flutter E2E
+Phase 15 → UI/UX
+```
+
+Finally:
+
+```text
+Phase 16 → Final validation
+```
+
+---
+
+# Your current status in one table
+
+| Phase  | Work                             | Status                      |
+| ------ | -------------------------------- | --------------------------- |
+| 1      | Dataset V2                       | ✅ Complete                  |
+| 2      | Berry V2 model                   | ✅ Complete                  |
+| 3      | Forecasting V2                   | ✅ Complete                  |
+| 4      | Limited improvements             | ✅ Complete                  |
+| 5      | Initial integration validation   | ✅ Complete with limitations |
+| 6      | PP2 documentation                | ✅ Complete                  |
+| **7**  | **Implementation audit**         | ✅ Complete                  |
+| **8**  | **Berry V2 runtime integration** | 🔴 Pending                  |
+| **9**  | **Forecast runtime integration** | 🔴 Pending                  |
+| **10** | **Recommendation verification**  | 🟠 Pending                  |
+| **11** | **Backend error handling**       | 🟠 Pending                  |
+| **12** | **Firebase**                     | 🟡 Conditional              |
+| **13** | **Other-component integration**  | 🔵 You will do manually     |
+| **14** | **Flutter E2E**                  | 🔵 You will do manually     |
+| **15** | **UI/UX**                        | 🔵 You will do manually     |
+| **16** | **Final validation**             | ⏳ After everything          |

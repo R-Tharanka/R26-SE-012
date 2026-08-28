@@ -6,7 +6,7 @@ This document is the current source of truth for the PP2 recovery work for the i
 
 ## Current Phase
 
-Current phase: PP2 phase execution complete. Next work is post-PP2 follow-up.
+Current phase: Phase 7 Existing Implementation Audit complete. Next work is Phase 8 Berry V2 Runtime Integration.
 
 Phase 0, Repository and Research Audit, is complete.
 
@@ -21,6 +21,8 @@ Phase 4, Limited Model Improvement, is complete. The berry dropout experiment an
 Phase 5, Integration Validation, is complete with runtime limitations. The backend API demo path is known and recorded.
 
 Phase 6, PP2 Evidence and Documentation, is complete. Final PP2 result tables, speaking points, limitations, and evidence references are recorded.
+
+Phase 7, Existing Implementation Audit, is complete. The current backend/mobile runtime behavior, model paths, fallback behavior, recommendation logic, Firebase/storage behavior, Flutter API contract, and Phase 8+ pending work were documented. No application code was changed during Phase 7.
 
 ## Project Scope
 
@@ -76,6 +78,7 @@ The SLS 105 Part 1: 2022 reference includes visual, physical, and chemical requi
 | EDA notebooks | NOT STARTED | Notebook folders exist only as scaffolds. |
 | Limited improvement | COMPLETE | Phase 4 berry dropout 0.35 and forecast extended-lag RF experiments were completed and documented. |
 | PP2 evidence | COMPLETE | Phase 1-6 dataset, model, integration, limitations, speaking points, and evidence references are recorded for PP2. |
+| Existing implementation audit | COMPLETE | Phase 7 identified that runtime berry grading currently uses the legacy/root ONNX model, runtime forecasting can return `demo_baseline`, Firebase is optional/fail-safe, and Flutter end-to-end validation remains pending. |
 
 ## Dataset Status
 
@@ -318,6 +321,28 @@ Forecasting Phase 4 artifacts:
 ## Current Blockers
 
 - Current backend runtime does not automatically load PP2 V2 or Phase 4 artifact directories.
+- Berry runtime currently uses the legacy/root ONNX model: `ml/grading_forecast/berry_grading/models/berry_mobilenetv2_best.onnx`.
+- Forecast runtime currently uses the legacy/root forecast model directory and can return `demo_baseline` because default raw input candidates do not point to the V2 forecasting dataset.
+- Firebase was not configured during Phase 5.
+- Flutter API integration exists, but end-to-end Flutter validation remains pending.
+
+## Phase 7 Existing Implementation Audit Result
+
+Status: COMPLETE.
+
+Audit findings:
+
+- Berry runtime currently uses the legacy/root ONNX model: `ml/grading_forecast/berry_grading/models/berry_mobilenetv2_best.onnx`.
+- Berry V2 research model exists separately: `ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.onnx`.
+- Forecast runtime currently uses the legacy/root forecast model directory and can return `demo_baseline` because default raw input candidates do not point to the V2 forecasting dataset.
+- Forecast V2 RandomForest and Phase 4 RandomForest artifacts exist separately under `ml/grading_forecast/price_forecasting/models/v2/` and `ml/grading_forecast/price_forecasting/models/v2_phase4/`.
+- Naive Persistence is currently the strongest research forecasting method on the V2 test period.
+- Recommendation logic exists and still needs validation using real runtime research outputs.
+- Firebase/storage is implemented as optional fail-safe storage and was not configured during Phase 5.
+- Flutter API integration exists, but end-to-end validation remains pending.
+- Existing error handling and fallback behavior were identified.
+
+Phase 7 changed documentation only. No backend, Flutter, dataset, model artifact, or configuration file was modified.
 
 ## Phase 6 Evidence and Documentation Result
 
@@ -382,4 +407,4 @@ Mobile status:
 
 ## Next Exact Action
 
-Post-PP2 next work: update backend runtime configuration to load the selected V2 research artifacts, validate the Flutter flow end to end, collect more data, and continue model/forecasting improvements after the presentation.
+Phase 8: Berry V2 Runtime Integration. After that, continue with forecast runtime integration, recommendation validation, Firebase/storage validation if required, error handling/API hardening, manual cross-component integration, Flutter end-to-end validation, UI/UX improvements, and final integrated validation.

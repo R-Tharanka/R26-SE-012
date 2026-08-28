@@ -205,6 +205,45 @@ Evidence:
 - Evidence map: `docs/research/PP2_RESULTS.md`
 - Phase 6 did not run model training, model evaluation, backend execution, Flutter, or dataset modification.
 
+## Phase 7: Existing Implementation Audit
+
+Status: COMPLETE
+
+- [x] Trace Flutter/API to FastAPI route, service, model/inference, recommendation, Firebase/storage, and response.
+- [x] Identify current berry runtime model path.
+- [x] Identify current forecasting runtime behavior and fallback reason.
+- [x] Distinguish runtime artifacts from V2 research artifacts.
+- [x] Identify recommendation logic and pending validation need.
+- [x] Identify Firebase/storage fallback behavior.
+- [x] Identify Flutter API contract and pending end-to-end validation.
+- [x] Record Phase 8+ pending work list.
+- [x] Confirm no application code was changed during Phase 7.
+
+Phase 7 validation result: PASSED.
+
+Evidence:
+
+- Berry runtime currently uses legacy/root ONNX: `ml/grading_forecast/berry_grading/models/berry_mobilenetv2_best.onnx`.
+- Berry V2 research ONNX exists separately: `ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.onnx`.
+- Forecast runtime uses legacy/root forecast model directory and can return `demo_baseline` because default raw input candidates do not point to the V2 forecasting dataset.
+- Forecast V2 RandomForest and Phase 4 RandomForest artifacts exist separately under `ml/grading_forecast/price_forecasting/models/v2/` and `ml/grading_forecast/price_forecasting/models/v2_phase4/`.
+- Naive Persistence remains the strongest research forecasting method on the V2 test period.
+- Firebase/storage is optional/fail-safe and was not configured during Phase 5.
+- Flutter API integration exists; end-to-end Flutter validation remains pending.
+- Phase 7 changed documentation only.
+
+## Phase 8+ Pending Work
+
+- [ ] Berry V2 runtime integration.
+- [ ] Forecast runtime integration and runtime forecasting-method decision.
+- [ ] Recommendation validation using real runtime research outputs.
+- [ ] Firebase/storage validation if required.
+- [ ] Error handling/API hardening.
+- [ ] Later manual integration with other components.
+- [ ] Later Flutter end-to-end validation.
+- [ ] Later UI/UX improvements.
+- [ ] Final integrated validation.
+
 ## Four-Day Schedule Tracker
 
 Day 1:
