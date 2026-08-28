@@ -27,6 +27,12 @@ This document records dataset versions, model experiments, metrics, observations
 | PIPELINE-BERRY-V2-SAFE | COMPLETE | Berry grading V2 pre-training pipeline | `train_berry_classifier.py`, `evaluate_berry_classifier.py`, `export_berry_model.py`, `predict_berry_grade.py` | PASSED | Added explicit V2 train/val/test and output-path support. Dry-runs resolve to `berry_split_v2` and `models/v2`. No model training performed. |
 | PIPELINE-PRICE-V2-SAFE | COMPLETE | Price forecasting V2 pre-execution pipeline | `train_forecast_model.py`, `evaluate_forecast_model.py`, `export_forecast_model.py`, `predict_future_price.py` | PASSED | Added explicit V2 path checks, dry-runs, same-test-timestamp evaluation plan, naive persistence metrics support, and V2 output-path support. No RandomForest training or final test evaluation performed. |
 
+## Integration Validation Entries
+
+| Entry ID | Status | Scope | Evidence | Validation Result | Notes |
+| --- | --- | --- | --- | --- | --- |
+| INTEGRATION-PHASE5-BACKEND | COMPLETE | Backend grading forecast API | `docs/research/PP2_INTEGRATION_VALIDATION.md` | PASSED WITH LIMITATIONS | FastAPI started and health, price forecast, grade-only, and analyze endpoints returned HTTP 200. Runtime grading used the legacy/root ONNX artifact. Runtime forecasting returned `demo_baseline`. Firebase storage was not configured and returned `saved_to_firebase: false`. |
+
 ## Experiment Register
 
 | Experiment ID | Status | Dataset | Split | Model/Method | Purpose | Key Config | Metrics | Artifact Path | Observation | Decision |

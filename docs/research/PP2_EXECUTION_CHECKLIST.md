@@ -154,18 +154,31 @@ Evidence:
 
 ## Phase 5: Integration Validation
 
-Status: NOT STARTED
+Status: COMPLETE
 
-- [ ] Start FastAPI backend.
-- [ ] Validate health endpoint.
-- [ ] Validate price forecast endpoint.
-- [ ] Validate grade-only endpoint with image.
-- [ ] Validate analyze endpoint with image.
-- [ ] Confirm response includes grading, forecast, recommendation, and storage.
-- [ ] Confirm whether real model or fallback was used.
+- [x] Start FastAPI backend.
+- [x] Validate health endpoint.
+- [x] Validate price forecast endpoint.
+- [x] Validate grade-only endpoint with image.
+- [x] Validate analyze endpoint with image.
+- [x] Confirm response includes grading, forecast, recommendation, and storage.
+- [x] Confirm whether real model or fallback was used.
 - [ ] Optionally validate Flutter flow.
-- [ ] Save API response examples or screenshots.
-- [ ] Update `PP2_RESULTS.md`.
+- [x] Save API response examples or screenshots.
+- [x] Update `PP2_RESULTS.md`.
+
+Phase 5 validation result: PASSED with runtime limitations.
+
+Evidence:
+
+- Integration evidence file: `docs/research/PP2_INTEGRATION_VALIDATION.md`
+- Backend startup: successful on `http://127.0.0.1:8000`.
+- Health endpoint: HTTP 200.
+- Price forecast endpoint: HTTP 200, runtime model `demo_baseline`.
+- Grade-only endpoint: HTTP 200, runtime explanation says real ONNX grading model was used.
+- Analyze endpoint: HTTP 200 with grading, forecast, recommendation, and storage fields.
+- Storage: Firebase not configured; returned `saved_to_firebase: false`.
+- Flutter: inspected only; not run.
 
 ## Phase 6: PP2 Evidence and Documentation
 
@@ -197,7 +210,7 @@ Day 3:
 
 Day 4:
 
-- [ ] Finish Phase 5.
+- [x] Finish Phase 5.
 - [ ] Finish Phase 6.
 
 ## Stop Conditions

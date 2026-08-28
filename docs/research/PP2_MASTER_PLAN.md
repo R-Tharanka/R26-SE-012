@@ -498,7 +498,7 @@ HIGH. Completed.
 
 ## Phase 5 — Integration Validation
 
-Status: NOT STARTED
+Status: COMPLETE
 
 ### Objective
 
@@ -557,6 +557,17 @@ Shows that the research artifact is not notebook-only and fits the shared system
 
 - PP2 demo path is known and recorded.
 
+Completion result:
+
+- FastAPI backend started successfully on `http://127.0.0.1:8000`.
+- Health endpoint returned HTTP 200 and `status: ok`.
+- Price forecast endpoint returned HTTP 200 using `demo_baseline`.
+- Grade-only endpoint returned HTTP 200 using the real legacy/root ONNX grading model.
+- Analyze endpoint returned HTTP 200 with grading, forecast, recommendation, and storage fields.
+- Firebase was not configured; storage safely returned `saved_to_firebase: false`.
+- Runtime evidence is recorded in `docs/research/PP2_INTEGRATION_VALIDATION.md`.
+- Important runtime distinction: current backend does not automatically load PP2 V2 or Phase 4 artifact directories. Research metrics remain V2 evidence, while the current backend demo uses legacy/root grading ONNX and forecast fallback behavior.
+
 ### Risks
 
 - Dependency mismatch.
@@ -572,7 +583,7 @@ Shows that the research artifact is not notebook-only and fits the shared system
 
 ### Estimated Priority
 
-HIGH.
+HIGH. Completed.
 
 ## Phase 6 — PP2 Evidence and Documentation
 

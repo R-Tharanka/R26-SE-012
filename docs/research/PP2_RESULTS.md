@@ -427,9 +427,48 @@ Forecasting Phase 4 artifacts:
 
 ## Integration Evidence
 
-Status: NOT STARTED.
+Status: COMPLETE with runtime limitations.
 
-Existing API endpoints to validate:
+Evidence file:
+
+- `docs/research/PP2_INTEGRATION_VALIDATION.md`
+
+Backend validation:
+
+| Endpoint | Method | HTTP Status | Runtime Result |
+| --- | --- | ---: | --- |
+| `/api/v1/grading-forecast/health` | GET | 200 | Returned `status: ok` |
+| `/api/v1/grading-forecast/price-forecast` | GET | 200 | Returned forecast using `demo_baseline` |
+| `/api/v1/grading-forecast/grade-only` | POST multipart | 200 | Returned Grade 1 prediction and indicated real ONNX grading model use |
+| `/api/v1/grading-forecast/analyze` | POST multipart | 200 | Returned grading, forecast, recommendation, and storage fields |
+
+Sample image used:
+
+- `data/processed/grading_forecast/berry_split_v2/test/grade_1/sample_002/20260508_152537.jpg`
+
+Observed endpoint details:
+
+- Health response: `{"status":"ok","component":"berry_grading_export_price_forecasting"}`.
+- Price forecast response model: `demo_baseline`.
+- Grade-only predicted grade: Grade 1.
+- Grade-only quality score/confidence: 79.7 / 0.65.
+- Analyze decision: `SELL_EXPORT`.
+- Analyze storage: `saved_to_firebase: false`.
+
+Runtime model/fallback interpretation:
+
+- The current backend code resolves berry grading ONNX from the legacy/root artifact path: `ml/grading_forecast/berry_grading/models/berry_mobilenetv2_best.onnx`.
+- The current backend does not automatically load the PP2 V2 or Phase 4 berry model directories.
+- The price forecast endpoint returned `demo_baseline`, not the Phase 3 or Phase 4 V2 forecasting models.
+- Firebase was not configured; the analyze response still completed with storage fallback.
+
+Mobile inspection:
+
+- Flutter API service exists and calls `/api/v1/grading-forecast/analyze` and `/api/v1/grading-forecast/recommend`.
+- Default backend URL is `localhost:8000` for desktop/web and `10.0.2.2:8000` for Android emulator.
+- Flutter was not run during Phase 5.
+
+Validated API endpoints:
 
 - `GET /api/v1/grading-forecast/health`
 - `POST /api/v1/grading-forecast/grade-only`
@@ -439,11 +478,11 @@ Existing API endpoints to validate:
 
 Expected PP2 evidence:
 
-- backend health response;
-- one grade-only response;
-- one full analyze response;
-- note showing whether real model or fallback was used;
-- optional Flutter screenshots.
+- backend health response: complete;
+- one grade-only response: complete;
+- one full analyze response: complete;
+- note showing whether real model or fallback was used: complete;
+- optional Flutter screenshots: not performed.
 
 ## PP2 Result Narrative
 

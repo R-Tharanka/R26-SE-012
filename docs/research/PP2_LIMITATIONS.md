@@ -101,10 +101,14 @@ Forecasting:
 
 ## Integration Limitations
 
-- Existing backend can fall back to heuristic/demo mode if real model artifacts are unavailable.
+- Existing backend can fall back to heuristic/demo mode if real model artifacts or input files are unavailable.
 - PP2 demo must explicitly identify whether real artifacts or fallback logic were used.
+- Phase 5 backend validation showed the grade-only and analyze endpoints returning HTTP 200 with real ONNX grading model use.
+- Phase 5 runtime grading used the legacy/root ONNX artifact path, not the PP2 V2 or Phase 4 berry artifact directories.
+- Phase 5 price forecast endpoint returned `demo_baseline`, not the Phase 3 or Phase 4 V2 forecasting research artifacts.
 - Firebase live writes are not guaranteed unless credentials are configured.
-- Flutter flow exists but may need environment validation.
+- Phase 5 storage returned `saved_to_firebase: false` because Firebase was not configured.
+- Flutter flow exists and points to the backend endpoints, but Flutter was not run during Phase 5.
 
 ## Script Safety Limitation
 

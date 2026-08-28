@@ -6,7 +6,7 @@ This document is the current source of truth for the PP2 recovery work for the i
 
 ## Current Phase
 
-Current phase: Phase 5 - Integration Validation (not started)
+Current phase: Phase 6 - PP2 Evidence and Documentation (not started)
 
 Phase 0, Repository and Research Audit, is complete.
 
@@ -16,7 +16,9 @@ Phase 2, Berry Grading V2 Baseline, is complete. The V2 MobileNetV2 model was tr
 
 Phase 3, Price Forecasting V2 Baseline, is complete. Naive Persistence and RandomForest were evaluated on the same 36 chronological V2 test timestamps. Naive Persistence outperformed RandomForest on the final test period.
 
-Phase 4, Limited Model Improvement, is complete. The berry dropout experiment and forecasting extended-lag experiment were completed on the same V2 splits. Phase 5 and Phase 6 have not started.
+Phase 4, Limited Model Improvement, is complete. The berry dropout experiment and forecasting extended-lag experiment were completed on the same V2 splits.
+
+Phase 5, Integration Validation, is complete with runtime limitations. The backend API demo path is known and recorded. Phase 6 has not started.
 
 ## Project Scope
 
@@ -60,9 +62,9 @@ The SLS 105 Part 1: 2022 reference includes visual, physical, and chemical requi
 | Area | Status | Notes |
 | --- | --- | --- |
 | Research audit | COMPLETE | Official documents, guides, codebase, raw data, processed data, and model artifacts were inspected. |
-| Backend API | EXISTS BUT NEEDS VALIDATION | FastAPI routes and services exist for grading, forecasting, recommendations, and storage. |
+| Backend API | VALIDATED WITH LIMITATIONS | FastAPI started and required grading-forecast endpoints returned HTTP 200 during Phase 5. |
 | Flutter UI | PARTIALLY COMPLETED | Component screens and API client exist; PP2 needs only demo validation, not new UI work. |
-| Firebase storage | EXISTS BUT NEEDS LIVE VALIDATION | Safe fallback exists when Firebase is not configured. |
+| Firebase storage | FALLBACK VALIDATED | Firebase was not configured during Phase 5; analyze returned `saved_to_firebase: false` without blocking the response. |
 | Berry V1 model | COMPLETED BUT OUTDATED | MobileNetV2 model exists, trained on old 360-image processed dataset. |
 | Berry V2 model | COMPLETE | MobileNetV2 V2 baseline trained, tested, and exported under `ml/grading_forecast/berry_grading/models/v2/`. |
 | Forecast V1 model | COMPLETED BUT OUTDATED | RandomForest artifact exists, trained on old processed price data through 2026-04-21. |
@@ -71,7 +73,7 @@ The SLS 105 Part 1: 2022 reference includes visual, physical, and chemical requi
 | Price V2 data | PREPARED | V2 cleaned data, National Grade 1 average weekly target, coverage summary, and chronological split were created. |
 | EDA notebooks | NOT STARTED | Notebook folders exist only as scaffolds. |
 | Limited improvement | COMPLETE | Phase 4 berry dropout 0.35 and forecast extended-lag RF experiments were completed and documented. |
-| PP2 evidence | PARTIALLY COMPLETE | Phase 1-4 dataset/model evidence is recorded; integration validation and final PP2 evidence packaging remain pending. |
+| PP2 evidence | PARTIALLY COMPLETE | Phase 1-5 dataset/model/integration evidence is recorded; final PP2 evidence packaging remains pending. |
 
 ## Dataset Status
 
@@ -313,7 +315,38 @@ Forecasting Phase 4 artifacts:
 
 ## Current Blockers
 
-- Backend/mobile integration has not yet been validated against the V2/Phase 4 artifacts.
+- Phase 6 final PP2 evidence packaging has not started.
+- Current backend runtime does not automatically load PP2 V2 or Phase 4 artifact directories.
+
+## Phase 5 Integration Validation Result
+
+Status: COMPLETE with runtime limitations.
+
+Evidence file:
+
+- `docs/research/PP2_INTEGRATION_VALIDATION.md`
+
+Backend startup:
+
+- FastAPI started successfully on `http://127.0.0.1:8000`.
+
+Validated endpoints:
+
+- `GET /api/v1/grading-forecast/health`: HTTP 200, `status: ok`.
+- `GET /api/v1/grading-forecast/price-forecast`: HTTP 200, runtime model `demo_baseline`.
+- `POST /api/v1/grading-forecast/grade-only`: HTTP 200 using sample image from `berry_split_v2/test`; response indicated real ONNX grading model use.
+- `POST /api/v1/grading-forecast/analyze`: HTTP 200 with grading, forecast, recommendation, and storage fields.
+
+Runtime model/fallback status:
+
+- Berry grading runtime uses legacy/root artifacts: `ml/grading_forecast/berry_grading/models/berry_mobilenetv2_best.onnx` and `class_names.json`.
+- Price forecasting runtime returned `demo_baseline`; it did not use the Phase 3 or Phase 4 V2 forecasting research artifacts.
+- Storage returned `saved_to_firebase: false` because Firebase was not configured.
+
+Mobile status:
+
+- Flutter grading forecast API service was inspected. It calls the backend analyze and recommend endpoints and defaults to `localhost:8000` or Android emulator `10.0.2.2:8000`.
+- Flutter was not run during Phase 5.
 
 ## Current Decision Record
 
@@ -324,10 +357,11 @@ Forecasting Phase 4 artifacts:
 - Use Naive Persistence as the stronger Phase 3 forecasting baseline because it outperformed RandomForest on the V2 test period.
 - Keep V2 RandomForest as the required ML baseline and evidence that the simple method generalized better on the current short test window.
 - Phase 4 extended-lag RandomForest improved over the Phase 3 RandomForest baseline, but still did not beat Naive Persistence.
+- Phase 5 backend API validation is sufficient for PP2 demo path evidence, but the runtime model/fallback behavior must be described separately from the V2 research metrics.
 - Do not make ARIMA, SARIMA, XGBoost, Prophet, or LSTM mandatory before PP2.
 - Do not fabricate missing Grade 2 price observations.
 - Do not manually annotate unavailable camera/background/capture metadata for PP2.
 
 ## Next Exact Action
 
-Next action from `docs/research/PP2_MASTER_PLAN.md`: Phase 5 - Integration Validation. Do not start Phase 5 or Phase 6 until explicitly requested.
+Next action from `docs/research/PP2_MASTER_PLAN.md`: Phase 6 - PP2 Evidence and Documentation. Do not start Phase 6 until explicitly requested.
