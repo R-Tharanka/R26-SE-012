@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import io
+import logging
 import math
 import os
 from functools import lru_cache
@@ -22,6 +23,7 @@ from app.services.grading_forecast.image_preprocessor import preprocess_image_by
 LIMITATION_NOTE = (
     "Camera-based visual estimate only. Chemical requirements and bulk density are not measured."
 )
+LOGGER = logging.getLogger(__name__)
 
 GRADE_ANCHOR_SCORES: dict[GradeEnum, float] = {
     GradeEnum.grade_1: 85.0,
@@ -38,6 +40,10 @@ RUNTIME_MODEL_RELATIVE_PATH = (
     / "v2"
     / "berry_mobilenetv2_v2_best.onnx"
 )
+
+
+class GradingRuntimeError(RuntimeError):
+    """Raised when the selected research grading model cannot produce a safe result."""
 
 
 def _quality_band(value: float, *, good_threshold: float, medium_threshold: float) -> str:
@@ -101,41 +107,44 @@ def _softmax(x: np.ndarray) -> np.ndarray:
 
 
 @lru_cache(maxsize=1)
-def _onnx_session_bundle() -> tuple[object, str, list[str], str, Path] | None:
+def _onnx_session_bundle() -> tuple[object, str, list[str], str, Path]:
     """
-    Returns (onnx_session, input_name, class_names, model_id, model_path) or None if unavailable.
+    Returns (onnx_session, input_name, class_names, model_id, model_path).
 
-    Never raises: backend must fall back gracefully when model artifacts are missing.
+    Raises GradingRuntimeError when the selected V2 runtime model cannot be used.
     """
     try:
         import onnxruntime as ort  # type: ignore
-    except Exception:
-        return None
+    except Exception as exc:
+        raise GradingRuntimeError("Berry grading runtime dependency is unavailable.") from exc
 
     if os.getenv("GRADING_FORECAST_DISABLE_REAL_MODELS", "").strip().lower() in {"1", "true", "yes"}:
-        return None
+        raise GradingRuntimeError("Berry grading runtime model is disabled by configuration.")
 
     root = _repo_root()
     onnx_path, class_names_path = _runtime_model_paths(root)
     if not onnx_path.is_file() or not class_names_path.is_file():
-        return None
+        raise GradingRuntimeError("Berry grading V2 model artifacts are unavailable.")
 
     try:
         class_names = list(json.loads(class_names_path.read_text(encoding="utf-8")))
         expected_class_names = ["Grade 1", "Grade 2", "Grade 3"]
         if class_names[:3] != expected_class_names:
-            return None
+            raise GradingRuntimeError("Berry grading V2 class mapping is invalid.")
         sess = ort.InferenceSession(str(onnx_path), providers=["CPUExecutionProvider"])
         input_name = sess.get_inputs()[0].name
+        input_shape = list(sess.get_inputs()[0].shape)
+        if len(input_shape) != 4 or input_shape[1:4] != [224, 224, 3]:
+            raise GradingRuntimeError("Berry grading V2 model input shape is invalid.")
         return sess, input_name, class_names, RUNTIME_MODEL_ID, onnx_path
-    except Exception:
-        return None
+    except GradingRuntimeError:
+        raise
+    except Exception as exc:
+        raise GradingRuntimeError("Berry grading V2 model could not be initialized.") from exc
 
 
-def _predict_grade_with_onnx(image_bytes: bytes) -> tuple[GradeEnum, float, dict[GradeEnum, float], str, Path] | None:
+def _predict_grade_with_onnx(image_bytes: bytes) -> tuple[GradeEnum, float, dict[GradeEnum, float], str, Path]:
     bundle = _onnx_session_bundle()
-    if bundle is None:
-        return None
     sess, input_name, class_names, model_id, model_path = bundle
 
     try:
@@ -151,7 +160,7 @@ def _predict_grade_with_onnx(image_bytes: bytes) -> tuple[GradeEnum, float, dict
         outputs = sess.run(None, {input_name: x})  # type: ignore[attr-defined]
         vec = np.asarray(outputs[0]).reshape(-1).astype(np.float32)
         if vec.size != 3:
-            vec = vec[:3]
+            raise GradingRuntimeError("Berry grading V2 model returned an invalid output shape.")
 
         s = float(np.sum(vec))
         if not math.isfinite(s) or s <= 0.0 or s > 1.2:
@@ -167,15 +176,22 @@ def _predict_grade_with_onnx(image_bytes: bytes) -> tuple[GradeEnum, float, dict
         }
         enums: list[GradeEnum] = []
         for name in class_names[:3]:
-            enums.append(name_to_enum.get(str(name), GradeEnum.grade_2))
+            enum_value = name_to_enum.get(str(name))
+            if enum_value is None:
+                raise GradingRuntimeError("Berry grading V2 class mapping contains an unknown class.")
+            enums.append(enum_value)
 
         idx = int(np.argmax(probs))
+        if idx < 0 or idx >= len(enums):
+            raise GradingRuntimeError("Berry grading V2 predicted class index is invalid.")
         pred_grade = enums[idx]
         confidence = float(probs[idx])
         prob_map: dict[GradeEnum, float] = {enums[i]: float(probs[i]) for i in range(min(3, len(enums)))}
         return pred_grade, confidence, prob_map, model_id, model_path
-    except Exception:
-        return None
+    except GradingRuntimeError:
+        raise
+    except Exception as exc:
+        raise GradingRuntimeError("Berry grading V2 inference failed.") from exc
 
 
 def _expected_quality_score(prob_map: dict[GradeEnum, float]) -> float:
@@ -190,6 +206,9 @@ def _expected_quality_score(prob_map: dict[GradeEnum, float]) -> float:
 
 
 def build_grading_result(image_bytes: bytes | None, image_name: str | None) -> GradingResult:
+    if image_bytes is None:
+        raise GradingRuntimeError("Image is required for berry grading.")
+
     processed_bytes, _ = preprocess_image_bytes(image_bytes)
     features = extract_features_from_bytes(processed_bytes or image_bytes)
 
@@ -207,37 +226,15 @@ def build_grading_result(image_bytes: bytes | None, image_name: str | None) -> G
     confidence: float
 
     model_pred = None
-    if image_bytes:
-        # Prefer the selected PP2 V2 ONNX model if present; otherwise fall back to heuristic grading.
-        model_pred = _predict_grade_with_onnx(image_bytes)
+    model_pred = _predict_grade_with_onnx(image_bytes)
 
     if model_pred is not None:
         predicted_grade, conf, prob_map, model_id, model_path = model_pred
         confidence = round(max(0.0, min(1.0, float(conf))), 2)
         quality_score = round(max(0.0, min(100.0, _expected_quality_score(prob_map))), 1)
     else:
-        model_id = None
-        model_path = None
-        defect_free_score = 1.0 - visual_features.defect_ratio
-        score_01 = (
-            0.35 * visual_features.color_uniformity_score
-            + 0.25 * visual_features.dark_berry_ratio
-            + 0.20 * visual_features.texture_score
-            + 0.15 * defect_free_score
-            + 0.05 * visual_features.cleanliness_score
-        )
-        quality_score = round(max(0.0, min(100.0, score_01 * 100.0)), 1)
-
-        if quality_score >= 80.0:
-            predicted_grade = GradeEnum.grade_1
-        elif quality_score >= 60.0:
-            predicted_grade = GradeEnum.grade_2
-        else:
-            predicted_grade = GradeEnum.grade_3
-
-        boundary_distance = min(abs(score_01 - 0.6), abs(score_01 - 0.8))
-        confidence = max(0.55, min(0.92, 0.62 + (boundary_distance * 1.25)))
-        confidence = round(confidence, 2)
+        LOGGER.error("Berry grading V2 inference did not return a prediction.")
+        raise GradingRuntimeError("Berry grading V2 inference did not return a prediction.")
 
     if predicted_grade == GradeEnum.grade_1:
         size_quality = "good"
@@ -296,16 +293,11 @@ def build_grading_result(image_bytes: bytes | None, image_name: str | None) -> G
     else:
         explanation.append("Texture quality appears weak and reduced the score.")
 
-    if image_bytes is None:
-        explanation.append("No image provided; demo features were used.")
-    elif processed_bytes is None:
+    if processed_bytes is None:
         explanation.append("OpenCV preprocessing unavailable; safe demo features may be used.")
-    elif model_pred is None:
-        explanation.append("Real grading model not available; heuristic grading was used.")
-    else:
-        explanation.append(
-            f"Runtime model {model_id} was used for predicted grade: {model_path.as_posix()}."
-        )
+    explanation.append(
+        f"Runtime model {model_id} was used for predicted grade: {RUNTIME_MODEL_RELATIVE_PATH.as_posix()}."
+    )
 
     return GradingResult(
         predicted_grade=predicted_grade,
