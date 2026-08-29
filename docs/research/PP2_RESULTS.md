@@ -20,7 +20,7 @@ Phase 5 Integration Validation result: COMPLETE with runtime limitations.
 
 Phase 6 PP2 Evidence and Documentation result: COMPLETE.
 
-Post-PP2 runtime update: Phase 8 integrated the selected Berry V2 ONNX into the backend runtime, Phase 9 changed the price forecast runtime from `demo_baseline` to the validated `naive_persistence` method using the V2 National Grade 1 average weekly target, and Phase 10 validated the existing recommendation logic with the real runtime grading and forecasting outputs.
+Post-PP2 runtime update: Phase 8 integrated the selected Berry V2 ONNX into the backend runtime, Phase 9 changed the price forecast runtime from `demo_baseline` to the validated `naive_persistence` method using the V2 National Grade 1 average weekly target, Phase 10 validated the existing recommendation logic with the real runtime grading and forecasting outputs, and Phase 11 hardened backend error handling for this component.
 
 ## Final PP2 Evidence Summary
 
@@ -530,6 +530,22 @@ Mobile inspection:
 - Default backend URL is `localhost:8000` for desktop/web and `10.0.2.2:8000` for Android emulator.
 - Flutter was not run during Phase 5.
 
+### Post-PP2 Runtime Hardening
+
+Phase 11 backend reliability validation passed for the grading-forecast API path.
+
+Verified behavior:
+
+- Valid grade-only request used `BERRY-V2-MNV2`.
+- Valid price forecast request used `naive_persistence` and did not return `demo_baseline`.
+- Valid analyze request returned V2 grading, `naive_persistence` forecast, recommendation, and optional storage.
+- Missing, empty, unsupported, corrupt, and oversized image uploads returned safe HTTP errors.
+- Missing V2 berry model artifacts failed explicitly without loading the legacy/root ONNX model.
+- Missing or malformed forecast data returned `forecast_unavailable`.
+- Unexpected grading and recommendation failures returned safe JSON errors.
+
+Phase 11 did not modify datasets, model artifacts, Firebase configuration, Flutter code, recommendation rules, or forecasting method selection.
+
 Validated API endpoints:
 
 - `GET /api/v1/grading-forecast/health`
@@ -567,4 +583,4 @@ The V1 implementation established a working end-to-end baseline. After PP1, the 
 - Integration validation: FastAPI endpoints started and returned usable responses during Phase 5; later Phase 8/9 work integrated Berry V2 runtime and Naive Persistence forecast runtime.
 - Limitations: camera grading is not official SLS certification; Grade 2 forecasting is out of scope; Firebase, Flutter E2E, and final integrated validation remain pending.
 - Current conclusion: PP2 has defensible V2 datasets, completed baseline experiments, one limited improvement per subproblem, honest limitations, and a known backend demo path.
-- Future work: harden backend error handling, validate Flutter live flow, configure Firebase if required, collect more data, improve forecasting features, and perform broader post-PP2 model evaluation.
+- Future work: clarify Firebase/persistence requirements, validate the Flutter live flow, complete cross-component integration, improve forecasting features with additional evidence, and perform broader post-PP2 model evaluation.

@@ -1,6 +1,6 @@
 # PP2 Limitations
 
-Last updated: 2026-08-28
+Last updated: 2026-08-29
 
 This document records limitations that must be stated honestly during PP2.
 
@@ -101,13 +101,15 @@ Forecasting:
 
 ## Integration Limitations
 
-- Existing backend can fall back to heuristic/demo mode if real model artifacts or input files are unavailable.
-- PP2 demo must explicitly identify whether real artifacts or fallback logic were used.
+- Historical backend behavior could fall back to heuristic/demo mode if real model artifacts or input files were unavailable.
+- Current post-Phase 11 runtime handling for this component is designed to fail safely and identify unavailable results instead of silently presenting legacy/demo outputs as research results.
+- PP2/demo evidence must explicitly identify whether real artifacts or unavailable/fallback states were used.
 - Phase 5 backend validation showed the grade-only and analyze endpoints returning HTTP 200 with real ONNX grading model use.
 - Phase 5 runtime grading used the legacy/root ONNX artifact path, not the PP2 V2 or Phase 4 berry artifact directories; Phase 8 later integrated the selected Berry V2 ONNX runtime.
 - Phase 5 price forecast endpoint returned `demo_baseline`, not the Phase 3 or Phase 4 V2 forecasting research artifacts; Phase 9 later replaced the real application forecasting path with `naive_persistence`.
 - Phase 9 runtime forecasting uses Naive Persistence because it was the strongest validated V2 forecasting method and no inspected requirement forced the weaker trained RandomForest artifact into runtime.
 - Phase 10 validated the existing recommendation rule table with real Phase 8 and Phase 9 runtime outputs, but the rules remain hard-coded and should be reviewed with domain/project stakeholders before final deployment.
+- Phase 11 added focused backend hardening for image validation, V2 model failure handling, forecast unavailable handling, and safe API errors; it did not replace full production security, rate limiting, authentication, or Flutter end-to-end validation.
 - Firebase live writes are not guaranteed unless credentials are configured.
 - Phase 5 storage returned `saved_to_firebase: false` because Firebase was not configured.
 - Flutter flow exists and points to the backend endpoints, but Flutter was not run during Phase 5.

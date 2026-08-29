@@ -1,12 +1,12 @@
 # Project Status: Berry Grading and Export Price Forecasting
 
-Last updated: 2026-08-28
+Last updated: 2026-08-29
 
 This document is the current source of truth for the PP2 recovery work for the individual component: Berry Grading and Export Price Forecasting.
 
 ## Current Phase
 
-Current phase: Phase 10 Recommendation & Decision Logic complete. Next work is Phase 11 Backend Reliability & Error Handling.
+Current phase: Phase 11 Backend Reliability & Error Handling complete. Next work is Phase 12 Firebase / Persistence decision and validation if required.
 
 Phase 0, Repository and Research Audit, is complete.
 
@@ -29,6 +29,8 @@ Phase 8, Berry V2 Runtime Integration, is complete. The berry grading backend se
 Phase 9, Forecast Runtime Integration / Runtime Forecasting-Method Decision, is complete. The backend price forecast service now uses the V2 National Grade 1 average weekly target and the validated `naive_persistence` method instead of `demo_baseline` for the real application forecasting path. Berry grading, recommendation rules, Firebase, Flutter, datasets, training, evaluation, and model artifacts were not changed during Phase 9.
 
 Phase 10, Recommendation & Decision Logic, is complete. The existing recommendation rules were validated with the real Phase 8 berry runtime output and Phase 9 forecast runtime output. No recommendation business rules or application code were changed.
+
+Phase 11, Backend Reliability & Error Handling, is complete. The grading-forecast API now validates image uploads, fails explicitly when the selected V2 grading model is unavailable, preserves the `forecast_unavailable` behavior for bad forecast data, and returns safe HTTP errors for unexpected grading or recommendation failures.
 
 ## Project Scope
 
@@ -88,6 +90,7 @@ The SLS 105 Part 1: 2022 reference includes visual, physical, and chemical requi
 | Berry V2 runtime integration | COMPLETE | Phase 8 updated the berry grading service to load `BERRY-V2-MNV2` from `ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.onnx` and verified one V2 test image through the service path. |
 | Forecast runtime integration | COMPLETE | Phase 9 selected Naive Persistence for runtime because it is the strongest validated V2 forecasting method and no inspected requirement forced the weaker trained RF artifact into runtime. |
 | Recommendation validation | COMPLETE | Phase 10 confirmed that `analyze` passes actual grading and forecast outputs into the existing rule table and that representative grade/trend cases behave as implemented. |
+| Backend reliability | COMPLETE | Phase 11 added focused request validation and safe error handling for the grading-forecast API without changing datasets, artifacts, model choices, Firebase, or Flutter. |
 
 ## Dataset Status
 
@@ -331,7 +334,6 @@ Forecasting Phase 4 artifacts:
 
 - Firebase was not configured during Phase 5.
 - Flutter API integration exists, but end-to-end Flutter validation remains pending.
-- Backend error handling still needs focused hardening and validation.
 
 ## Phase 7 Existing Implementation Audit Result
 
@@ -433,6 +435,31 @@ Validation evidence:
 
 No application code was modified during Phase 10.
 
+## Phase 11 Backend Reliability & Error Handling Result
+
+Status: COMPLETE.
+
+Files changed:
+
+- `backend/app/api/routes/grading_forecast.py`
+- `backend/app/services/grading_forecast/grading_service.py`
+
+Validation evidence:
+
+- Valid V2 grade-only request returned HTTP 200, predicted `Grade 1`, and identified `BERRY-V2-MNV2` without exposing an absolute filesystem path.
+- Valid price forecast request returned HTTP 200 with model `naive_persistence`, current price `1886`, predicted price `1886`, and no `demo_baseline`.
+- Valid analyze request returned HTTP 200 with V2 grading, `naive_persistence` forecast, recommendation `SELL_EXPORT`, and optional storage result `saved_to_firebase: false`.
+- Missing image, empty image, unsupported non-image upload, corrupt image, and oversized upload returned safe HTTP errors.
+- Missing V2 model artifacts raised explicit grading failure and did not load the legacy/root ONNX model.
+- Invalid V2 class mapping raised explicit grading failure.
+- Invalid ONNX output shape and ONNX inference failure raised explicit grading failure.
+- Missing or malformed forecast data returned `forecast_unavailable`.
+- API-level unavailable forecast checks returned HTTP 503 for `price-forecast` and `analyze` instead of generating a normal recommendation.
+- Invalid recommendation schema values returned HTTP 422.
+- Unexpected grading and recommendation service failures returned safe JSON HTTP 500 responses.
+
+No datasets, model artifacts, Flutter code, Firebase configuration, recommendation rules, or forecasting method selection were changed during Phase 11.
+
 ## Phase 6 Evidence and Documentation Result
 
 Status: COMPLETE.
@@ -496,4 +523,4 @@ Mobile status:
 
 ## Next Exact Action
 
-Phase 11: Backend Reliability & Error Handling. Do not start Firebase, Flutter end-to-end, or UI/UX work before focused backend hardening is complete.
+Phase 12: Firebase / Persistence decision and validation if required. Do not start Flutter end-to-end, UI/UX work, or final integrated validation before the storage requirement is clarified.

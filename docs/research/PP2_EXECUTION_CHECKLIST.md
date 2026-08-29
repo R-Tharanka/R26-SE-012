@@ -1,6 +1,6 @@
 # PP2 Execution Checklist
 
-Last updated: 2026-08-28
+Last updated: 2026-08-29
 
 Use this checklist phase-by-phase. Do not jump to model training before Phase 1 is complete.
 
@@ -238,7 +238,7 @@ Evidence:
 - [x] Forecast runtime integration and runtime forecasting-method decision.
 - [x] Recommendation validation using real runtime research outputs.
 - [ ] Firebase/storage validation if required.
-- [ ] Error handling/API hardening.
+- [x] Error handling/API hardening.
 - [ ] Later manual integration with other components.
 - [ ] Later Flutter end-to-end validation.
 - [ ] Later UI/UX improvements.
@@ -332,6 +332,48 @@ Evidence:
 - Stable trend test passed.
 - Missing optional fields test passed.
 - Invalid grade values are rejected by the API schema.
+
+## Phase 11: Backend Reliability & Error Handling
+
+Status: COMPLETE
+
+- [x] Inspect relevant grading-forecast backend route and services.
+- [x] Validate missing image upload handling.
+- [x] Validate empty image upload handling.
+- [x] Validate unsupported content type handling.
+- [x] Validate corrupt/unreadable image handling.
+- [x] Validate oversized image handling.
+- [x] Confirm valid V2 grading still uses `BERRY-V2-MNV2`.
+- [x] Confirm missing V2 model artifacts fail explicitly and do not load the legacy/root ONNX model.
+- [x] Confirm invalid V2 class mapping fails explicitly.
+- [x] Confirm invalid ONNX output shape and inference failure fail explicitly.
+- [x] Confirm valid forecasting still uses `naive_persistence`.
+- [x] Confirm missing or malformed forecast data returns `forecast_unavailable`.
+- [x] Confirm unavailable forecast state returns HTTP 503 in API routes that require a forecast.
+- [x] Confirm `demo_baseline` is not returned by the valid runtime forecast path.
+- [x] Confirm invalid recommendation schema values are rejected safely.
+- [x] Confirm unexpected grading failures return safe JSON errors.
+- [x] Confirm unexpected recommendation failures return safe JSON errors.
+- [x] Confirm optional Firebase/storage failure remains non-blocking for valid analyze output.
+- [x] Confirm no datasets, model artifacts, Flutter code, Firebase configuration, recommendation rules, or forecasting method selection were changed.
+
+Phase 11 validation result: PASSED.
+
+Evidence:
+
+- Valid grade-only request with V2 test image returned HTTP 200, predicted `Grade 1`, and identified `BERRY-V2-MNV2`.
+- Valid price forecast returned model `naive_persistence`, current price `1886`, predicted price `1886`, and did not return `demo_baseline`.
+- Valid analyze returned V2 grading, `naive_persistence` forecast, recommendation `SELL_EXPORT`, and `saved_to_firebase: false`.
+- Missing image: HTTP 400.
+- Empty image: HTTP 400.
+- Unsupported file: HTTP 415.
+- Corrupt image: HTTP 400.
+- Oversized image: HTTP 413.
+- Missing V2 model artifacts and invalid V2 class mapping: explicit grading failure, no legacy/root ONNX fallback.
+- Invalid ONNX output shape and ONNX inference failure: explicit grading failure.
+- Forecast unavailable state: HTTP 503 for API routes that require a forecast.
+- Invalid recommendation inputs: HTTP 422.
+- Unexpected grading/recommendation failures: safe JSON HTTP 500 responses.
 
 ## Four-Day Schedule Tracker
 
