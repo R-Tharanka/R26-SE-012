@@ -6,7 +6,7 @@ This document is the current source of truth for the PP2 recovery work for the i
 
 ## Current Phase
 
-Current phase: Phase 11 Backend Reliability & Error Handling complete. Next work is Phase 12 Firebase / Persistence decision and validation if required.
+Current phase: Phase 12 Firebase / Persistence decision and validation complete. Next work is Phase 13 Manual Cross-Component Integration.
 
 Phase 0, Repository and Research Audit, is complete.
 
@@ -31,6 +31,8 @@ Phase 9, Forecast Runtime Integration / Runtime Forecasting-Method Decision, is 
 Phase 10, Recommendation & Decision Logic, is complete. The existing recommendation rules were validated with the real Phase 8 berry runtime output and Phase 9 forecast runtime output. No recommendation business rules or application code were changed.
 
 Phase 11, Backend Reliability & Error Handling, is complete. The grading-forecast API now validates image uploads, fails explicitly when the selected V2 grading model is unavailable, preserves the `forecast_unavailable` behavior for bad forecast data, and returns safe HTTP errors for unexpected grading or recommendation failures.
+
+Phase 12, Firebase / Persistence decision and validation, is complete. Firebase persistence was classified as optional supporting functionality for this component. No credentials were configured. Existing storage behavior was validated as fail-safe: valid analysis still returns grading, forecast, and recommendation when Firebase is unavailable or save fails, with `saved_to_firebase: false`.
 
 ## Project Scope
 
@@ -76,7 +78,7 @@ The SLS 105 Part 1: 2022 reference includes visual, physical, and chemical requi
 | Research audit | COMPLETE | Official documents, guides, codebase, raw data, processed data, and model artifacts were inspected. |
 | Backend API | VALIDATED WITH LIMITATIONS | FastAPI started and required grading-forecast endpoints returned HTTP 200 during Phase 5. |
 | Flutter UI | PARTIALLY COMPLETED | Component screens and API client exist; PP2 needs only demo validation, not new UI work. |
-| Firebase storage | FALLBACK VALIDATED | Firebase was not configured during Phase 5; analyze returned `saved_to_firebase: false` without blocking the response. |
+| Firebase storage | OPTIONAL / FALLBACK VALIDATED | Phase 12 confirmed Firebase is optional supporting functionality. Analyze returns `saved_to_firebase: false` without blocking grading, forecast, and recommendation when Firebase is unavailable or save fails. |
 | Berry V1 model | COMPLETED BUT OUTDATED | MobileNetV2 model exists, trained on old 360-image processed dataset. |
 | Berry V2 model | COMPLETE | MobileNetV2 V2 baseline trained, tested, and exported under `ml/grading_forecast/berry_grading/models/v2/`. |
 | Forecast V1 model | COMPLETED BUT OUTDATED | RandomForest artifact exists, trained on old processed price data through 2026-04-21. |
@@ -91,6 +93,7 @@ The SLS 105 Part 1: 2022 reference includes visual, physical, and chemical requi
 | Forecast runtime integration | COMPLETE | Phase 9 selected Naive Persistence for runtime because it is the strongest validated V2 forecasting method and no inspected requirement forced the weaker trained RF artifact into runtime. |
 | Recommendation validation | COMPLETE | Phase 10 confirmed that `analyze` passes actual grading and forecast outputs into the existing rule table and that representative grade/trend cases behave as implemented. |
 | Backend reliability | COMPLETE | Phase 11 added focused request validation and safe error handling for the grading-forecast API without changing datasets, artifacts, model choices, Firebase, or Flutter. |
+| Firebase / persistence decision | COMPLETE | Phase 12 classified Firebase as optional, validated unconfigured and save-failure behavior, and made no application-code or credential changes. |
 
 ## Dataset Status
 
@@ -330,10 +333,10 @@ Forecasting Phase 4 artifacts:
 - `ml/grading_forecast/price_forecasting/evaluation/_outputs/v2_phase4/feature_importances.png`
 - `ml/grading_forecast/price_forecasting/evaluation/_outputs/v2_phase4/residuals.png`
 
-## Current Blockers
+## Current Pending Work
 
-- Firebase was not configured during Phase 5.
 - Flutter API integration exists, but end-to-end Flutter validation remains pending.
+- Manual cross-component integration remains pending.
 
 ## Phase 7 Existing Implementation Audit Result
 
@@ -460,6 +463,36 @@ Validation evidence:
 
 No datasets, model artifacts, Flutter code, Firebase configuration, recommendation rules, or forecasting method selection were changed during Phase 11.
 
+## Phase 12 Firebase / Persistence Result
+
+Status: COMPLETE.
+
+Decision: Firebase is optional supporting functionality for this component.
+
+Evidence used:
+
+- `docs/guidelines_with_steps.md` says not to require Firebase credentials for the local demo.
+- `docs/guidelines_with_steps.md` says Firebase result storage should work or safely fall back when Firebase is not configured.
+- This document describes storage as "when credentials are configured."
+- `docs/research/PP2_MASTER_PLAN.md` records Firebase credentials as a risk and says to keep Firebase storage as a safe fallback if live credentials are unavailable.
+
+Implementation result:
+
+- No application code was changed.
+- No Firebase credentials, service-account JSON, `.env` secrets, or private keys were created or committed.
+- Existing code uses `FIREBASE_SERVICE_ACCOUNT_PATH`, `FIREBASE_PROJECT_ID`, and optional `FIREBASE_RESULTS_COLLECTION`.
+- Default Firestore collection is `grading_forecast_results`.
+- Retrieval is not implemented and was not required by the inspected component requirements.
+
+Validation evidence:
+
+- Firebase unconfigured: analyze returned HTTP 200 with valid V2 grading, `naive_persistence` forecast, recommendation `SELL_EXPORT`, and `saved_to_firebase: false`.
+- Simulated Firebase save failure: analyze returned HTTP 200 with valid grading/forecast/recommendation and `saved_to_firebase: false`, `document_id: null`.
+- Mocked successful save document contains component, image id, processed flag, predicted grade, quality score, confidence, visual features, supporting labels, forecast, recommendation, limitation note, and timestamp.
+- Current storage code does not store raw image bytes.
+
+No datasets, model artifacts, Flutter code, Firebase configuration, recommendation rules, forecasting logic, or grading logic were changed during Phase 12.
+
 ## Phase 6 Evidence and Documentation Result
 
 Status: COMPLETE.
@@ -523,4 +556,4 @@ Mobile status:
 
 ## Next Exact Action
 
-Phase 12: Firebase / Persistence decision and validation if required. Do not start Flutter end-to-end, UI/UX work, or final integrated validation before the storage requirement is clarified.
+Phase 13: Manual Cross-Component Integration. Do not start Flutter end-to-end, UI/UX work, or final integrated validation before the cross-component API contract is checked.

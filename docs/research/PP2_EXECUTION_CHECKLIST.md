@@ -237,7 +237,7 @@ Evidence:
 - [x] Berry V2 runtime integration.
 - [x] Forecast runtime integration and runtime forecasting-method decision.
 - [x] Recommendation validation using real runtime research outputs.
-- [ ] Firebase/storage validation if required.
+- [x] Firebase/storage validation if required.
 - [x] Error handling/API hardening.
 - [ ] Later manual integration with other components.
 - [ ] Later Flutter end-to-end validation.
@@ -374,6 +374,33 @@ Evidence:
 - Forecast unavailable state: HTTP 503 for API routes that require a forecast.
 - Invalid recommendation inputs: HTTP 422.
 - Unexpected grading/recommendation failures: safe JSON HTTP 500 responses.
+
+## Phase 12: Firebase / Persistence Decision and Validation
+
+Status: COMPLETE
+
+- [x] Check whether Firebase persistence is required by relevant project/research guidance.
+- [x] Classify Firebase as optional supporting functionality for this component.
+- [x] Confirm no Firebase credentials are required for the local/demo component flow.
+- [x] Verify existing unconfigured Firebase behavior.
+- [x] Verify valid analyze response still includes grading, forecast, and recommendation when Firebase is unavailable.
+- [x] Verify `saved_to_firebase: false` and `document_id: null` when Firebase is unavailable.
+- [x] Verify simulated Firebase save failure remains non-blocking.
+- [x] Inspect stored document structure through a mocked successful save.
+- [x] Confirm no raw image bytes are stored by the current storage service.
+- [x] Confirm retrieval is not required by inspected component requirements.
+- [x] Confirm no Firebase credentials, secrets, or service-account files were created.
+- [x] Confirm no application code was modified during Phase 12.
+
+Phase 12 validation result: PASSED as optional supporting functionality.
+
+Evidence:
+
+- Requirement decision: optional supporting functionality.
+- Firebase unconfigured analyze result: HTTP 200 with valid V2 grading, `naive_persistence` forecast, recommendation `SELL_EXPORT`, and `saved_to_firebase: false`.
+- Simulated save failure result: HTTP 200 with valid grading/forecast/recommendation, `saved_to_firebase: false`, and `document_id: null`.
+- Mocked successful document fields: component, image id, processed flag, predicted grade, quality score, confidence, visual features, supporting labels, forecast, recommendation, limitation note, and timestamp.
+- Environment variables used by existing code: `FIREBASE_SERVICE_ACCOUNT_PATH`, `FIREBASE_PROJECT_ID`, optional `FIREBASE_RESULTS_COLLECTION`.
 
 ## Four-Day Schedule Tracker
 
