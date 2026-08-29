@@ -36,13 +36,17 @@ def get_firestore_client() -> Any | None:
     if _firestore_client is not None:
         return _firestore_client
 
-    service_account_path_raw = os.getenv("FIREBASE_SERVICE_ACCOUNT_PATH")
-    project_id = os.getenv("FIREBASE_PROJECT_ID")
-    if not service_account_path_raw or not project_id:
-        return None
+    try:
+        service_account_path_raw = os.getenv("FIREBASE_SERVICE_ACCOUNT_PATH")
+        project_id = os.getenv("FIREBASE_PROJECT_ID")
+        if not service_account_path_raw or not project_id:
+            return None
 
-    service_account_path = _resolve_service_account_path(service_account_path_raw)
-    if not service_account_path.is_file():
+        service_account_path = _resolve_service_account_path(service_account_path_raw)
+        if not service_account_path.is_file():
+            return None
+    except Exception:
+        logger.warning("Firebase configuration could not be resolved; running without Firebase.")
         return None
 
     try:

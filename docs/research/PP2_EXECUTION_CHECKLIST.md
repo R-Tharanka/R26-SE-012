@@ -375,32 +375,42 @@ Evidence:
 - Invalid recommendation inputs: HTTP 422.
 - Unexpected grading/recommendation failures: safe JSON HTTP 500 responses.
 
-## Phase 12: Firebase / Persistence Decision and Validation
+## Phase 12: Firebase Persistence Implementation
 
 Status: COMPLETE
 
 - [x] Check whether Firebase persistence is required by relevant project/research guidance.
-- [x] Classify Firebase as optional supporting functionality for this component.
+- [x] Classify Firebase persistence as required final functionality for application-level result history.
 - [x] Confirm no Firebase credentials are required for the local/demo component flow.
+- [x] Implement generated analysis/result ID persistence.
+- [x] Persist V2 grading result, `naive_persistence` forecast, recommendation, and runtime identifiers.
 - [x] Verify existing unconfigured Firebase behavior.
 - [x] Verify valid analyze response still includes grading, forecast, and recommendation when Firebase is unavailable.
 - [x] Verify `saved_to_firebase: false` and `document_id: null` when Firebase is unavailable.
+- [x] Verify mocked Firebase success returns `saved_to_firebase: true` and a generated document ID.
 - [x] Verify simulated Firebase save failure remains non-blocking.
+- [x] Verify Firebase initialization failure remains non-blocking.
+- [x] Verify document serialization failure remains non-blocking.
 - [x] Inspect stored document structure through a mocked successful save.
 - [x] Confirm no raw image bytes are stored by the current storage service.
 - [x] Confirm retrieval is not required by inspected component requirements.
 - [x] Confirm no Firebase credentials, secrets, or service-account files were created.
-- [x] Confirm no application code was modified during Phase 12.
+- [x] Confirm live Firebase write was not claimed because credentials are unavailable.
 
-Phase 12 validation result: PASSED as optional supporting functionality.
+Phase 12 validation result: IMPLEMENTATION PASSED; LIVE FIREBASE WRITE NOT VALIDATED.
 
 Evidence:
 
-- Requirement decision: optional supporting functionality.
+- Requirement decision: Firebase persistence is required for application-level result history, but must remain non-blocking for live inference results.
+- Implementation files: `backend/app/services/grading_forecast/result_storage_service.py`, `backend/app/db/firebase.py`.
 - Firebase unconfigured analyze result: HTTP 200 with valid V2 grading, `naive_persistence` forecast, recommendation `SELL_EXPORT`, and `saved_to_firebase: false`.
+- Mocked Firebase success result: HTTP 200 with `saved_to_firebase: true` and generated document ID.
 - Simulated save failure result: HTTP 200 with valid grading/forecast/recommendation, `saved_to_firebase: false`, and `document_id: null`.
-- Mocked successful document fields: component, image id, processed flag, predicted grade, quality score, confidence, visual features, supporting labels, forecast, recommendation, limitation note, and timestamp.
+- Firebase initialization failure and document serialization failure returned safe non-persisted status.
+- Mocked successful document fields: analysis ID, component, component version, persistence scope, user ID placeholder, image ID, processed flag, runtime identifiers, grading, forecast, recommendation, limitation note, and timestamp.
 - Environment variables used by existing code: `FIREBASE_SERVICE_ACCOUNT_PATH`, `FIREBASE_PROJECT_ID`, optional `FIREBASE_RESULTS_COLLECTION`.
+- User scoping: application-level/non-user-scoped because no existing authenticated user identity was found for this component.
+- Live Firebase write: not validated because credentials are not configured.
 
 ## Four-Day Schedule Tracker
 

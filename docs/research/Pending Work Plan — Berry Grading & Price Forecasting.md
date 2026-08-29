@@ -109,7 +109,7 @@ Create a short implementation map:
 | Forecast V2 research artifacts | V2 RF and Phase 4 RF artifacts exist separately under `models/v2/` and `models/v2_phase4/` | Do not claim runtime use until wired and validated | Verified |
 | Strongest research forecast | Naive Persistence is strongest on the V2 test period | Runtime selected Naive Persistence after requirement check | Completed in Phase 9 |
 | Recommendation | Existing rule logic is implemented and validated with Phase 8/9 runtime outputs | Continue to backend hardening and later full E2E checks | Completed in Phase 10 |
-| Storage | Firebase storage is optional/fail-safe; Phase 5 had Firebase unconfigured | Configure and validate only if required | Completed in Phase 12 |
+| Storage | Firebase storage is implemented as required result-history persistence, with fail-safe behavior when credentials are unavailable | Live Firebase validation still requires configured credentials | Completed in Phase 12; live write not validated |
 | API | Existing endpoints and fallback/error behavior identified | Harden only after model/runtime decisions | Completed in Phase 11 |
 | Flutter | API service and relevant screens exist | End-to-end Flutter validation still pending | Pending Phase 14 |
 
@@ -542,26 +542,35 @@ If optional:
 
 > Document it as optional and don't spend significant time on it before the core model/runtime integration.
 
-### Phase 12 decision and validation
+### Phase 12 implementation and validation
 
-Decision: **OPTIONAL SUPPORTING FUNCTIONALITY**.
+Decision: **REQUIRED FINAL FUNCTIONALITY** for application-level result history, based on the updated Phase 12 requirement and project/proposal persistence expectation.
 
 Evidence:
 
-* `docs/guidelines_with_steps.md` says Firebase credentials must not be required for the local demo.
-* `docs/guidelines_with_steps.md` says Firebase result storage should work or safely fall back when Firebase is not configured.
-* `docs/research/PROJECT_STATUS.md` defines storage as "when credentials are configured."
-* `docs/research/PP2_MASTER_PLAN.md` records Firebase credentials as a risk and says to keep Firebase as a safe fallback if live credentials are unavailable.
+* Existing component code already used `backend/app/services/grading_forecast/result_storage_service.py` and `backend/app/db/firebase.py`.
+* `docs/guidelines_with_steps.md` identifies Firebase result storage as part of the component while also saying Firebase credentials must not be required for the local demo.
+* The current implementation therefore treats Firebase as required persistence functionality when credentials are configured, but non-blocking for live grading/forecast/recommendation output when credentials are absent.
 
-No Firebase credentials were configured, invented, or committed. No application code was changed.
+Implementation:
+
+* Each successful persisted analysis uses a generated Firestore document ID and `analysis_id`.
+* Collection: `grading_forecast_results`, or `FIREBASE_RESULTS_COLLECTION` if configured.
+* Persisted records include application-level metadata, image identifier, V2 grading result, `naive_persistence` forecast result, recommendation result, runtime identifiers, and timestamp.
+* Current records are application-level/non-user-scoped because no existing authenticated user identity was found for this component.
+* No raw image bytes, model binaries, credentials, or secrets are stored.
+* No Firebase credentials were configured, invented, or committed.
 
 Validated behavior:
 
 * With Firebase unconfigured, `/api/v1/grading-forecast/analyze` still returned valid V2 grading, `naive_persistence` forecast, recommendation, and `saved_to_firebase: false`.
 * With a simulated Firebase save failure, analyze still returned valid grading/forecast/recommendation and `saved_to_firebase: false`, `document_id: null`.
+* A mocked successful Firebase save returned `saved_to_firebase: true` and a generated document ID.
 * A mocked successful save writes metadata/results to `grading_forecast_results`; no raw image bytes are stored by the current component code.
+* Firebase initialization failure and document serialization failure safely returned non-persisted status without breaking the analysis result.
 * Environment variables checked by code are `FIREBASE_SERVICE_ACCOUNT_PATH`, `FIREBASE_PROJECT_ID`, and optional `FIREBASE_RESULTS_COLLECTION`.
 * Retrieval is not implemented or required by the inspected component requirements.
+* Live Firebase write validation was not performed because credentials are not configured in the environment.
 
 ### Security
 
@@ -865,7 +874,7 @@ Phase 16 → Final validation
 | **9**  | **Forecast runtime integration** | ✅ Complete                  |
 | **10** | **Recommendation verification**  | ✅ Complete                  |
 | **11** | **Backend error handling**       | ✅ Complete                  |
-| **12** | **Firebase**                     | ✅ Complete as optional      |
+| **12** | **Firebase**                     | ✅ Implementation complete; live write not validated |
 | **13** | **Other-component integration**  | 🔵 You will do manually     |
 | **14** | **Flutter E2E**                  | 🔵 You will do manually     |
 | **15** | **UI/UX**                        | 🔵 You will do manually     |

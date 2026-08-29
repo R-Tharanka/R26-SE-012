@@ -6,7 +6,7 @@ This document is the current source of truth for the PP2 recovery work for the i
 
 ## Current Phase
 
-Current phase: Phase 12 Firebase / Persistence decision and validation complete. Next work is Phase 13 Manual Cross-Component Integration.
+Current phase: Phase 12 Firebase Persistence Implementation complete. Next work is Phase 13 Manual Cross-Component Integration.
 
 Phase 0, Repository and Research Audit, is complete.
 
@@ -32,7 +32,7 @@ Phase 10, Recommendation & Decision Logic, is complete. The existing recommendat
 
 Phase 11, Backend Reliability & Error Handling, is complete. The grading-forecast API now validates image uploads, fails explicitly when the selected V2 grading model is unavailable, preserves the `forecast_unavailable` behavior for bad forecast data, and returns safe HTTP errors for unexpected grading or recommendation failures.
 
-Phase 12, Firebase / Persistence decision and validation, is complete. Firebase persistence was classified as optional supporting functionality for this component. No credentials were configured. Existing storage behavior was validated as fail-safe: valid analysis still returns grading, forecast, and recommendation when Firebase is unavailable or save fails, with `saved_to_firebase: false`.
+Phase 12, Firebase Persistence Implementation, is complete. Firebase persistence is implemented for application-level result history when credentials are configured. Live Firebase validation was not performed because credentials are not configured. Existing fail-safe behavior was preserved: valid analysis still returns grading, forecast, and recommendation when Firebase is unavailable or save fails, with `saved_to_firebase: false`.
 
 ## Project Scope
 
@@ -78,7 +78,7 @@ The SLS 105 Part 1: 2022 reference includes visual, physical, and chemical requi
 | Research audit | COMPLETE | Official documents, guides, codebase, raw data, processed data, and model artifacts were inspected. |
 | Backend API | VALIDATED WITH LIMITATIONS | FastAPI started and required grading-forecast endpoints returned HTTP 200 during Phase 5. |
 | Flutter UI | PARTIALLY COMPLETED | Component screens and API client exist; PP2 needs only demo validation, not new UI work. |
-| Firebase storage | OPTIONAL / FALLBACK VALIDATED | Phase 12 confirmed Firebase is optional supporting functionality. Analyze returns `saved_to_firebase: false` without blocking grading, forecast, and recommendation when Firebase is unavailable or save fails. |
+| Firebase storage | IMPLEMENTED / LIVE VALIDATION NOT CONFIGURED | Phase 12 implemented Firestore result-history persistence using generated analysis IDs and runtime evidence. Analyze returns `saved_to_firebase: false` without blocking grading, forecast, and recommendation when Firebase is unavailable or save fails. |
 | Berry V1 model | COMPLETED BUT OUTDATED | MobileNetV2 model exists, trained on old 360-image processed dataset. |
 | Berry V2 model | COMPLETE | MobileNetV2 V2 baseline trained, tested, and exported under `ml/grading_forecast/berry_grading/models/v2/`. |
 | Forecast V1 model | COMPLETED BUT OUTDATED | RandomForest artifact exists, trained on old processed price data through 2026-04-21. |
@@ -93,7 +93,7 @@ The SLS 105 Part 1: 2022 reference includes visual, physical, and chemical requi
 | Forecast runtime integration | COMPLETE | Phase 9 selected Naive Persistence for runtime because it is the strongest validated V2 forecasting method and no inspected requirement forced the weaker trained RF artifact into runtime. |
 | Recommendation validation | COMPLETE | Phase 10 confirmed that `analyze` passes actual grading and forecast outputs into the existing rule table and that representative grade/trend cases behave as implemented. |
 | Backend reliability | COMPLETE | Phase 11 added focused request validation and safe error handling for the grading-forecast API without changing datasets, artifacts, model choices, Firebase, or Flutter. |
-| Firebase / persistence decision | COMPLETE | Phase 12 classified Firebase as optional, validated unconfigured and save-failure behavior, and made no application-code or credential changes. |
+| Firebase persistence | COMPLETE / LIVE WRITE NOT VALIDATED | Phase 12 implemented application-level Firestore result persistence, validated mocked success and failure behavior, and made no credential changes. |
 
 ## Dataset Status
 
@@ -463,35 +463,41 @@ Validation evidence:
 
 No datasets, model artifacts, Flutter code, Firebase configuration, recommendation rules, or forecasting method selection were changed during Phase 11.
 
-## Phase 12 Firebase / Persistence Result
+## Phase 12 Firebase Persistence Result
 
 Status: COMPLETE.
 
-Decision: Firebase is optional supporting functionality for this component.
+Decision: Firebase persistence is required final functionality for application-level historical result storage, while live inference results must remain available when Firebase is unavailable.
 
 Evidence used:
 
-- `docs/guidelines_with_steps.md` says not to require Firebase credentials for the local demo.
-- `docs/guidelines_with_steps.md` says Firebase result storage should work or safely fall back when Firebase is not configured.
-- This document describes storage as "when credentials are configured."
-- `docs/research/PP2_MASTER_PLAN.md` records Firebase credentials as a risk and says to keep Firebase storage as a safe fallback if live credentials are unavailable.
+- `docs/guidelines_with_steps.md` identifies Firebase result storage for the component.
+- The current Phase 12 requirement states persistence of prediction/analysis results and historical forecast information is required for the application.
+- `docs/guidelines_with_steps.md` also says not to require Firebase credentials for local demo and to safely fall back when Firebase is not configured.
 
 Implementation result:
 
-- No application code was changed.
+- `backend/app/services/grading_forecast/result_storage_service.py` now generates an `analysis_id` and Firestore document ID for each persisted analysis.
+- Stored documents include application metadata, image identifier, grading result, forecast result, recommendation, runtime identifiers, and timestamp.
+- `backend/app/db/firebase.py` now safely handles Firebase configuration path-resolution errors.
 - No Firebase credentials, service-account JSON, `.env` secrets, or private keys were created or committed.
 - Existing code uses `FIREBASE_SERVICE_ACCOUNT_PATH`, `FIREBASE_PROJECT_ID`, and optional `FIREBASE_RESULTS_COLLECTION`.
 - Default Firestore collection is `grading_forecast_results`.
+- Persistence is application-level/non-user-scoped because no existing authenticated user identity was found for this component.
 - Retrieval is not implemented and was not required by the inspected component requirements.
 
 Validation evidence:
 
+- Mocked Firebase success: analyze returned HTTP 200 with valid V2 grading, `naive_persistence` forecast, recommendation `SELL_EXPORT`, `saved_to_firebase: true`, and a generated document ID.
 - Firebase unconfigured: analyze returned HTTP 200 with valid V2 grading, `naive_persistence` forecast, recommendation `SELL_EXPORT`, and `saved_to_firebase: false`.
+- Firebase initialization failure: returned no client without crashing.
 - Simulated Firebase save failure: analyze returned HTTP 200 with valid grading/forecast/recommendation and `saved_to_firebase: false`, `document_id: null`.
-- Mocked successful save document contains component, image id, processed flag, predicted grade, quality score, confidence, visual features, supporting labels, forecast, recommendation, limitation note, and timestamp.
+- Document serialization failure: storage returned `saved_to_firebase: false`, `document_id: null`.
+- Mocked successful save document contains analysis ID, component, component version, persistence scope, user ID placeholder, image ID, processed flag, runtime identifiers, grading, forecast, recommendation, limitation note, and timestamp.
 - Current storage code does not store raw image bytes.
+- Live Firebase write validation was not performed because Firebase credentials are not configured.
 
-No datasets, model artifacts, Flutter code, Firebase configuration, recommendation rules, forecasting logic, or grading logic were changed during Phase 12.
+No datasets, model artifacts, Flutter code, Firebase credentials, recommendation rules, forecasting logic, or grading logic were changed during Phase 12.
 
 ## Phase 6 Evidence and Documentation Result
 

@@ -20,7 +20,7 @@ Phase 5 Integration Validation result: COMPLETE with runtime limitations.
 
 Phase 6 PP2 Evidence and Documentation result: COMPLETE.
 
-Post-PP2 runtime update: Phase 8 integrated the selected Berry V2 ONNX into the backend runtime, Phase 9 changed the price forecast runtime from `demo_baseline` to the validated `naive_persistence` method using the V2 National Grade 1 average weekly target, Phase 10 validated the existing recommendation logic with the real runtime grading and forecasting outputs, Phase 11 hardened backend error handling for this component, and Phase 12 validated Firebase/storage as optional fail-safe persistence.
+Post-PP2 runtime update: Phase 8 integrated the selected Berry V2 ONNX into the backend runtime, Phase 9 changed the price forecast runtime from `demo_baseline` to the validated `naive_persistence` method using the V2 National Grade 1 average weekly target, Phase 10 validated the existing recommendation logic with the real runtime grading and forecasting outputs, Phase 11 hardened backend error handling for this component, and Phase 12 implemented Firebase persistence with fail-safe behavior when credentials are unavailable.
 
 ## Final PP2 Evidence Summary
 
@@ -546,19 +546,22 @@ Verified behavior:
 
 Phase 11 did not modify datasets, model artifacts, Firebase configuration, Flutter code, recommendation rules, or forecasting method selection.
 
-### Post-PP2 Persistence Decision
+### Post-PP2 Persistence Implementation
 
-Phase 12 classified Firebase persistence as optional supporting functionality for this component.
+Phase 12 implemented Firebase persistence for application-level result history.
 
 Validated behavior:
 
 - Firebase credentials are not required for the local/demo component flow.
 - With Firebase unconfigured, analyze returned valid V2 grading, `naive_persistence` forecast, recommendation, and `saved_to_firebase: false`.
 - With simulated Firebase save failure, analyze still returned valid grading/forecast/recommendation and `saved_to_firebase: false`, `document_id: null`.
-- A mocked successful save confirmed the intended Firestore collection `grading_forecast_results` and result metadata structure.
+- A mocked successful save returned `saved_to_firebase: true` with a generated document ID.
+- A mocked successful save confirmed the intended Firestore collection `grading_forecast_results` and result metadata structure, including runtime identifiers for `BERRY-V2-MNV2` and `naive_persistence`.
 - Current storage code does not store raw image bytes.
+- Stored records are currently application-level/non-user-scoped because no existing authenticated user identity was found for this component.
+- Live Firebase write validation was not performed because credentials are not configured.
 
-No Firebase credentials or application-code changes were made during Phase 12.
+No Firebase credentials were configured or committed during Phase 12.
 
 Validated API endpoints:
 
@@ -597,4 +600,4 @@ The V1 implementation established a working end-to-end baseline. After PP1, the 
 - Integration validation: FastAPI endpoints started and returned usable responses during Phase 5; later Phase 8/9 work integrated Berry V2 runtime and Naive Persistence forecast runtime.
 - Limitations: camera grading is not official SLS certification; Grade 2 forecasting is out of scope; Firebase, Flutter E2E, and final integrated validation remain pending.
 - Current conclusion: PP2 has defensible V2 datasets, completed baseline experiments, one limited improvement per subproblem, honest limitations, and a known backend demo path.
-- Future work: complete cross-component integration, validate the Flutter live flow, perform live Firebase validation only if deployment/stakeholders require it, improve forecasting features with additional evidence, and perform broader post-PP2 model evaluation.
+- Future work: complete cross-component integration, validate the Flutter live flow, perform live Firebase validation when credentials are available, improve forecasting features with additional evidence, and perform broader post-PP2 model evaluation.
