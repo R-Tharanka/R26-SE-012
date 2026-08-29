@@ -108,7 +108,7 @@ Create a short implementation map:
 | Forecast | Runtime now uses `naive_persistence` with `data/processed/grading_forecast/price_v2/national_grade1_average_weekly.csv` | Keep forecasting decision documented; validate recommendation using real outputs next | Completed in Phase 9 |
 | Forecast V2 research artifacts | V2 RF and Phase 4 RF artifacts exist separately under `models/v2/` and `models/v2_phase4/` | Do not claim runtime use until wired and validated | Verified |
 | Strongest research forecast | Naive Persistence is strongest on the V2 test period | Runtime selected Naive Persistence after requirement check | Completed in Phase 9 |
-| Recommendation | Existing rule logic is implemented | Validate using real research outputs after runtime integration | Pending Phase 10 |
+| Recommendation | Existing rule logic is implemented and validated with Phase 8/9 runtime outputs | Continue to backend hardening and later full E2E checks | Completed in Phase 10 |
 | Storage | Firebase storage is optional/fail-safe; Phase 5 had Firebase unconfigured | Configure and validate only if required | Pending Phase 12 |
 | API | Existing endpoints and fallback/error behavior identified | Harden only after model/runtime decisions | Pending Phase 11 |
 | Flutter | API service and relevant screens exist | End-to-end Flutter validation still pending | Pending Phase 14 |
@@ -320,6 +320,8 @@ Missing-file validation returned `model: forecast_unavailable` instead of fabric
 
 # Phase 10 — Recommendation & Decision Logic
 
+Status: COMPLETE
+
 ### Objective
 
 Ensure the final recommendation is based on **real grading + real forecasting outputs**.
@@ -390,6 +392,26 @@ Then verify the recommendation.
 You can explain:
 
 > "The recommendation is generated from the actual grading and forecasting outputs."
+
+### Phase 10 completion evidence
+
+Recommendation service:
+
+```text
+backend/app/services/grading_forecast/recommendation_service.py
+```
+
+The `analyze` route passes `grading.predicted_grade`, `grading.quality_score`, `forecast.trend`, `forecast.current_price_lkr_per_kg`, and `forecast.predicted_price_lkr_per_kg` into the existing recommendation logic.
+
+Focused validation confirmed:
+
+```text
+BERRY-V2-MNV2 -> Grade 1 / quality score 82.3
+naive_persistence -> current 1886 / predicted 1886 / stable
+recommendation -> SELL_EXPORT
+```
+
+Representative rule checks passed for Grade 1/2/3 with upward and downward trends, stable trend, missing optional quality/price fields, and invalid schema values. Invalid grade values are rejected by the API schema before reaching the service. No recommendation business rules were changed during Phase 10.
 
 ---
 
@@ -792,7 +814,7 @@ Phase 16 → Final validation
 | **7**  | **Implementation audit**         | ✅ Complete                  |
 | **8**  | **Berry V2 runtime integration** | ✅ Complete                  |
 | **9**  | **Forecast runtime integration** | ✅ Complete                  |
-| **10** | **Recommendation verification**  | 🟠 Pending                  |
+| **10** | **Recommendation verification**  | ✅ Complete                  |
 | **11** | **Backend error handling**       | 🟠 Pending                  |
 | **12** | **Firebase**                     | 🟡 Conditional              |
 | **13** | **Other-component integration**  | 🔵 You will do manually     |

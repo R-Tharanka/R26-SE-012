@@ -20,7 +20,7 @@ Phase 5 Integration Validation result: COMPLETE with runtime limitations.
 
 Phase 6 PP2 Evidence and Documentation result: COMPLETE.
 
-Post-PP2 runtime update: Phase 8 integrated the selected Berry V2 ONNX into the backend runtime, and Phase 9 changed the price forecast runtime from `demo_baseline` to the validated `naive_persistence` method using the V2 National Grade 1 average weekly target.
+Post-PP2 runtime update: Phase 8 integrated the selected Berry V2 ONNX into the backend runtime, Phase 9 changed the price forecast runtime from `demo_baseline` to the validated `naive_persistence` method using the V2 National Grade 1 average weekly target, and Phase 10 validated the existing recommendation logic with the real runtime grading and forecasting outputs.
 
 ## Final PP2 Evidence Summary
 
@@ -565,6 +565,6 @@ The V1 implementation established a working end-to-end baseline. After PP1, the 
 - Forecasting baseline: Naive Persistence strongly outperformed the Phase 3 RandomForest on the same 36 test timestamps.
 - Forecasting improvement: adding `lag_4`, `lag_8`, and `lag_12` improved RandomForest, but it still remained worse than Naive Persistence.
 - Integration validation: FastAPI endpoints started and returned usable responses during Phase 5; later Phase 8/9 work integrated Berry V2 runtime and Naive Persistence forecast runtime.
-- Limitations: camera grading is not official SLS certification; Grade 2 forecasting is out of scope; recommendation logic, Firebase, Flutter E2E, and final integrated validation remain pending.
+- Limitations: camera grading is not official SLS certification; Grade 2 forecasting is out of scope; Firebase, Flutter E2E, and final integrated validation remain pending.
 - Current conclusion: PP2 has defensible V2 datasets, completed baseline experiments, one limited improvement per subproblem, honest limitations, and a known backend demo path.
-- Future work: validate recommendations using real runtime outputs, validate Flutter live flow, configure Firebase if required, collect more data, improve forecasting features, and perform broader post-PP2 model evaluation.
+- Future work: harden backend error handling, validate Flutter live flow, configure Firebase if required, collect more data, improve forecasting features, and perform broader post-PP2 model evaluation.

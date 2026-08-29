@@ -236,7 +236,7 @@ Evidence:
 
 - [x] Berry V2 runtime integration.
 - [x] Forecast runtime integration and runtime forecasting-method decision.
-- [ ] Recommendation validation using real runtime research outputs.
+- [x] Recommendation validation using real runtime research outputs.
 - [ ] Firebase/storage validation if required.
 - [ ] Error handling/API hardening.
 - [ ] Later manual integration with other components.
@@ -301,6 +301,37 @@ Evidence:
 - Repeat validation with the same input returned the same forecast.
 - Missing-file validation returned `forecast_unavailable` instead of fabricated demo values.
 - No berry grading, recommendation-rule, Firebase, Flutter, dataset, training, evaluation, or model-artifact changes were made.
+
+## Phase 10: Recommendation & Decision Logic
+
+Status: COMPLETE
+
+- [x] Locate recommendation service and route wiring.
+- [x] Identify recommendation inputs.
+- [x] Confirm `analyze` passes actual grading output into recommendation logic.
+- [x] Confirm `analyze` passes actual forecast output into recommendation logic.
+- [x] Confirm `demo_baseline` does not reach the validated recommendation path.
+- [x] Validate Grade 1 upward and downward cases.
+- [x] Validate Grade 2 upward and downward cases.
+- [x] Validate Grade 3 upward and downward cases.
+- [x] Validate stable trend behavior.
+- [x] Validate missing optional quality/price inputs.
+- [x] Validate invalid grade handling through the API schema.
+- [x] Confirm no recommendation business rules were changed.
+- [x] Confirm no application code was modified.
+- [x] Update relevant research documentation.
+
+Phase 10 validation result: PASSED.
+
+Evidence:
+
+- Recommendation service: `backend/app/services/grading_forecast/recommendation_service.py`.
+- Route wiring: `backend/app/api/routes/grading_forecast.py`.
+- Actual-output chain: `BERRY-V2-MNV2` returned Grade 1 and quality score `82.3`; `naive_persistence` returned current price `1886`, predicted price `1886`, and trend `stable`; recommendation returned `SELL_EXPORT`.
+- Representative rule tests passed for Grade 1/2/3 with upward and downward trends.
+- Stable trend test passed.
+- Missing optional fields test passed.
+- Invalid grade values are rejected by the API schema.
 
 ## Four-Day Schedule Tracker
 

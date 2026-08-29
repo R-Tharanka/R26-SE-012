@@ -107,6 +107,7 @@ Forecasting:
 - Phase 5 runtime grading used the legacy/root ONNX artifact path, not the PP2 V2 or Phase 4 berry artifact directories; Phase 8 later integrated the selected Berry V2 ONNX runtime.
 - Phase 5 price forecast endpoint returned `demo_baseline`, not the Phase 3 or Phase 4 V2 forecasting research artifacts; Phase 9 later replaced the real application forecasting path with `naive_persistence`.
 - Phase 9 runtime forecasting uses Naive Persistence because it was the strongest validated V2 forecasting method and no inspected requirement forced the weaker trained RandomForest artifact into runtime.
+- Phase 10 validated the existing recommendation rule table with real Phase 8 and Phase 9 runtime outputs, but the rules remain hard-coded and should be reviewed with domain/project stakeholders before final deployment.
 - Firebase live writes are not guaranteed unless credentials are configured.
 - Phase 5 storage returned `saved_to_firebase: false` because Firebase was not configured.
 - Flutter flow exists and points to the backend endpoints, but Flutter was not run during Phase 5.

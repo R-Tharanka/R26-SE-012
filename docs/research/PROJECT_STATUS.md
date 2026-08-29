@@ -6,7 +6,7 @@ This document is the current source of truth for the PP2 recovery work for the i
 
 ## Current Phase
 
-Current phase: Phase 9 Forecast Runtime Integration / Runtime Forecasting-Method Decision complete. Next work is Phase 10 Recommendation & Decision Logic.
+Current phase: Phase 10 Recommendation & Decision Logic complete. Next work is Phase 11 Backend Reliability & Error Handling.
 
 Phase 0, Repository and Research Audit, is complete.
 
@@ -27,6 +27,8 @@ Phase 7, Existing Implementation Audit, is complete. The current backend/mobile 
 Phase 8, Berry V2 Runtime Integration, is complete. The berry grading backend service now loads `BERRY-V2-MNV2` from `ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.onnx`. The existing API contract was preserved. Forecasting, recommendation rules, Firebase, and Flutter were not changed during Phase 8.
 
 Phase 9, Forecast Runtime Integration / Runtime Forecasting-Method Decision, is complete. The backend price forecast service now uses the V2 National Grade 1 average weekly target and the validated `naive_persistence` method instead of `demo_baseline` for the real application forecasting path. Berry grading, recommendation rules, Firebase, Flutter, datasets, training, evaluation, and model artifacts were not changed during Phase 9.
+
+Phase 10, Recommendation & Decision Logic, is complete. The existing recommendation rules were validated with the real Phase 8 berry runtime output and Phase 9 forecast runtime output. No recommendation business rules or application code were changed.
 
 ## Project Scope
 
@@ -85,6 +87,7 @@ The SLS 105 Part 1: 2022 reference includes visual, physical, and chemical requi
 | Existing implementation audit | COMPLETE | Phase 7 identified that runtime berry grading used the legacy/root ONNX model before Phase 8, runtime forecasting can return `demo_baseline`, Firebase is optional/fail-safe, and Flutter end-to-end validation remains pending. |
 | Berry V2 runtime integration | COMPLETE | Phase 8 updated the berry grading service to load `BERRY-V2-MNV2` from `ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.onnx` and verified one V2 test image through the service path. |
 | Forecast runtime integration | COMPLETE | Phase 9 selected Naive Persistence for runtime because it is the strongest validated V2 forecasting method and no inspected requirement forced the weaker trained RF artifact into runtime. |
+| Recommendation validation | COMPLETE | Phase 10 confirmed that `analyze` passes actual grading and forecast outputs into the existing rule table and that representative grade/trend cases behave as implemented. |
 
 ## Dataset Status
 
@@ -328,7 +331,7 @@ Forecasting Phase 4 artifacts:
 
 - Firebase was not configured during Phase 5.
 - Flutter API integration exists, but end-to-end Flutter validation remains pending.
-- Recommendation logic still needs validation using the real Phase 8 and Phase 9 runtime outputs.
+- Backend error handling still needs focused hardening and validation.
 
 ## Phase 7 Existing Implementation Audit Result
 
@@ -400,6 +403,36 @@ Validation evidence:
 
 No berry grading, recommendation-rule, Firebase, Flutter, dataset, training, evaluation, or model-artifact changes were made during Phase 9.
 
+## Phase 10 Recommendation & Decision Logic Result
+
+Status: COMPLETE.
+
+Implementation found:
+
+- Recommendation service: `backend/app/services/grading_forecast/recommendation_service.py`.
+- Analyze route: `backend/app/api/routes/grading_forecast.py`.
+- Inputs used: predicted grade, forecast trend, optional quality score, optional current price, and optional predicted price.
+- Inputs not used directly: grading confidence and forecast model identifier.
+
+Runtime data-flow validation:
+
+- Berry grading output came from `BERRY-V2-MNV2`.
+- Forecast output came from `naive_persistence`.
+- `demo_baseline` did not reach the recommendation path in the validated service-level flow.
+- Recommendation result used the existing rule table without changing business rules.
+
+Validation evidence:
+
+- Actual-output chain used `data/processed/grading_forecast/berry_split_v2/test/grade_1/sample_002/20260508_152537.jpg`.
+- Grading: Grade 1, quality score 82.3, runtime model `BERRY-V2-MNV2`.
+- Forecast: `naive_persistence`, current price 1886, predicted price 1886, trend stable.
+- Recommendation: `SELL_EXPORT`.
+- Representative Grade 1/2/3 upward and downward cases passed.
+- Stable trend and missing optional quality/price inputs passed.
+- Invalid grade values are rejected by the API schema before reaching the service.
+
+No application code was modified during Phase 10.
+
 ## Phase 6 Evidence and Documentation Result
 
 Status: COMPLETE.
@@ -463,4 +496,4 @@ Mobile status:
 
 ## Next Exact Action
 
-Phase 10: Recommendation & Decision Logic. Validate that recommendations use the real Phase 8 berry runtime output and Phase 9 forecast runtime output before Firebase, Flutter end-to-end, or UI/UX work.
+Phase 11: Backend Reliability & Error Handling. Do not start Firebase, Flutter end-to-end, or UI/UX work before focused backend hardening is complete.
