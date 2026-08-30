@@ -37,6 +37,9 @@ data/processed/grading_forecast/berry_images_processed/
 # Large processed csvs
 data/processed/grading_forecast/*.csv
 
+# 
+data/processed/grading_forecast/berry_split_v2/
+
 # Generated summaries
 data/processed/grading_forecast/*.json
 
