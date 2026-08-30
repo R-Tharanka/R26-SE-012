@@ -495,12 +495,13 @@ Validated behavior:
 * Valid forecasting uses `naive_persistence` with real V2 price data and does not return `demo_baseline`.
 * Valid analyze combines V2 grading, `naive_persistence` forecasting, existing recommendation rules, and optional storage.
 * Missing, empty, unsupported, corrupt, and oversized image uploads return safe HTTP errors.
+* Corrective validation on 2026-08-30 fixed a Flutter multipart compatibility defect: valid JPEG/PNG/WEBP bytes are now accepted even when the client MIME value is missing or `application/octet-stream`; Pillow byte validation remains authoritative and the 10 MB limit remains enforced.
 * Missing V2 model artifacts raise explicit grading failure and do not load the legacy/root ONNX model.
 * Missing or malformed forecast data returns `forecast_unavailable` instead of fabricated prices.
 * Invalid recommendation schema values return FastAPI/Pydantic validation errors.
 * Unexpected grading or recommendation service failures return safe JSON errors without client-facing stack traces.
 
-No datasets, model artifacts, Flutter code, Firebase configuration, recommendation rules, or forecasting method selection were changed during Phase 11.
+No datasets, model artifacts, Flutter code, Firebase configuration, recommendation rules, or forecasting method selection were changed during Phase 11 or its corrective upload-validation fix.
 
 ---
 

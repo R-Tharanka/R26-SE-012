@@ -54,13 +54,6 @@ async def _read_valid_image_upload(image: UploadFile | None) -> tuple[bytes, str
             detail="Image upload exceeds the 10 MB limit.",
         )
 
-    content_type = (image.content_type or "").strip().lower()
-    if content_type and not content_type.startswith("image/"):
-        raise HTTPException(
-            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-            detail="Uploaded file must be an image.",
-        )
-
     try:
         with Image.open(io.BytesIO(image_bytes)) as img:
             img.verify()

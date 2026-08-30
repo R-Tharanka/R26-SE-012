@@ -32,6 +32,8 @@ Phase 10, Recommendation & Decision Logic, is complete. The existing recommendat
 
 Phase 11, Backend Reliability & Error Handling, is complete. The grading-forecast API now validates image uploads, fails explicitly when the selected V2 grading model is unavailable, preserves the `forecast_unavailable` behavior for bad forecast data, and returns safe HTTP errors for unexpected grading or recommendation failures.
 
+Phase 11 corrective runtime validation on 2026-08-30 fixed a Flutter upload compatibility defect: the backend no longer rejects valid JPEG/PNG/WEBP uploads solely because the multipart MIME value is missing or `application/octet-stream`. Uploaded bytes are validated with Pillow, the 10 MB limit remains enforced, and invalid/corrupt/oversized uploads still fail safely.
+
 Phase 12, Firebase Persistence Implementation, is complete. Firebase persistence is implemented for application-level result history when credentials are configured. Live Firebase validation was not performed because credentials are not configured. Existing fail-safe behavior was preserved: valid analysis still returns grading, forecast, and recommendation when Firebase is unavailable or save fails, with `saved_to_firebase: false`.
 
 ## Project Scope
@@ -453,6 +455,7 @@ Validation evidence:
 - Valid price forecast request returned HTTP 200 with model `naive_persistence`, current price `1886`, predicted price `1886`, and no `demo_baseline`.
 - Valid analyze request returned HTTP 200 with V2 grading, `naive_persistence` forecast, recommendation `SELL_EXPORT`, and optional storage result `saved_to_firebase: false`.
 - Missing image, empty image, unsupported non-image upload, corrupt image, and oversized upload returned safe HTTP errors.
+- Corrective validation, 2026-08-30: Flutter-style multipart uploads with `application/octet-stream` now pass when the decoded bytes are valid JPEG, PNG, or WEBP; valid JPEG reached `BERRY-V2-MNV2`, and valid analyze still used `naive_persistence`.
 - Missing V2 model artifacts raised explicit grading failure and did not load the legacy/root ONNX model.
 - Invalid V2 class mapping raised explicit grading failure.
 - Invalid ONNX output shape and ONNX inference failure raised explicit grading failure.
@@ -461,7 +464,7 @@ Validation evidence:
 - Invalid recommendation schema values returned HTTP 422.
 - Unexpected grading and recommendation service failures returned safe JSON HTTP 500 responses.
 
-No datasets, model artifacts, Flutter code, Firebase configuration, recommendation rules, or forecasting method selection were changed during Phase 11.
+No datasets, model artifacts, Flutter code, Firebase configuration, recommendation rules, or forecasting method selection were changed during Phase 11 or the corrective upload-validation fix.
 
 ## Phase 12 Firebase Persistence Result
 

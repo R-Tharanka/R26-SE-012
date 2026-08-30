@@ -539,12 +539,13 @@ Verified behavior:
 - Valid grade-only request used `BERRY-V2-MNV2`.
 - Valid price forecast request used `naive_persistence` and did not return `demo_baseline`.
 - Valid analyze request returned V2 grading, `naive_persistence` forecast, recommendation, and optional storage.
-- Missing, empty, unsupported, corrupt, and oversized image uploads returned safe HTTP errors.
+- Missing, empty, unsupported/non-image, corrupt, and oversized image uploads returned safe HTTP errors.
+- Corrective validation on 2026-08-30 confirmed Flutter-style multipart uploads are accepted when the actual bytes decode to supported JPEG, PNG, or WEBP, even if the client MIME value is missing or `application/octet-stream`.
 - Missing V2 berry model artifacts failed explicitly without loading the legacy/root ONNX model.
 - Missing or malformed forecast data returned `forecast_unavailable`.
 - Unexpected grading and recommendation failures returned safe JSON errors.
 
-Phase 11 did not modify datasets, model artifacts, Firebase configuration, Flutter code, recommendation rules, or forecasting method selection.
+Phase 11 and the corrective upload-validation fix did not modify datasets, model artifacts, Firebase configuration, Flutter code, recommendation rules, or forecasting method selection.
 
 ### Post-PP2 Persistence Implementation
 

@@ -110,6 +110,7 @@ Forecasting:
 - Phase 9 runtime forecasting uses Naive Persistence because it was the strongest validated V2 forecasting method and no inspected requirement forced the weaker trained RandomForest artifact into runtime.
 - Phase 10 validated the existing recommendation rule table with real Phase 8 and Phase 9 runtime outputs, but the rules remain hard-coded and should be reviewed with domain/project stakeholders before final deployment.
 - Phase 11 added focused backend hardening for image validation, V2 model failure handling, forecast unavailable handling, and safe API errors; it did not replace full production security, rate limiting, authentication, or Flutter end-to-end validation.
+- Phase 11 corrective validation on 2026-08-30 fixed a Flutter multipart upload issue by validating actual image bytes instead of rejecting solely on unreliable client MIME values. Supported runtime upload formats are JPEG, PNG, and WEBP, with the existing 10 MB limit.
 - Phase 12 implemented Firebase persistence for application-level result history, but live Firebase writes are not guaranteed unless credentials are configured.
 - When Firebase is unconfigured or save fails, the current component returns `saved_to_firebase: false` and keeps the valid grading, forecast, and recommendation response available.
 - Phase 12 validated mocked Firebase success and failure paths, but did not perform live Firebase validation because no credentials were configured.

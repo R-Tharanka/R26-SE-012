@@ -340,7 +340,7 @@ Status: COMPLETE
 - [x] Inspect relevant grading-forecast backend route and services.
 - [x] Validate missing image upload handling.
 - [x] Validate empty image upload handling.
-- [x] Validate unsupported content type handling.
+- [x] Validate unsupported/invalid image content handling without trusting client MIME alone.
 - [x] Validate corrupt/unreadable image handling.
 - [x] Validate oversized image handling.
 - [x] Confirm valid V2 grading still uses `BERRY-V2-MNV2`.
@@ -359,6 +359,15 @@ Status: COMPLETE
 
 Phase 11 validation result: PASSED.
 
+Corrective validation note, 2026-08-30:
+
+- Root cause fixed: Flutter multipart uploads were sent without an explicit image MIME type, so the backend could see `application/octet-stream` and reject a valid image with HTTP 415 before decoding the file.
+- Backend upload validation now treats Pillow-verified image bytes as authoritative and accepts valid JPEG, PNG, and WEBP uploads even when the multipart MIME value is missing or `application/octet-stream`.
+- The 10 MB upload limit remains enforced.
+- Focused validation passed for a V2 JPEG berry image through `grade-only` and `analyze`, generated PNG and WEBP uploads, missing image, empty upload, text/non-image content, corrupted image, and oversized upload.
+- Valid JPEG upload reached `BERRY-V2-MNV2`; valid analyze still returned `naive_persistence` forecasting and optional Firebase status.
+- Flutter code, datasets, model artifacts, forecasting, recommendation rules, and Firebase implementation were not modified by this correction.
+
 Evidence:
 
 - Valid grade-only request with V2 test image returned HTTP 200, predicted `Grade 1`, and identified `BERRY-V2-MNV2`.
@@ -366,7 +375,7 @@ Evidence:
 - Valid analyze returned V2 grading, `naive_persistence` forecast, recommendation `SELL_EXPORT`, and `saved_to_firebase: false`.
 - Missing image: HTTP 400.
 - Empty image: HTTP 400.
-- Unsupported file: HTTP 415.
+- Unsupported text/non-image upload: HTTP 400 safe rejection after content decode failed.
 - Corrupt image: HTTP 400.
 - Oversized image: HTTP 413.
 - Missing V2 model artifacts and invalid V2 class mapping: explicit grading failure, no legacy/root ONNX fallback.
