@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:pepper_care/features/home/screens/home_screen.dart';
+import 'core/theme/app_theme.dart';
+import 'features/home/screens/home_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -11,14 +12,16 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Pepper Care',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
-        useMaterial3: true,
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: appThemeMode,
+      builder: (_, mode, __) => MaterialApp(
+        title: 'Pepper Care',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.light,
+        darkTheme: AppTheme.dark,
+        themeMode: mode,
+        home: const HomeScreen(),
       ),
-      home: const HomeScreen(),
     );
   }
 }
-
