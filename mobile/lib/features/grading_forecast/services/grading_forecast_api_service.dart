@@ -25,59 +25,83 @@ class GradingForecastApiException implements Exception {
 
 class GradingForecastApiService {
   GradingForecastApiService({String? baseUrlOverride})
-      : _baseUrl = _sanitizeBaseUrl(baseUrlOverride ?? _defaultBaseUrl());
+      : _baseUrls = _resolveBaseUrls(baseUrlOverride);
 
   static const _envKey = 'PEPPER_API_BASE_URL';
+  static const _fallbackEnvKey = 'PEPPER_API_FALLBACK_BASE_URL';
   static const _timeout = Duration(seconds: 30);
 
-  final String _baseUrl;
+  final List<String> _baseUrls;
 
-  String get baseUrl => _baseUrl;
+  String get baseUrl => _baseUrls.first;
 
-  Future<GradingForecastResult> analyzeBytes(Uint8List imageBytes, String filename) async {
-    final uri = Uri.parse('$_baseUrl/api/v1/grading-forecast/analyze');
+  List<String> get baseUrls => List.unmodifiable(_baseUrls);
 
-    try {
-      final request = http.MultipartRequest('POST', uri);
-      request.files.add(http.MultipartFile.fromBytes('image', imageBytes, filename: filename));
+  Future<GradingForecastResult> analyzeBytes(
+    Uint8List imageBytes,
+    String filename,
+  ) async {
+    GradingForecastApiException? lastConnectionError;
 
-      final streamed = await request.send().timeout(_timeout);
-      final response = await http.Response.fromStream(streamed);
+    for (final baseUrl in _baseUrls) {
+      final uri = Uri.parse('$baseUrl/api/v1/grading-forecast/analyze');
 
-      if (response.statusCode < 200 || response.statusCode >= 300) {
+      try {
+        final request = http.MultipartRequest('POST', uri);
+        request.files.add(
+          http.MultipartFile.fromBytes('image', imageBytes, filename: filename),
+        );
+
+        final streamed = await request.send().timeout(_timeout);
+        final response = await http.Response.fromStream(streamed);
+
+        if (response.statusCode < 200 || response.statusCode >= 300) {
+          final exception = GradingForecastApiException(
+            statusCode: response.statusCode,
+            message: _bestEffortErrorMessage(response.body, response.statusCode),
+          );
+
+          if (_shouldTryFallback(response.statusCode, baseUrl)) {
+            lastConnectionError = exception;
+            continue;
+          }
+
+          throw exception;
+        }
+
+        final decoded = json.decode(response.body);
+        if (decoded is! Map) {
+          throw GradingForecastApiException(
+            statusCode: response.statusCode,
+            message: 'Unexpected response format from server.',
+          );
+        }
+
+        return GradingForecastResult.fromJson(decoded.cast<String, dynamic>());
+      } on TimeoutException catch (e) {
+        lastConnectionError = GradingForecastApiException(
+          message: 'The server is taking too long. Please try again.',
+          cause: e,
+        );
+      } on SocketException catch (e) {
+        lastConnectionError = GradingForecastApiException(
+          message: 'Cannot reach the backend. Check your connection and try again.',
+          cause: e,
+        );
+      } on GradingForecastApiException {
+        rethrow;
+      } catch (e) {
         throw GradingForecastApiException(
-          statusCode: response.statusCode,
-          message: _bestEffortErrorMessage(response.body, response.statusCode),
+          message: 'Something went wrong while analyzing the image. Please try again.',
+          cause: e,
         );
       }
-
-      final decoded = json.decode(response.body);
-      if (decoded is! Map) {
-        throw GradingForecastApiException(
-          statusCode: response.statusCode,
-          message: 'Unexpected response format from server.',
-        );
-      }
-
-      return GradingForecastResult.fromJson(decoded.cast<String, dynamic>());
-    } on TimeoutException catch (e) {
-      throw GradingForecastApiException(
-        message: 'The server is taking too long. Please try again.',
-        cause: e,
-      );
-    } on SocketException catch (e) {
-      throw GradingForecastApiException(
-        message: 'Cannot reach the backend. Check your connection and try again.',
-        cause: e,
-      );
-    } on GradingForecastApiException {
-      rethrow;
-    } catch (e) {
-      throw GradingForecastApiException(
-        message: 'Something went wrong while analyzing the image. Please try again.',
-        cause: e,
-      );
     }
+
+    throw lastConnectionError ??
+        GradingForecastApiException(
+          message: 'Cannot reach the backend. Check your connection and try again.',
+        );
   }
 
   Future<RecommendationResult> recommend({
@@ -87,8 +111,6 @@ class GradingForecastApiService {
     int? currentPriceLkrPerKg,
     int? predictedPriceLkrPerKg,
   }) async {
-    final uri = Uri.parse('$_baseUrl/api/v1/grading-forecast/recommend');
-
     final payload = <String, dynamic>{
       'grade': grade,
       'trend': trend,
@@ -104,57 +126,77 @@ class GradingForecastApiService {
       payload['predicted_price_lkr_per_kg'] = predictedPriceLkrPerKg;
     }
 
-    try {
-      final response = await http
-          .post(
-            uri,
-            headers: const {'Content-Type': 'application/json'},
-            body: json.encode(payload),
-          )
-          .timeout(_timeout);
+    GradingForecastApiException? lastConnectionError;
 
-      if (response.statusCode < 200 || response.statusCode >= 300) {
+    for (final baseUrl in _baseUrls) {
+      final uri = Uri.parse('$baseUrl/api/v1/grading-forecast/recommend');
+
+      try {
+        final response = await http
+            .post(
+              uri,
+              headers: const {'Content-Type': 'application/json'},
+              body: json.encode(payload),
+            )
+            .timeout(_timeout);
+
+        if (response.statusCode < 200 || response.statusCode >= 300) {
+          final exception = GradingForecastApiException(
+            statusCode: response.statusCode,
+            message: _bestEffortErrorMessage(response.body, response.statusCode),
+          );
+
+          if (_shouldTryFallback(response.statusCode, baseUrl)) {
+            lastConnectionError = exception;
+            continue;
+          }
+
+          throw exception;
+        }
+
+        final decoded = json.decode(response.body);
+        if (decoded is! Map) {
+          throw GradingForecastApiException(
+            statusCode: response.statusCode,
+            message: 'Unexpected response format from server.',
+          );
+        }
+
+        final recommendationJson = decoded['recommendation'];
+        if (recommendationJson is! Map) {
+          throw GradingForecastApiException(
+            statusCode: response.statusCode,
+            message: 'Unexpected response format from server.',
+          );
+        }
+
+        return RecommendationResult.fromJson(
+          Map<String, dynamic>.from(recommendationJson),
+        );
+      } on TimeoutException catch (e) {
+        lastConnectionError = GradingForecastApiException(
+          message: 'The server is taking too long. Please try again.',
+          cause: e,
+        );
+      } on SocketException catch (e) {
+        lastConnectionError = GradingForecastApiException(
+          message: 'Cannot reach the backend. Check your connection and try again.',
+          cause: e,
+        );
+      } on GradingForecastApiException {
+        rethrow;
+      } catch (e) {
         throw GradingForecastApiException(
-          statusCode: response.statusCode,
-          message: _bestEffortErrorMessage(response.body, response.statusCode),
+          message: 'Something went wrong while updating the recommendation. Please try again.',
+          cause: e,
         );
       }
-
-      final decoded = json.decode(response.body);
-      if (decoded is! Map) {
-        throw GradingForecastApiException(
-          statusCode: response.statusCode,
-          message: 'Unexpected response format from server.',
-        );
-      }
-
-      final recommendationJson = decoded['recommendation'];
-      if (recommendationJson is! Map) {
-        throw GradingForecastApiException(
-          statusCode: response.statusCode,
-          message: 'Unexpected response format from server.',
-        );
-      }
-
-      return RecommendationResult.fromJson(Map<String, dynamic>.from(recommendationJson));
-    } on TimeoutException catch (e) {
-      throw GradingForecastApiException(
-        message: 'The server is taking too long. Please try again.',
-        cause: e,
-      );
-    } on SocketException catch (e) {
-      throw GradingForecastApiException(
-        message: 'Cannot reach the backend. Check your connection and try again.',
-        cause: e,
-      );
-    } on GradingForecastApiException {
-      rethrow;
-    } catch (e) {
-      throw GradingForecastApiException(
-        message: 'Something went wrong while updating the recommendation. Please try again.',
-        cause: e,
-      );
     }
+
+    throw lastConnectionError ??
+        GradingForecastApiException(
+          message: 'Cannot reach the backend. Check your connection and try again.',
+        );
   }
 
   static String _bestEffortErrorMessage(String body, int statusCode) {
@@ -186,10 +228,36 @@ class GradingForecastApiService {
     return 'Request failed (HTTP $statusCode).';
   }
 
-  static String _defaultBaseUrl() {
-    const defined = String.fromEnvironment(_envKey);
-    if (defined.trim().isNotEmpty) return defined.trim();
+  static List<String> _resolveBaseUrls(String? baseUrlOverride) {
+    final urls = <String>[];
 
+    void addUrl(String? value) {
+      if (value == null || value.trim().isEmpty) return;
+      final sanitized = _sanitizeBaseUrl(value);
+      if (sanitized.isNotEmpty && !urls.contains(sanitized)) {
+        urls.add(sanitized);
+      }
+    }
+
+    addUrl(baseUrlOverride);
+
+    const defined = String.fromEnvironment(_envKey);
+    addUrl(defined);
+
+    const fallbackDefined = String.fromEnvironment(_fallbackEnvKey);
+    addUrl(fallbackDefined);
+
+    addUrl(_platformDefaultBaseUrl());
+
+    return urls;
+  }
+
+  bool _shouldTryFallback(int statusCode, String failedBaseUrl) {
+    return failedBaseUrl != _baseUrls.last &&
+        (statusCode == 408 || statusCode == 429 || statusCode >= 500);
+  }
+
+  static String _platformDefaultBaseUrl() {
     if (kIsWeb) return 'http://localhost:8000';
     if (Platform.isAndroid) return 'http://10.0.2.2:8000';
     return 'http://localhost:8000';
