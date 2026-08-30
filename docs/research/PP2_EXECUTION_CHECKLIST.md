@@ -421,6 +421,34 @@ Evidence:
 - User scoping: application-level/non-user-scoped because no existing authenticated user identity was found for this component.
 - Live Firebase write: not validated because credentials are not configured.
 
+## Phase 12.5: Runtime Model & Forecast Diagnostic Validation
+
+Status: COMPLETE
+
+- [x] Compare Berry V2 training/export preprocessing against backend runtime preprocessing.
+- [x] Validate V2 ONNX metadata, input shape, output shape, and class mapping.
+- [x] Run a controlled 9-image diagnostic sample from `berry_split_v2/test`.
+- [x] Compare direct ONNX inference against backend service inference for the same images.
+- [x] Confirm whether backend and direct ONNX disagree.
+- [x] Confirm whether the current forecast is single-series or grade-specific.
+- [x] Confirm whether identical forecast values across grades are expected under the current design.
+- [x] Record recommendation impact.
+- [x] Update diagnostic documentation.
+
+Phase 12.5 validation result: DIAGNOSTIC COMPLETE; NO APPLICATION CODE CHANGED.
+
+Evidence:
+
+- Direct ONNX and backend service predictions agreed on all 9 selected V2 test images.
+- Diagnostic sample result: 6/9 correct; Grade 1 = 3/3, Grade 2 = 0/3, Grade 3 = 3/3. This is diagnostic only, not a replacement for the saved full-test metrics.
+- ONNX metadata: input `image`, shape `[None, 224, 224, 3]`, float tensor; output `probs`, shape `[None, 3]`.
+- Class order: index 0 = Grade 1, index 1 = Grade 2, index 2 = Grade 3.
+- Confirmed preprocessing mismatch requiring later review: training used direct Keras resize to 224x224, while backend runtime uses RGB letterbox to 224x224 before ONNX inference.
+- ONNX graph contains arithmetic preprocessing operations, so runtime supplies raw 0..255 float32 RGB input.
+- Current forecast runtime loads `data/processed/grading_forecast/price_v2/national_grade1_average_weekly.csv`, a single National Grade 1 average weekly target.
+- Latest observed runtime price: 2026-08-18, 1886.14 LKR/kg, rounded to `1886`; `naive_persistence` predicts the same value and returns `stable`.
+- Same forecast for Grade 1, Grade 2, and Grade 3 is expected under the current single-series runtime design; grade-specific forecasting is not currently implemented.
+
 ## Four-Day Schedule Tracker
 
 Day 1:

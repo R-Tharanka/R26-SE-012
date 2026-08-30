@@ -36,6 +36,8 @@ Phase 11 corrective runtime validation on 2026-08-30 fixed a Flutter upload comp
 
 Phase 12, Firebase Persistence Implementation, is complete. Firebase persistence is implemented for application-level result history when credentials are configured. Live Firebase validation was not performed because credentials are not configured. Existing fail-safe behavior was preserved: valid analysis still returns grading, forecast, and recommendation when Firebase is unavailable or save fails, with `saved_to_firebase: false`.
 
+Phase 12.5, Runtime Model & Forecast Diagnostic Validation, is complete. Direct ONNX inference and backend service inference agreed on a 9-image V2 test diagnostic sample, but a training-vs-runtime preprocessing mismatch was confirmed for later review: training used direct 224x224 resize, while backend runtime uses RGB letterbox to 224x224. Forecast diagnostics confirmed the current runtime uses a single National Grade 1 average weekly `naive_persistence` series, so identical forecasts across berry grades are expected under the current design.
+
 ## Project Scope
 
 Full research project: Multimodal AI-Based Pest, Disease Detection and Export Price Prediction System for Black Pepper.
@@ -96,6 +98,7 @@ The SLS 105 Part 1: 2022 reference includes visual, physical, and chemical requi
 | Recommendation validation | COMPLETE | Phase 10 confirmed that `analyze` passes actual grading and forecast outputs into the existing rule table and that representative grade/trend cases behave as implemented. |
 | Backend reliability | COMPLETE | Phase 11 added focused request validation and safe error handling for the grading-forecast API without changing datasets, artifacts, model choices, Firebase, or Flutter. |
 | Firebase persistence | COMPLETE / LIVE WRITE NOT VALIDATED | Phase 12 implemented application-level Firestore result persistence, validated mocked success and failure behavior, and made no credential changes. |
+| Runtime diagnostic validation | COMPLETE / ACTION REQUIRED LATER | Phase 12.5 confirmed direct ONNX and backend predictions agree, identified a training-vs-runtime resize/letterbox mismatch for later review, and confirmed forecast output is intentionally single-series under the current Grade 1 target design. |
 
 ## Dataset Status
 
@@ -501,6 +504,36 @@ Validation evidence:
 - Live Firebase write validation was not performed because Firebase credentials are not configured.
 
 No datasets, model artifacts, Flutter code, Firebase credentials, recommendation rules, forecasting logic, or grading logic were changed during Phase 12.
+
+## Phase 12.5 Runtime Diagnostic Validation Result
+
+Status: COMPLETE.
+
+Purpose:
+
+Manual runtime testing reported suspicious berry classifications and identical price forecasts across different berry grades. Phase 12.5 diagnosed root cause candidates without changing application code, models, datasets, preprocessing, class mappings, forecasting logic, recommendation rules, Firebase, or Flutter.
+
+Berry diagnostic findings:
+
+- Direct ONNX inference and backend service inference agreed on all 9 selected V2 test images.
+- Diagnostic sample accuracy was 6/9: Grade 1 = 3/3 correct, Grade 2 = 0/3 correct, Grade 3 = 3/3 correct.
+- This 9-image result is diagnostic only and does not replace the saved full V2 test result.
+- Class order was confirmed as Grade 1, Grade 2, Grade 3.
+- ONNX input is float tensor `image` with shape `[None, 224, 224, 3]`; output is `probs` with shape `[None, 3]`.
+- Confirmed issue for later implementation review: training loaded images with direct Keras resize to 224x224, while backend runtime uses RGB letterbox to 224x224 before ONNX inference.
+- ONNX graph contains arithmetic preprocessing operations, so runtime correctly supplies raw 0..255 float32 RGB input to the graph.
+
+Forecast diagnostic findings:
+
+- Runtime forecast source is `data/processed/grading_forecast/price_v2/national_grade1_average_weekly.csv`.
+- This is a single National Grade 1 average weekly price target, not a grade-specific Grade 1/2/3 runtime forecast.
+- Latest observed price used by runtime diagnostics was 2026-08-18, 1886.14 LKR/kg, rounded to `1886`.
+- Runtime method `naive_persistence` predicts `1886` from the latest available observation and returns `stable`.
+- Identical price forecasts across different berry grades are expected under the current single-series forecasting design.
+
+Recommendation impact:
+
+The recommendation receives the actual runtime grade and actual `naive_persistence` forecast. Therefore, an incorrect berry grade can propagate into an incorrect recommendation even when forecast and recommendation services behave as implemented.
 
 ## Phase 6 Evidence and Documentation Result
 

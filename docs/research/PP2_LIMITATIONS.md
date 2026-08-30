@@ -115,6 +115,11 @@ Forecasting:
 - When Firebase is unconfigured or save fails, the current component returns `saved_to_firebase: false` and keeps the valid grading, forecast, and recommendation response available.
 - Phase 12 validated mocked Firebase success and failure paths, but did not perform live Firebase validation because no credentials were configured.
 - Stored records are currently application-level/non-user-scoped because no existing authenticated user identity was found for this component.
+- Phase 12.5 diagnostic validation found that direct ONNX inference and backend service inference agreed on the selected 9-image V2 test sample, so a direct runtime class-mapping disagreement was not confirmed.
+- Phase 12.5 confirmed a training-vs-runtime preprocessing mismatch for later review: training used direct 224x224 resize, while backend runtime uses RGB letterbox to 224x224 before ONNX inference.
+- The 9-image diagnostic sample showed weak Grade 2 behavior, but it is not a replacement for the saved full-test evaluation.
+- Runtime forecasting currently uses a single National Grade 1 average weekly `naive_persistence` series, so forecasts do not vary by berry grade.
+- If grade-specific price forecasts are required later, they need a separate documented design decision and supporting data validation.
 - Flutter flow exists and points to the backend endpoints, but Flutter was not run during Phase 5.
 
 ## Script Safety Limitation

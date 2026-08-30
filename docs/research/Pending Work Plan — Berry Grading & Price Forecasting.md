@@ -585,6 +585,32 @@ into the repository.
 
 ---
 
+# Phase 12.5 — Runtime Diagnostic Validation
+
+Status: COMPLETE
+
+This diagnostic phase was triggered by manual application testing that showed suspicious berry predictions and identical price forecasts across different berry grades. No application code, Flutter code, datasets, model artifacts, preprocessing, class mappings, forecasting logic, recommendation rules, or Firebase code were changed.
+
+Findings:
+
+* Direct ONNX inference and backend service inference agreed on all 9 selected V2 test images, so no direct ONNX-vs-backend class mapping disagreement was confirmed.
+* The 9-image diagnostic sample was 6/9 correct: Grade 1 = 3/3, Grade 2 = 0/3, Grade 3 = 3/3. This is diagnostic only and does not replace the saved full-test metrics.
+* Class order is Grade 1, Grade 2, Grade 3.
+* ONNX input is float tensor `image` with shape `[None, 224, 224, 3]`; output is `probs` with shape `[None, 3]`.
+* Confirmed issue for later review: training used direct Keras resize to 224x224, while backend runtime uses RGB letterbox to 224x224 before ONNX inference.
+* ONNX graph contains arithmetic preprocessing operations, so runtime supplies raw 0..255 float32 RGB input.
+* Forecast runtime uses one National Grade 1 average weekly target from `data/processed/grading_forecast/price_v2/national_grade1_average_weekly.csv`.
+* Latest observed runtime price was 2026-08-18, 1886.14 LKR/kg, rounded to `1886`; `naive_persistence` predicts `1886` with stable trend.
+* Identical forecasts across berry grades are expected under the current single-series runtime design.
+* Incorrect berry grading can propagate into recommendation output because recommendation consumes the actual runtime grade.
+
+Recommended next implementation review:
+
+* Decide whether runtime berry preprocessing should match training-time direct resize or whether the model should be retrained/exported with letterbox preprocessing.
+* Decide in a later forecasting phase whether grade-specific price forecasting is required; do not change the current single-series `naive_persistence` runtime without a documented design decision.
+
+---
+
 # Phase 13 — Manual Cross-Component Integration
 
 **You said you will do this manually later.**

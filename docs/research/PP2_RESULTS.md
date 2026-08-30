@@ -564,6 +564,41 @@ Validated behavior:
 
 No Firebase credentials were configured or committed during Phase 12.
 
+### Phase 12.5 Runtime Diagnostic Validation
+
+Manual application testing raised two diagnostic concerns: suspicious berry classifications and identical forecast values for different berry grades. Phase 12.5 investigated these concerns without changing code, datasets, models, preprocessing, class mappings, forecasting logic, recommendation rules, Firebase, or Flutter.
+
+Berry diagnostic summary:
+
+| Check | Result |
+| --- | --- |
+| Direct ONNX vs backend service | Agreed on all 9 selected V2 test images |
+| 9-image diagnostic accuracy | 6/9 correct |
+| Grade 1 diagnostic result | 3/3 correct |
+| Grade 2 diagnostic result | 0/3 correct |
+| Grade 3 diagnostic result | 3/3 correct |
+| Class order | Grade 1, Grade 2, Grade 3 |
+| ONNX input | `image`, float tensor, `[None, 224, 224, 3]` |
+| ONNX output | `probs`, `[None, 3]` |
+| Confirmed preprocessing concern | Training used direct 224x224 resize; backend runtime uses RGB letterbox to 224x224 |
+
+This 9-image result is diagnostic only and does not replace the saved full V2 test metrics.
+
+Forecast diagnostic summary:
+
+| Check | Result |
+| --- | --- |
+| Runtime forecast source | `data/processed/grading_forecast/price_v2/national_grade1_average_weekly.csv` |
+| Runtime method | `naive_persistence` |
+| Target scope | Single National Grade 1 average weekly series |
+| Latest observed price | 2026-08-18, 1886.14 LKR/kg, rounded to `1886` |
+| Runtime prediction | `1886`, stable trend |
+| Grade-specific forecast behavior | Not implemented; identical forecasts across berry grades are expected under the current single-series design |
+
+Recommendation impact:
+
+The recommendation service receives the actual runtime grade and actual `naive_persistence` forecast. Therefore, an incorrect berry grade can propagate into an incorrect recommendation even if forecasting and recommendation logic are operating as implemented.
+
 Validated API endpoints:
 
 - `GET /api/v1/grading-forecast/health`
