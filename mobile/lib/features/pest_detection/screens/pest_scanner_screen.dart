@@ -16,6 +16,8 @@ const _pestConfig = ScannerModelConfig(
 
     // Display name of the model
   label: 'Pest',
+
+    // Path to the trained TensorFlow Lite pest detection model
   assetPath: 'assets/models/new_pest_yolo_model_int8.tflite',
   classNames: [
     'Diconocoris distanti',
