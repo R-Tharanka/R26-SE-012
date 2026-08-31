@@ -3,9 +3,6 @@ import 'package:flutter/material.dart';
 import '../../../shared/models/scanner_model_config.dart';
 import '../../../shared/widgets/scanner_view.dart';
 
-// Defines the leaf-disease model and the labels displayed for its predictions.
-// Keep [classNames] and [classColors] in the same order as the model's output
-// classes so that each detection receives the correct label and color.
 const _leafConfig = ScannerModelConfig(
   id: 'leaf',
   label: 'Leaf',
@@ -19,7 +16,6 @@ const _leafConfig = ScannerModelConfig(
   ],
 );
 
-// Displays the shared scanner UI configured for leaf-disease detection.
 class LeafScannerScreen extends StatelessWidget {
   const LeafScannerScreen({super.key});
 
