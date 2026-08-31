@@ -103,6 +103,7 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
       ];
     }
 
+    // Choose the result accent color from the leaf's health and severity status.
     final accent = r.healthy ? kBrand : bandColor(r.severityBand);
     final sev = r.severityPercentage ?? 0;
 
