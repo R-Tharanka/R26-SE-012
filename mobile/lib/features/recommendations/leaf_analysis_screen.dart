@@ -66,6 +66,7 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
     }
   }
 
+  // Builds the shared analysis layout with the selected leaf image and results.
   @override
   Widget build(BuildContext context) {
     return AnalysisScaffold(
