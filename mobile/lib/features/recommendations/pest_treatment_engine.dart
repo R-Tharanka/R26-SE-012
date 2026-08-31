@@ -144,7 +144,9 @@ class PestTreatmentEngine {
             'is region-specific — confirm it with your agri authority.',
       );
     }
-
+    // -----------------------------------------------------------------------
+    // CASE 4: MODERATE INFESTATION
+    // -----------------------------------------------------------------------
     // Moderate → IPM: cultural + biological first, chemical optional.
     if (a.severityBand == 'moderate') {
       return PestTreatment(
