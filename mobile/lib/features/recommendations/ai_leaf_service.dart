@@ -59,10 +59,13 @@ class AiLeafService {
 
     final GenerateContentResponse res;
     try {
+
+      // Send both the task instruction and leaf image
+      // to the Gemini multimodal AI model
       res = await _model.generateContent([
         Content.multi([
-          TextPart(_taskPrompt),
-          DataPart('image/jpeg', jpegBytes),
+          TextPart(_taskPrompt),  // Tell Gemini what task it should perform
+          DataPart('image/jpeg', jpegBytes), // Attach the captured JPEG image
         ]),
       ]);
     } on Exception catch (e) {
