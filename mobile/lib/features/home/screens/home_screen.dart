@@ -196,7 +196,14 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: backgroundColor,
       appBar: AppBar(
-        title: const Text('PepperCare'),
+        title: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _AppLogo(size: 30),
+            SizedBox(width: 10),
+            Text('PepperCare'),
+          ],
+        ),
         actions: [
           IconButton(
             tooltip: isDarkMode ? 'Light mode' : 'Dark mode',
@@ -396,11 +403,7 @@ class _HomeScreenState extends State<HomeScreen> {
       children: [
         const Row(
           children: [
-            Icon(
-              Icons.agriculture_rounded,
-              color: Color(0xFF1B4332),
-              size: 28,
-            ),
+            _AppLogo(size: 34),
             SizedBox(width: 8),
             Text(
               'PepperCare',
@@ -845,6 +848,30 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ],
             ),
+    );
+  }
+}
+
+class _AppLogo extends StatelessWidget {
+  const _AppLogo({required this.size});
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(size * 0.22),
+      child: Image.asset(
+        'assets/images/logo.png',
+        width: size,
+        height: size,
+        fit: BoxFit.contain,
+        errorBuilder: (_, __, ___) => Icon(
+          Icons.agriculture_rounded,
+          color: const Color(0xFF1B4332),
+          size: size,
+        ),
+      ),
     );
   }
 }
