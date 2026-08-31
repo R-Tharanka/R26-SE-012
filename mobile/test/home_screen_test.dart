@@ -7,19 +7,24 @@ void main() {
     testWidgets('renders a card for each of the four features', (tester) async {
       await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
 
-      expect(find.byType(Card), findsNWidgets(4));
-      expect(find.text('Berry Scan'), findsOneWidget);
-      expect(find.text('Leaf Scan'), findsOneWidget);
-      expect(find.text('Pest Scan'), findsOneWidget);
-      expect(find.text('Grading & Forecast'), findsOneWidget);
+      expect(find.text('Pests'), findsOneWidget);
+      expect(find.text('Leaf Health'), findsOneWidget);
+      expect(find.text('Berry Disease'), findsOneWidget);
+      expect(find.text('Quality &\nPrice'), findsOneWidget);
     });
 
     testWidgets('every card is tappable', (tester) async {
       await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
 
-      final inkWells = tester.widgetList<InkWell>(find.byType(InkWell));
-      expect(inkWells, hasLength(4));
-      for (final inkWell in inkWells) {
+      for (final label in const [
+        'Pests',
+        'Leaf Health',
+        'Berry Disease',
+        'Quality &\nPrice',
+      ]) {
+        final inkWell = tester.widget<InkWell>(
+          find.ancestor(of: find.text(label), matching: find.byType(InkWell)),
+        );
         expect(inkWell.onTap, isNotNull);
       }
     });

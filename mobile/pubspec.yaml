@@ -9,9 +9,15 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  anthropic_sdk_dart: ^0.2.0
+  camera: ^0.11.0+2
   cupertino_icons: ^1.0.6
+  google_generative_ai: ^0.4.6
   http: ^1.2.2
+  iconly: ^1.0.1
+  image: ^4.2.0
   image_picker: ^1.1.2
+  tflite_flutter: ^0.12.1
 
 dev_dependencies:
   flutter_test:
@@ -20,3 +26,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/models/
+    - assets/data/

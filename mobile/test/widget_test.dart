@@ -10,10 +10,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pepper_care/main.dart';
 
 void main() {
-  testWidgets('Grading forecast home screen loads', (WidgetTester tester) async {
+  testWidgets('home screen loads', (WidgetTester tester) async {
     await tester.pumpWidget(const MyApp());
 
-    expect(find.text('Check Berry Quality'), findsOneWidget);
-    expect(find.text('Berry Grading and Export Price Forecasting'), findsOneWidget);
+    expect(find.text('PepperCare'), findsWidgets);
+    expect(find.text('Quality &\nPrice'), findsOneWidget);
   });
 }
