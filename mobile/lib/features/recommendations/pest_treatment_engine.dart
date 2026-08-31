@@ -29,6 +29,9 @@ class PestTreatment {
   final List<String> warnings;
   final String note; // ETL / export / traceability note
 
+
+
+  /// Creates a pest treatment recommendation.
   const PestTreatment({
     required this.action,
     required this.aboveThreshold,
