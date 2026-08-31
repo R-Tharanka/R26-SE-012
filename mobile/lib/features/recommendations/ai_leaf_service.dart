@@ -119,11 +119,14 @@ Rules:
 - Be honest about confidence. A single photo has limits.
 ''';
 
+ // Simple instruction sent together with the leaf image
+  // asking Gemini to perform the analysis
   static const String _taskPrompt =
       'Analyse this black pepper leaf photo and return the JSON result.';
 
   static final Schema _schema = Schema.object(
     properties: {
+      // Define the structure of the expected JSON response
       'is_pepper_leaf': Schema.boolean(
         description: 'True only if the image clearly shows a black pepper leaf.',
       ),
