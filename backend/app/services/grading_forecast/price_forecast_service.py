@@ -14,6 +14,7 @@ from functools import lru_cache
 from pathlib import Path
 
 from app.schemas.grading_forecast import ForecastMetrics, ForecastResult, TrendEnum
+from app.services.grading_forecast.artifact_service import get_runtime_artifacts
 
 MOVING_AVG_WINDOW = 3
 EVAL_MIN_RECORDS = 6
@@ -53,10 +54,18 @@ def _default_input_paths(*, repo_root: Path) -> tuple[Path, Path]:
 
 
 def _runtime_target_csv(*, repo_root: Path) -> Path:
+    artifacts = get_runtime_artifacts()
+    if artifacts is not None:
+        return artifacts.forecast_data_path
+
     return repo_root / RUNTIME_FORECAST_TARGET_RELATIVE_PATH
 
 
 def _runtime_naive_metrics_path(*, repo_root: Path) -> Path:
+    artifacts = get_runtime_artifacts()
+    if artifacts is not None:
+        return artifacts.forecast_metrics_path
+
     return repo_root / RUNTIME_NAIVE_METRICS_RELATIVE_PATH
 
 
@@ -96,11 +105,22 @@ def _load_forecast_model_bundle(models_dir_override: Path | None = None) -> tupl
     if os.getenv("GRADING_FORECAST_DISABLE_REAL_MODELS", "").strip().lower() in {"1", "true", "yes"}:
         return None
 
-    models_dir = models_dir_override or _forecast_models_dir(repo_root=root)
+    artifacts = get_runtime_artifacts()
+    models_dir = models_dir_override or (
+        artifacts.forecast_model_path.parent if artifacts is not None else _forecast_models_dir(repo_root=root)
+    )
     model_path = models_dir / "forecast_model.joblib"
     spec_path = models_dir / "forecast_features.json"
     if not model_path.is_file() or not spec_path.is_file():
         return None
+
+
+def initialize_forecast_runtime() -> None:
+    """Validate the runtime forecast data and metrics during application startup."""
+
+    forecast = build_price_forecast(seed_hint="startup")
+    if forecast.model == "forecast_unavailable":
+        raise RuntimeError("Price forecast runtime artifacts are unavailable or invalid.")
 
     try:
         import joblib  # type: ignore

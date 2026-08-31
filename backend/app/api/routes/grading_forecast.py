@@ -13,6 +13,7 @@ from app.schemas.grading_forecast import (
     RecommendRequest,
     RecommendResponse,
 )
+from app.services.grading_forecast.artifact_service import get_runtime_artifacts, runtime_artifacts_ready
 from app.services.grading_forecast.grading_service import GradingRuntimeError, build_grading_result
 from app.services.grading_forecast.price_forecast_service import build_price_forecast
 from app.services.grading_forecast.recommendation_service import build_recommendation
@@ -104,6 +105,18 @@ def health() -> dict[str, str]:
     return {
         "status": "ok",
         "component": "berry_grading_export_price_forecasting",
+    }
+
+
+@router.get("/ready")
+def ready() -> dict[str, object]:
+    artifacts = get_runtime_artifacts()
+    ready_status = runtime_artifacts_ready()
+    return {
+        "status": "ready" if ready_status else "not_ready",
+        "component": "berry_grading_export_price_forecasting",
+        "artifacts_loaded": artifacts is not None,
+        "artifacts_available": ready_status,
     }
 
 

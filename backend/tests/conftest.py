@@ -12,6 +12,24 @@ def _disable_firebase_for_tests(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("FIREBASE_SERVICE_ACCOUNT_PATH", raising=False)
     monkeypatch.delenv("FIREBASE_PROJECT_ID", raising=False)
     monkeypatch.delenv("FIREBASE_RESULTS_COLLECTION", raising=False)
+    for name in (
+        "HF_TOKEN",
+        "HF_MODEL_REPO",
+        "HF_MODEL_REVISION",
+        "HF_GRADING_MODEL_FILE",
+        "HF_CLASS_NAMES_FILE",
+        "HF_FORECAST_MODEL_FILE",
+        "HF_FORECAST_METRICS_FILE",
+        "HF_FORECAST_DATA_FILE",
+    ):
+        monkeypatch.delenv(name, raising=False)
+
+    try:
+        from app.services.grading_forecast import artifact_service
+
+        artifact_service.set_runtime_artifacts_for_tests(None)
+    except Exception:
+        pass
 
     try:
         from app.db import firebase as firebase_module
@@ -20,4 +38,3 @@ def _disable_firebase_for_tests(monkeypatch: pytest.MonkeyPatch) -> None:
     except Exception:
         # If import fails, tests that don't touch Firebase should still run.
         pass
-

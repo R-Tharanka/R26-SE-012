@@ -17,6 +17,7 @@ from app.schemas.grading_forecast import (
     SupportingLabels,
     VisualFeatures,
 )
+from app.services.grading_forecast.artifact_service import get_runtime_artifacts
 from app.services.grading_forecast.feature_extractor import extract_features_from_bytes
 from app.services.grading_forecast.image_preprocessor import preprocess_image_bytes
 
@@ -72,9 +73,19 @@ def _models_dir(repo_root: Path) -> Path:
 
 
 def _runtime_model_paths(repo_root: Path) -> tuple[Path, Path]:
+    artifacts = get_runtime_artifacts()
+    if artifacts is not None:
+        return artifacts.grading_model_path, artifacts.class_names_path
+
     onnx_path = repo_root / RUNTIME_MODEL_RELATIVE_PATH
     class_names_path = onnx_path.parent / "class_names.json"
     return onnx_path, class_names_path
+
+
+def initialize_grading_runtime() -> None:
+    """Initialize and cache the ONNX session during application startup."""
+
+    _onnx_session_bundle()
 
 
 def _letterbox_224(img: Image.Image) -> Image.Image:

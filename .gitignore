@@ -49,6 +49,11 @@ data/processed/grading_forecast/*.json
 *.tflite
 *.joblib
 
+# Hugging Face Hub local cache / downloaded runtime artifacts
+.cache/huggingface/
+hf_cache/
+model_cache/
+
 # Training/evaluation outputs
 ml/**/evaluation/_outputs/
 ml/**/evaluation/_outputs/*
