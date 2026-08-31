@@ -1,8 +1,14 @@
+// Imports Flutter Material package for UI components
+
 import 'package:flutter/material.dart';
 
+// Imports the model configuration class used to configure the scanner model
 import '../../../shared/models/scanner_model_config.dart';
+
+// Imports the reusable scanner UI that performs the scanning process
 import '../../../shared/widgets/scanner_view.dart';
 
+// Configuration details for the pest detection YOLO model
 const _pestConfig = ScannerModelConfig(
   id: 'pest',
   label: 'Pest',
