@@ -73,6 +73,7 @@ class AiLeafService {
     }
 
     final text = res.text?.trim();
+    // Check whether Gemini returned an empty response
     if (text == null || text.isEmpty) {
       throw LeafAnalysisException(
         'AI returned no result (possibly blocked or empty).',
@@ -80,7 +81,11 @@ class AiLeafService {
     }
 
     try {
+       // Convert the JSON text response into a Dart Map
       final json = jsonDecode(text) as Map<String, dynamic>;
+
+       // Convert the Dart Map into a LeafAnalysis object
+      // which can be used by the application UI
       return LeafAnalysis.fromJson(json);
     } catch (_) {
       throw LeafAnalysisException('Could not parse AI response:\n$text');
