@@ -107,6 +107,7 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
     final accent = r.healthy ? kBrand : bandColor(r.severityBand);
     final sev = r.severityPercentage ?? 0;
 
+    // Assemble the diagnosis summary and supporting detail sections.
     return [
       // headline
       Row(children: [
