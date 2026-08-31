@@ -26,6 +26,7 @@ class LeafAnalysisScreen extends StatefulWidget {
   State<LeafAnalysisScreen> createState() => _LeafAnalysisScreenState();
 }
 
+// Holds and manages the changing state of the analysis screen
 class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
   final _service = AiLeafService();
   late Future<LeafAnalysis>? _pending = widget.prefetch;
@@ -213,6 +214,13 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
           ),
         ),
 
+      // =====================================================
+      // AI DISCLAIMER
+      // =====================================================
+
+      // Inform the farmer that the result is only an AI estimate
+      // and professional confirmation is recommended
+
       const InfoCard(
         icon: IconlyBold.info_circle,
         color: Color(0xFF64748B),
@@ -222,6 +230,12 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
       ),
 
       const SizedBox(height: 18),
+      // =====================================================
+      // RETAKE BUTTON
+      // =====================================================
+
+      // Return to the previous screen so the user can
+      // capture and analyse another leaf image
       FilledButton.icon(
         onPressed: () => Navigator.of(context).pop(),
         style: FilledButton.styleFrom(
@@ -234,5 +248,6 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
     ];
   }
 
+// Converts the AI confidence value into an easy-to-understand label
   String _conf(double c) => c >= 0.75 ? 'High' : (c >= 0.5 ? 'Medium' : 'Low');
 }
