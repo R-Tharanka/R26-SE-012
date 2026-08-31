@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
 import '../models/grading_forecast_result.dart';
+import '../services/grading_forecast_analysis_service.dart';
 import '../services/grading_forecast_api_service.dart';
 
 class PriceForecastScreen extends StatefulWidget {
@@ -24,7 +25,7 @@ class _PriceForecastScreenState extends State<PriceForecastScreen> {
   static const _gradeDataNote =
       'Grade-specific forecasting will be improved after grade-wise market data is available.';
 
-  final _api = GradingForecastApiService();
+  final _analysisService = GradingForecastAnalysisService();
 
   late String _selectedGrade;
   late RecommendationResult _recommendation;
@@ -37,6 +38,12 @@ class _PriceForecastScreenState extends State<PriceForecastScreen> {
     final initial = widget.result.grading.predictedGrade;
     _selectedGrade = _gradeOptions.contains(initial) ? initial : _gradeOptions.first;
     _recommendation = widget.result.recommendation;
+  }
+
+  @override
+  void dispose() {
+    _analysisService.dispose();
+    super.dispose();
   }
 
   Future<void> _onGradeChanged(String? next) async {
@@ -52,7 +59,7 @@ class _PriceForecastScreenState extends State<PriceForecastScreen> {
     final grading = widget.result.grading;
 
     try {
-      final updated = await _api.recommend(
+      final updated = await _analysisService.recommend(
         grade: next,
         trend: forecast.trend,
         qualityScore: grading.qualityScore,

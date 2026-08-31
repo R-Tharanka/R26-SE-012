@@ -2,11 +2,16 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
-import '../services/grading_forecast_api_service.dart';
+import '../services/grading_forecast_analysis_service.dart';
+import '../services/grading_forecast_api_service.dart' show GradingForecastApiException;
 import 'berry_quality_result_screen.dart';
 
 class ProcessingScreen extends StatefulWidget {
-  const ProcessingScreen({super.key, required this.imageBytes, required this.imageName});
+  const ProcessingScreen({
+    super.key,
+    required this.imageBytes,
+    required this.imageName,
+  });
 
   final Uint8List imageBytes;
   final String imageName;
@@ -16,7 +21,7 @@ class ProcessingScreen extends StatefulWidget {
 }
 
 class _ProcessingScreenState extends State<ProcessingScreen> {
-  final _api = GradingForecastApiService();
+  final _analysisService = GradingForecastAnalysisService();
 
   bool _isRunning = true;
   String? _errorMessage;
@@ -34,11 +39,17 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
     });
 
     try {
-      final result = await _api.analyzeBytes(widget.imageBytes, widget.imageName);
+      final result = await _analysisService.analyzeBytes(
+        widget.imageBytes,
+        widget.imageName,
+      );
       if (!mounted) return;
       Navigator.of(context).pushReplacement(
         MaterialPageRoute<void>(
-          builder: (_) => BerryQualityResultScreen(imageBytes: widget.imageBytes, result: result),
+          builder: (_) => BerryQualityResultScreen(
+            imageBytes: widget.imageBytes,
+            result: result,
+          ),
         ),
       );
     } on GradingForecastApiException catch (e) {
@@ -54,6 +65,12 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
         _errorMessage = 'Failed to analyze the image. Please try again.';
       });
     }
+  }
+
+  @override
+  void dispose() {
+    _analysisService.dispose();
+    super.dispose();
   }
 
   @override

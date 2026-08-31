@@ -44,6 +44,7 @@ data/processed/grading_forecast/*.json
 *.joblib
 !ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.onnx
 !ml/grading_forecast/price_forecasting/models/v2/forecast_model.joblib
+!mobile/assets/models/berry_mobilenetv2_v2_best.tflite
 
 # Hugging Face Hub local cache / downloaded runtime artifacts
 .cache/huggingface/
