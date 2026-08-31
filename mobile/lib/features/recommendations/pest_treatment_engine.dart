@@ -107,7 +107,7 @@ class PestTreatmentEngine {
     allowedInMarket: true,
     phi: _confirmPhi,
   );
-
+  /// Finally, it returns the appropriate [PestTreatment].
   static PestTreatment forAnalysis(PestAnalysis a, Market market) {
     if (!a.isPepperPlant) {
       return const PestTreatment(
