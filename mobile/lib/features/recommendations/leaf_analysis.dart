@@ -53,6 +53,7 @@ class LeafAnalysis {
   factory LeafAnalysis.fromJson(Map<String, dynamic> j) {
     double? asDouble(Object? v) =>
         v == null ? null : (v is num ? v.toDouble() : double.tryParse('$v'));
+    // Converts the AI response into a typed analysis with safe fallback values.
     return LeafAnalysis(
       isPepperLeaf: j['is_pepper_leaf'] == true,
       healthy: j['healthy'] == true,
