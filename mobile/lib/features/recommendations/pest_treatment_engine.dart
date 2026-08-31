@@ -91,7 +91,7 @@ class PestTreatmentEngine {
     phi: 'Low residue, but still observe the label interval before harvest.',
     isChemical: false,
   );
-
+  /// Market restrictions are applied later using [_marketFiltered].
   static const _fipronilBase = TreatmentOption(
     name: 'Fipronil',
     mix: '5 ml per 10 L water',
