@@ -68,6 +68,9 @@ class PestTreatmentEngine {
     isChemical: false,
   );
 
+    /// This is a non-chemical approach and is generally the
+  /// first step when the infestation is low.
+
   static const _cultural = TreatmentOption(
     name: 'Remove infested parts + field hygiene',
     method:
