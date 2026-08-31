@@ -1,3 +1,4 @@
+# Project documentation/references
 docs/references/*
 docs/ui-references/*
 docs/guidelines_with_steps.md
@@ -11,39 +12,31 @@ __pycache__/
 *$py.class
 
 # Pytest temp/cache dirs (may have restricted permissions in some environments)
+*.pyc
+.venv/
 .pytest-tmp/
 .pytest-basetemp/
 pytest-cache-files-*/
 backend/pytest-cache-files-*/
-data/pytest-temp/
-data/tmp_py/
-data/tmp_perm_test/
-data/_tmp_tests/
 
-# Local Python virtual environment
-.venv/
-
-# Local secrets / env files (do not commit)
+# Secrets
 backend/.env
 backend/secrets/
 
-data/raw/market_prices/ipc_monthly_local_prices_2013_2022.csv
+# ML datasets
 data/raw/berry_images
-data/raw/market_prices/dea_farmgate_weekly_prices_2016_2026.csv
-
-# Processed ML datasets
 data/processed/grading_forecast/berry_images_processed/
-
-# Large processed csvs
 data/processed/grading_forecast/*.csv
 
-# 
+# Deterministic split directories created during training
 data/processed/grading_forecast/berry_split_v2/
+data/processed/grading_forecast/_berry_split_v1/
+data/processed/grading_forecast/_berry_split_v1/*
 
 # Generated summaries
 data/processed/grading_forecast/*.json
 
-# Model artifacts (generated locally; do not commit)
+# ML model artifacts
 *.keras
 *.onnx
 *.tflite
@@ -58,6 +51,29 @@ model_cache/
 ml/**/evaluation/_outputs/
 ml/**/evaluation/_outputs/*
 
-# Deterministic split directories created during training
-data/processed/grading_forecast/_berry_split_v1/
-data/processed/grading_forecast/_berry_split_v1/*
+# Flutter/Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+coverage/
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+
+# OS
+.DS_Store
+
+# Android
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+.env
