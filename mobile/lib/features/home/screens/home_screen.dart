@@ -1,6 +1,12 @@
+```dart
 import 'package:flutter/material.dart';
+
+import '../../../core/theme/app_theme.dart';
+import '../../berry_disease/screens/berry_scanner_screen.dart';
 import '../../grading_forecast/screens/berry_capture_screen.dart';
 import '../../grading_forecast/screens/grading_forecast_home_screen.dart';
+import '../../plant_health/screens/plant_health_scanner_screen.dart';
+import '../../recommendations/analysis_ui.dart' show FadeSlideIn;
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -12,10 +18,30 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
+  // ------------------------------------------------------------
+  // Navigation
+  // ------------------------------------------------------------
+
   void _navigateToQualityAndPrice() {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => const GradingForecastHomeScreen(),
+      ),
+    );
+  }
+
+  void _navigateToPlantHealth() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => const PlantHealthScannerScreen(),
+      ),
+    );
+  }
+
+  void _navigateToBerryDisease() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => const BerryScannerScreen(),
       ),
     );
   }
@@ -28,11 +54,22 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _showFeatureInfo(String title, String category, String description) {
+  // ------------------------------------------------------------
+  // Feature Information
+  // ------------------------------------------------------------
+
+  void _showFeatureInfo(
+    String title,
+    String category,
+    String description,
+    VoidCallback onStart,
+  ) {
     showModalBottomSheet<void>(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(24),
+        ),
       ),
       builder: (context) {
         return Padding(
@@ -94,7 +131,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ElevatedButton.icon(
                 onPressed: () {
                   Navigator.pop(context);
-                  _navigateToCapture();
+                  onStart();
                 },
                 icon: const Icon(Icons.camera_alt_outlined),
                 label: const Text('Start Crop Scan'),
@@ -114,21 +151,30 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // ------------------------------------------------------------
+  // Help
+  // ------------------------------------------------------------
+
   void _showHelpDialog() {
     showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Row(
           children: [
-            Icon(Icons.help_outline, color: Color(0xFF1B4332)),
+            Icon(
+              Icons.help_outline,
+              color: Color(0xFF1B4332),
+            ),
             SizedBox(width: 8),
             Text('PepperCare Help'),
           ],
         ),
         content: const Text(
           'PepperCare helps you monitor your black pepper crops.\n\n'
-          '• Check Your Crop: Detect pests, leaf diseases, berry diseases, and check quality & market price forecasts.\n'
-          '• Take Photo: Capture pepper berries or leaves to instantly analyze quality and get AI decision support.',
+          '• Check Your Crop: Detect pests, leaf diseases, berry diseases, '
+          'and check quality & market price forecasts.\n'
+          '• Take Photo: Capture pepper berries or leaves to instantly '
+          'analyze quality and get AI decision support.',
         ),
         actions: [
           TextButton(
@@ -140,30 +186,56 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // ------------------------------------------------------------
+  // Build
+  // ------------------------------------------------------------
+
   @override
   Widget build(BuildContext context) {
     const backgroundColor = Color(0xFFF9F9F6);
 
     return Scaffold(
       backgroundColor: backgroundColor,
+      appBar: AppBar(
+        title: const Text('PepperCare'),
+        actions: [
+          IconButton(
+            tooltip: isDarkMode ? 'Light mode' : 'Dark mode',
+            icon: Icon(
+              isDarkMode
+                  ? Icons.light_mode
+                  : Icons.dark_mode_outlined,
+            ),
+            onPressed: () {
+              setState(() {
+                toggleTheme();
+              });
+            },
+          ),
+        ],
+      ),
       body: SafeArea(
         child: Stack(
           children: [
             Positioned.fill(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 140),
+                padding: const EdgeInsets.fromLTRB(
+                  20,
+                  12,
+                  20,
+                  140,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Top App Header
                     _buildTopHeader(),
+
                     const SizedBox(height: 20),
 
-                    // Farm Status Card
                     _buildFarmStatusCard(),
+
                     const SizedBox(height: 28),
 
-                    // Check Your Crop Section
                     const Text(
                       'Check Your Crop',
                       style: TextStyle(
@@ -173,38 +245,51 @@ class _HomeScreenState extends State<HomeScreen> {
                         letterSpacing: -0.3,
                       ),
                     ),
+
                     const SizedBox(height: 16),
+
                     _buildCropCheckGrid(),
+
                     const SizedBox(height: 28),
 
-                    // Recent Results Section
                     _buildRecentResultsHeader(),
+
                     const SizedBox(height: 14),
+
                     _buildRecentResultCard(
                       badgeText: 'HEALTHY',
                       badgeBgColor: const Color(0xFFD8F3DC),
                       badgeTextColor: const Color(0xFF1B4332),
                       timeText: '2 hours ago',
                       title: 'Main Plot A',
-                      subtitle: 'No signs of root wilt or pests...',
-                      thumbnail: const _PepperClusterThumbnail(),
+                      subtitle:
+                          'No signs of root wilt or pests...',
+                      thumbnail:
+                          const _PepperClusterThumbnail(),
                     ),
+
                     const SizedBox(height: 12),
+
                     _buildRecentResultCard(
                       badgeText: 'WARNING',
                       badgeBgColor: const Color(0xFFFDE2E4),
                       badgeTextColor: const Color(0xFFB91C1C),
                       timeText: 'Yesterday',
                       title: 'North Slope',
-                      subtitle: 'Possible early leaf gall thrips...',
-                      thumbnail: const _SpottedLeafThumbnail(),
+                      subtitle:
+                          'Possible early leaf gall thrips...',
+                      thumbnail:
+                          const _SpottedLeafThumbnail(),
                     ),
                   ],
                 ),
               ),
             ),
 
-            // Floating Take Photo Button & Bottom Navigation
+            // --------------------------------------------------
+            // Bottom Actions
+            // --------------------------------------------------
+
             Positioned(
               left: 0,
               right: 0,
@@ -212,28 +297,37 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Take Photo Action Button
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 8,
+                    ),
                     child: Center(
                       child: SizedBox(
                         height: 52,
                         child: ElevatedButton(
                           onPressed: _navigateToCapture,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF1B4332),
+                            backgroundColor:
+                                const Color(0xFF1B4332),
                             foregroundColor: Colors.white,
                             elevation: 4,
                             shadowColor: Colors.black38,
-                            padding: const EdgeInsets.symmetric(horizontal: 36),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 36,
+                            ),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(26),
+                              borderRadius:
+                                  BorderRadius.circular(26),
                             ),
                           ),
                           child: const Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.camera_alt_outlined, size: 22),
+                              Icon(
+                                Icons.camera_alt_outlined,
+                                size: 22,
+                              ),
                               SizedBox(width: 10),
                               Text(
                                 'Take Photo',
@@ -250,17 +344,20 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
 
-                  // Bottom Navigation Bar
                   Container(
                     height: 72,
                     decoration: const BoxDecoration(
                       color: Color(0xFFF4F4F0),
                       border: Border(
-                        top: BorderSide(color: Color(0xFFE5E5E0), width: 0.8),
+                        top: BorderSide(
+                          color: Color(0xFFE5E5E0),
+                          width: 0.8,
+                        ),
                       ),
                     ),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      mainAxisAlignment:
+                          MainAxisAlignment.spaceAround,
                       children: [
                         _buildNavItem(
                           index: 0,
@@ -289,6 +386,10 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
+  // ------------------------------------------------------------
+  // Header
+  // ------------------------------------------------------------
 
   Widget _buildTopHeader() {
     return Row(
@@ -319,7 +420,10 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFF2D6A4F), width: 1.8),
+              border: Border.all(
+                color: const Color(0xFF2D6A4F),
+                width: 1.8,
+              ),
             ),
             child: const Icon(
               Icons.help_outline_rounded,
@@ -331,6 +435,10 @@ class _HomeScreenState extends State<HomeScreen> {
       ],
     );
   }
+
+  // ------------------------------------------------------------
+  // Farm Status
+  // ------------------------------------------------------------
 
   Widget _buildFarmStatusCard() {
     return Container(
@@ -380,8 +488,8 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 14),
-          const Text(
+          SizedBox(height: 14),
+          Text(
             '3 plots checked today.\nOverall vitality is high.',
             style: TextStyle(
               fontSize: 14,
@@ -394,6 +502,10 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // ------------------------------------------------------------
+  // Crop Feature Grid
+  // ------------------------------------------------------------
+
   Widget _buildCropCheckGrid() {
     return GridView.count(
       crossAxisCount: 2,
@@ -403,45 +515,68 @@ class _HomeScreenState extends State<HomeScreen> {
       mainAxisSpacing: 16,
       childAspectRatio: 1.15,
       children: [
-        _buildCropCard(
-          icon: Icons.bug_report_outlined,
-          iconBgColor: const Color(0xFFFDE8E1),
-          iconColor: const Color(0xFFE07A5F),
-          title: 'Pests',
-          onTap: () => _showFeatureInfo(
-            'Pests Detection',
-            'SUB-OBJECTIVE 1',
-            'Real-time pest detection on leaves, stems, and berries using deep learning models with AI-generated treatment recommendations.',
+        FadeSlideIn(
+          delayMs: 0,
+          child: _buildCropCard(
+            icon: Icons.bug_report_outlined,
+            iconBgColor: const Color(0xFFFDE8E1),
+            iconColor: const Color(0xFFE07A5F),
+            title: 'Pests',
+            onTap: () => _showFeatureInfo(
+              'Pest Detection',
+              'PLANT HEALTH',
+              'Detect pests on pepper leaves, stems, and berries '
+                  'using AI-powered analysis and provide treatment '
+                  'recommendations.',
+              _navigateToPlantHealth,
+            ),
           ),
         ),
-        _buildCropCard(
-          icon: Icons.bolt_outlined,
-          iconBgColor: const Color(0xFFDCF8DB),
-          iconColor: const Color(0xFF2B9348),
-          title: 'Leaf Health',
-          onTap: () => _showFeatureInfo(
-            'Leaf Health & Severity',
-            'SUB-OBJECTIVE 2',
-            'Simultaneous disease classification and severity quantification using segmentation-based models for precise interventions.',
+
+        FadeSlideIn(
+          delayMs: 90,
+          child: _buildCropCard(
+            icon: Icons.health_and_safety,
+            iconBgColor: const Color(0xFFDCF8DB),
+            iconColor: const Color(0xFF2B9348),
+            title: 'Leaf Health',
+            onTap: () => _showFeatureInfo(
+              'Leaf Health & Severity',
+              'PLANT HEALTH',
+              'Analyze pepper leaves for diseases and determine '
+                  'disease severity using AI-based image analysis.',
+              _navigateToPlantHealth,
+            ),
           ),
         ),
-        _buildCropCard(
-          icon: Icons.coronavirus_outlined,
-          iconBgColor: const Color(0xFFFCE4EC),
-          iconColor: const Color(0xFFC24176),
-          title: 'Berry Disease',
-          onTap: () => _showFeatureInfo(
-            'Berry Disease & Remediation',
-            'SUB-OBJECTIVE 3',
-            'Berry-level disease classification and lesion segmentation to provide safe remediation recommendations preserving export quality.',
+
+        FadeSlideIn(
+          delayMs: 180,
+          child: _buildCropCard(
+            icon: Icons.coronavirus_outlined,
+            iconBgColor: const Color(0xFFFCE4EC),
+            iconColor: const Color(0xFFC24176),
+            title: 'Berry Disease',
+            onTap: () => _showFeatureInfo(
+              'Berry Disease',
+              'BERRY ANALYSIS',
+              'Scan pepper berries to identify diseases and '
+                  'analyze affected areas for appropriate '
+                  'remediation.',
+              _navigateToBerryDisease,
+            ),
           ),
         ),
-        _buildCropCard(
-          icon: Icons.camera_enhance_outlined,
-          iconBgColor: const Color(0xFFE8EEF5),
-          iconColor: const Color(0xFF2D6A4F),
-          title: 'Quality &\nPrice',
-          onTap: _navigateToQualityAndPrice,
+
+        FadeSlideIn(
+          delayMs: 270,
+          child: _buildCropCard(
+            icon: Icons.trending_up,
+            iconBgColor: const Color(0xFFFFF0D9),
+            iconColor: const Color(0xFFF39C12),
+            title: 'Quality &\nPrice',
+            onTap: _navigateToQualityAndPrice,
+          ),
         ),
       ],
     );
@@ -464,14 +599,17 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment:
+                CrossAxisAlignment.start,
+            mainAxisAlignment:
+                MainAxisAlignment.spaceBetween,
             children: [
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: iconBgColor,
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius:
+                      BorderRadius.circular(14),
                 ),
                 child: Icon(
                   icon,
@@ -495,9 +633,14 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // ------------------------------------------------------------
+  // Recent Results
+  // ------------------------------------------------------------
+
   Widget _buildRecentResultsHeader() {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisAlignment:
+          MainAxisAlignment.spaceBetween,
       children: [
         const Text(
           'Recent Results',
@@ -511,7 +654,9 @@ class _HomeScreenState extends State<HomeScreen> {
         TextButton(
           onPressed: () {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('History page loading...')),
+              const SnackBar(
+                content: Text('History page loading...'),
+              ),
             );
           },
           child: const Text(
@@ -551,7 +696,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: Row(
         children: [
-          // Thumbnail Image Container
           ClipRRect(
             borderRadius: BorderRadius.circular(14),
             child: SizedBox(
@@ -561,23 +705,25 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const SizedBox(width: 14),
-
-          // Content
           Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment:
+                      MainAxisAlignment.spaceBetween,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(
+                      padding:
+                          const EdgeInsets.symmetric(
                         horizontal: 8,
                         vertical: 3,
                       ),
                       decoration: BoxDecoration(
                         color: badgeBgColor,
-                        borderRadius: BorderRadius.circular(6),
+                        borderRadius:
+                            BorderRadius.circular(6),
                       ),
                       child: Text(
                         badgeText,
@@ -610,12 +756,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontSize: 12,
                     color: Color(0xFF6E6E73),
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -624,6 +770,10 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
+  // ------------------------------------------------------------
+  // Bottom Navigation
+  // ------------------------------------------------------------
 
   Widget _buildNavItem({
     required int index,
@@ -646,15 +796,23 @@ class _HomeScreenState extends State<HomeScreen> {
       behavior: HitTestBehavior.opaque,
       child: isSelected
           ? Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 8,
+              ),
               decoration: BoxDecoration(
                 color: const Color(0xFF1B4332),
-                borderRadius: BorderRadius.circular(20),
+                borderRadius:
+                    BorderRadius.circular(20),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(icon, color: Colors.white, size: 20),
+                  Icon(
+                    icon,
+                    color: Colors.white,
+                    size: 20,
+                  ),
                   const SizedBox(width: 6),
                   Text(
                     label,
@@ -668,7 +826,8 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             )
           : Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment:
+                  MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
@@ -690,6 +849,10 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
+
+// ================================================================
+// Pepper Cluster Thumbnail
+// ================================================================
 
 class _PepperClusterThumbnail extends StatelessWidget {
   const _PepperClusterThumbnail();
@@ -721,9 +884,11 @@ class _PepperClusterPainter extends CustomPainter {
       ..color = const Color(0xFFA7C957)
       ..style = PaintingStyle.fill;
 
-    // Draw main stem
     final path = Path()
-      ..moveTo(size.width * 0.3, size.height * 0.1)
+      ..moveTo(
+        size.width * 0.3,
+        size.height * 0.1,
+      )
       ..cubicTo(
         size.width * 0.4,
         size.height * 0.4,
@@ -732,9 +897,9 @@ class _PepperClusterPainter extends CustomPainter {
         size.width * 0.6,
         size.height * 0.9,
       );
+
     canvas.drawPath(path, stemPaint);
 
-    // Draw cluster of pepper berries
     final berryPositions = [
       Offset(size.width * 0.35, size.height * 0.25),
       Offset(size.width * 0.45, size.height * 0.3),
@@ -747,14 +912,31 @@ class _PepperClusterPainter extends CustomPainter {
     ];
 
     for (final pos in berryPositions) {
-      canvas.drawCircle(pos, 6, berryPaint);
-      canvas.drawCircle(pos + const Offset(-1.5, -1.5), 2, highlightPaint);
+      canvas.drawCircle(
+        pos,
+        6,
+        berryPaint,
+      );
+
+      canvas.drawCircle(
+        pos + const Offset(-1.5, -1.5),
+        2,
+        highlightPaint,
+      );
     }
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(
+    covariant CustomPainter oldDelegate,
+  ) {
+    return false;
+  }
 }
+
+// ================================================================
+// Spotted Leaf Thumbnail
+// ================================================================
 
 class _SpottedLeafThumbnail extends StatelessWidget {
   const _SpottedLeafThumbnail();
@@ -781,9 +963,11 @@ class _SpottedLeafPainter extends CustomPainter {
       ..color = const Color(0xFFFFD166)
       ..style = PaintingStyle.fill;
 
-    // Draw leaf shape
     final path = Path()
-      ..moveTo(size.width * 0.5, size.height * 0.15)
+      ..moveTo(
+        size.width * 0.5,
+        size.height * 0.15,
+      )
       ..quadraticBezierTo(
         size.width * 0.85,
         size.height * 0.4,
@@ -796,14 +980,42 @@ class _SpottedLeafPainter extends CustomPainter {
         size.width * 0.5,
         size.height * 0.15,
       );
+
     canvas.drawPath(path, leafPaint);
 
-    // Draw leaf spots
-    canvas.drawCircle(Offset(size.width * 0.4, size.height * 0.4), 4.5, spotPaint);
-    canvas.drawCircle(Offset(size.width * 0.55, size.height * 0.5), 3.5, spotPaint);
-    canvas.drawCircle(Offset(size.width * 0.35, size.height * 0.6), 3, spotPaint);
+    canvas.drawCircle(
+      Offset(
+        size.width * 0.4,
+        size.height * 0.4,
+      ),
+      4.5,
+      spotPaint,
+    );
+
+    canvas.drawCircle(
+      Offset(
+        size.width * 0.55,
+        size.height * 0.5,
+      ),
+      3.5,
+      spotPaint,
+    );
+
+    canvas.drawCircle(
+      Offset(
+        size.width * 0.35,
+        size.height * 0.6,
+      ),
+      3,
+      spotPaint,
+    );
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(
+    covariant CustomPainter oldDelegate,
+  ) {
+    return false;
+  }
 }
+```
