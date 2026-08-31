@@ -35,6 +35,8 @@ class AiLeafService {
 
   static const List<String> _severityBands = ['none', 'mild', 'moderate', 'severe'];
 
+  // Configure the Gemini Generative AI model
+  // The system prompt tells the AI to behave like a black pepper agronomist
   late final GenerativeModel _model = GenerativeModel(
     model: AiConfig.model,
     apiKey: AiConfig.apiKey,
@@ -45,8 +47,10 @@ class AiLeafService {
       responseSchema: _schema,
     ),
   );
-
+   // Main function used to analyse a captured leaf image
   Future<LeafAnalysis> analyze(Uint8List jpegBytes) async {
+
+     // Check whether the Gemini API key is available
     if (!AiConfig.hasKey) {
       throw LeafAnalysisException(
         'No AI API key. Run with --dart-define=GEMINI_API_KEY=your_key',
@@ -55,10 +59,13 @@ class AiLeafService {
 
     final GenerateContentResponse res;
     try {
+
+      // Send both the task instruction and leaf image
+      // to the Gemini multimodal AI model
       res = await _model.generateContent([
         Content.multi([
-          TextPart(_taskPrompt),
-          DataPart('image/jpeg', jpegBytes),
+          TextPart(_taskPrompt),  // Tell Gemini what task it should perform
+          DataPart('image/jpeg', jpegBytes), // Attach the captured JPEG image
         ]),
       ]);
     } on Exception catch (e) {
