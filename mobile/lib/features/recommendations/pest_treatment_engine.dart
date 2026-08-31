@@ -20,6 +20,11 @@ class PestTreatment {
   /// false = monitoring/prevention only.
   /// true = treatment may be required.
   final bool aboveThreshold; // false → monitoring only (below the ETL)
+
+    /// Ordered list of treatment options.
+  ///
+  /// IPM principle is followed where possible:
+  /// cultural → biological/botanical → chemical.
   final List<TreatmentOption> options; // ordered: cultural → biological → chemical
   final List<String> warnings;
   final String note; // ETL / export / traceability note
