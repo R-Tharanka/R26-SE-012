@@ -161,6 +161,7 @@ class PestTreatmentEngine {
     // Severe → chemical treatment warranted, still market-filtered + IPM.
     return PestTreatment(
       action: 'Severe infestation — targeted chemical treatment is warranted.',
+      // Moderate infestation is considered above the treatment threshold.
       aboveThreshold: true,
       options: [_marketFiltered(_fipronilBase, market), _acetamiprid, _cultural],
       warnings: _chemWarnings(market),
