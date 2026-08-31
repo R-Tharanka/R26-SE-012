@@ -1,6 +1,6 @@
 # PP2 Master Plan: Berry Grading and Export Price Forecasting
 
-Last updated: 2026-08-28
+Last updated: 2026-08-31
 
 This plan is designed for the four-day Progress Presentation 2 constraint. It focuses on academically defensible progress, not model proliferation.
 
@@ -710,6 +710,23 @@ Priority: Phase 5 and Phase 6.
 - Manual camera/background/capture setup annotation.
 - Manual image cropping.
 - Advanced segmentation.
-- TFLite export.
+- TFLite export before PP2. A post-PP2 offline mobile TFLite fallback has now been implemented, but Flutter build/device validation is still pending.
 - Production deployment.
 - Full Firebase live validation.
+
+## Post-PP2 Phase 13 Note
+
+Phase 13 adds a practical offline Flutter fallback for grading-forecast analysis after hosted backend testing was blocked by timeout and HTTP 429 behavior.
+
+Scope:
+
+- Export the existing selected V2 Keras berry model to TensorFlow Lite without retraining.
+- Bundle class names, Naive Persistence metrics, and the National Grade 1 weekly price series into Flutter assets.
+- Route Flutter grading-forecast screens through an analysis service that defaults to offline mode.
+- Keep backend API mode available through `--dart-define=PEPPER_ANALYSIS_MODE=api`.
+
+Validation boundary:
+
+- TFLite tensor metadata has been checked.
+- No new model metrics are claimed.
+- Flutter formatter/analyzer/build/emulator validation remains pending because the local Flutter/Dart toolchain timed out.

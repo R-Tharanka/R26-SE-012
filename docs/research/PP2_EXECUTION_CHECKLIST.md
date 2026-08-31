@@ -1,6 +1,6 @@
 # PP2 Execution Checklist
 
-Last updated: 2026-08-29
+Last updated: 2026-08-31
 
 Use this checklist phase-by-phase. Do not jump to model training before Phase 1 is complete.
 
@@ -240,7 +240,8 @@ Evidence:
 - [x] Firebase/storage validation if required.
 - [x] Error handling/API hardening.
 - [ ] Later manual integration with other components.
-- [ ] Later Flutter end-to-end validation.
+- [ ] Later Flutter offline TFLite build/device validation.
+- [ ] Later Flutter backend API end-to-end validation.
 - [ ] Later UI/UX improvements.
 - [ ] Final integrated validation.
 
@@ -448,6 +449,41 @@ Evidence:
 - Current forecast runtime loads `data/processed/grading_forecast/price_v2/national_grade1_average_weekly.csv`, a single National Grade 1 average weekly target.
 - Latest observed runtime price: 2026-08-18, 1886.14 LKR/kg, rounded to `1886`; `naive_persistence` predicts the same value and returns `stable`.
 - Same forecast for Grade 1, Grade 2, and Grade 3 is expected under the current single-series runtime design; grade-specific forecasting is not currently implemented.
+
+## Phase 13: Offline Mobile TFLite Fallback
+
+Status: IMPLEMENTED / BUILD VALIDATION PENDING
+
+- [x] Create a separate implementation branch from the current branch.
+- [x] Export the selected V2 Keras berry model to TensorFlow Lite without retraining.
+- [x] Preserve the ONNX/backend runtime path.
+- [x] Bundle the TFLite model under Flutter assets.
+- [x] Bundle class names, Naive Persistence metrics, and the National Grade 1 weekly price series under Flutter assets.
+- [x] Add a Flutter offline grading-forecast service.
+- [x] Add a Flutter analysis mode router with default offline behavior.
+- [x] Keep backend API mode available with `PEPPER_ANALYSIS_MODE=api`.
+- [x] Keep offline Firebase persistence disabled and report `saved_to_firebase: false`.
+- [x] Confirm TFLite tensor metadata without running model training.
+- [ ] Run Flutter formatter successfully.
+- [ ] Run Flutter analyzer successfully.
+- [ ] Build APK successfully.
+- [ ] Validate emulator/gallery image analysis in offline mode.
+- [ ] Compare a small fixed image sample between mobile TFLite and backend ONNX outputs.
+
+Phase 13 validation result: IMPLEMENTATION COMPLETE; FLUTTER TOOLCHAIN VALIDATION PENDING.
+
+Evidence:
+
+- Branch: `feature/offline-grading-forecast-mobile`.
+- Export script: `ml/grading_forecast/berry_grading/training/export_berry_tflite_model.py`.
+- Mobile model: `mobile/assets/models/berry_mobilenetv2_v2_best.tflite`.
+- Mobile metadata: `mobile/assets/models/berry_mobilenetv2_v2_best_metadata.json`.
+- Mobile data assets: `mobile/assets/data/berry_grading_class_names.json`, `mobile/assets/data/naive_persistence_metrics.json`, `mobile/assets/data/national_grade1_average_weekly.csv`.
+- Flutter services: `mobile/lib/features/grading_forecast/services/offline_grading_forecast_service.dart`, `mobile/lib/features/grading_forecast/services/grading_forecast_analysis_service.dart`.
+- TFLite input: `[1, 224, 224, 3]` float32 RGB `0..255`.
+- TFLite output: `[1, 3]` float32.
+- No model training, dataset modification, or new evaluation metrics were produced.
+- Flutter formatter/analyzer/build validation is pending because local Flutter/Dart tooling timed out.
 
 ## Four-Day Schedule Tracker
 

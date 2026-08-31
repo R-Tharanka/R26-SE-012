@@ -1,6 +1,6 @@
 # PP2 Limitations
 
-Last updated: 2026-08-29
+Last updated: 2026-08-31
 
 This document records limitations that must be stated honestly during PP2.
 
@@ -121,6 +121,11 @@ Forecasting:
 - Runtime forecasting currently uses a single National Grade 1 average weekly `naive_persistence` series, so forecasts do not vary by berry grade.
 - If grade-specific price forecasts are required later, they need a separate documented design decision and supporting data validation.
 - Flutter flow exists and points to the backend endpoints, but Flutter was not run during Phase 5.
+- Phase 13 added an offline Flutter TFLite fallback after hosted-backend timeout/rate-limit testing, but successful Flutter build/device validation is still pending.
+- The offline TFLite model is an export of the existing selected V2 Keras model, not a retrained model and not new evaluation evidence.
+- Offline mobile visual-feature extraction is implemented in Dart and should be compared against the backend OpenCV-derived feature values before final reporting.
+- Offline mobile forecasting uses the bundled National Grade 1 average weekly series and `naive_persistence_mobile`; it remains single-series and not grade-specific.
+- Offline mobile mode does not write to Firebase. It returns `saved_to_firebase: false`; backend mode is still required for live Firestore persistence.
 
 ## Script Safety Limitation
 
@@ -141,7 +146,7 @@ Not required before PP2:
 - Segmentation-based berry isolation.
 - Manual annotation of detailed visual defect labels.
 - Full Firebase deployment validation.
-- TFLite/on-device inference.
+- TFLite/on-device inference before PP2. A post-PP2 offline fallback has been implemented, but build/device validation is still pending.
 - Production deployment.
 
 ## Phase 6 Documentation Limitation

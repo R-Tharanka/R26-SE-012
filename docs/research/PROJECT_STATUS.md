@@ -1,12 +1,12 @@
 # Project Status: Berry Grading and Export Price Forecasting
 
-Last updated: 2026-08-29
+Last updated: 2026-08-31
 
 This document is the current source of truth for the PP2 recovery work for the individual component: Berry Grading and Export Price Forecasting.
 
 ## Current Phase
 
-Current phase: Phase 12 Firebase Persistence Implementation complete. Next work is Phase 13 Manual Cross-Component Integration.
+Current phase: Phase 13 Offline Mobile TFLite Fallback is implemented and awaiting Flutter build/device validation. Manual cross-component integration remains pending.
 
 Phase 0, Repository and Research Audit, is complete.
 
@@ -37,6 +37,8 @@ Phase 11 corrective runtime validation on 2026-08-30 fixed a Flutter upload comp
 Phase 12, Firebase Persistence Implementation, is complete. Firebase persistence is implemented for application-level result history when credentials are configured. Live Firebase validation was not performed because credentials are not configured. Existing fail-safe behavior was preserved: valid analysis still returns grading, forecast, and recommendation when Firebase is unavailable or save fails, with `saved_to_firebase: false`.
 
 Phase 12.5, Runtime Model & Forecast Diagnostic Validation, is complete. Direct ONNX inference and backend service inference agreed on a 9-image V2 test diagnostic sample, but a training-vs-runtime preprocessing mismatch was confirmed for later review: training used direct 224x224 resize, while backend runtime uses RGB letterbox to 224x224. Forecast diagnostics confirmed the current runtime uses a single National Grade 1 average weekly `naive_persistence` series, so identical forecasts across berry grades are expected under the current design.
+
+Phase 13, Offline Mobile TFLite Fallback, is implemented and awaiting Flutter validation. The existing selected V2 Keras model was converted to a TensorFlow Lite artifact for on-device berry grading. Flutter now routes grading-forecast analysis through an analysis service that defaults to offline mode and can still use the backend API when built with `--dart-define=PEPPER_ANALYSIS_MODE=api`. No model retraining, dataset modification, or new evaluation metrics were produced during this phase.
 
 ## Project Scope
 
@@ -81,7 +83,7 @@ The SLS 105 Part 1: 2022 reference includes visual, physical, and chemical requi
 | --- | --- | --- |
 | Research audit | COMPLETE | Official documents, guides, codebase, raw data, processed data, and model artifacts were inspected. |
 | Backend API | VALIDATED WITH LIMITATIONS | FastAPI started and required grading-forecast endpoints returned HTTP 200 during Phase 5. |
-| Flutter UI | PARTIALLY COMPLETED | Component screens and API client exist; PP2 needs only demo validation, not new UI work. |
+| Flutter UI | OFFLINE FALLBACK IMPLEMENTED / BUILD VALIDATION PENDING | Component screens now route grading-forecast analysis through an offline-aware service. Default mode is on-device TFLite; API mode remains available through `PEPPER_ANALYSIS_MODE=api`. |
 | Firebase storage | IMPLEMENTED / LIVE VALIDATION NOT CONFIGURED | Phase 12 implemented Firestore result-history persistence using generated analysis IDs and runtime evidence. Analyze returns `saved_to_firebase: false` without blocking grading, forecast, and recommendation when Firebase is unavailable or save fails. |
 | Berry V1 model | COMPLETED BUT OUTDATED | MobileNetV2 model exists, trained on old 360-image processed dataset. |
 | Berry V2 model | COMPLETE | MobileNetV2 V2 baseline trained, tested, and exported under `ml/grading_forecast/berry_grading/models/v2/`. |
@@ -99,6 +101,7 @@ The SLS 105 Part 1: 2022 reference includes visual, physical, and chemical requi
 | Backend reliability | COMPLETE | Phase 11 added focused request validation and safe error handling for the grading-forecast API without changing datasets, artifacts, model choices, Firebase, or Flutter. |
 | Firebase persistence | COMPLETE / LIVE WRITE NOT VALIDATED | Phase 12 implemented application-level Firestore result persistence, validated mocked success and failure behavior, and made no credential changes. |
 | Runtime diagnostic validation | COMPLETE / ACTION REQUIRED LATER | Phase 12.5 confirmed direct ONNX and backend predictions agree, identified a training-vs-runtime resize/letterbox mismatch for later review, and confirmed forecast output is intentionally single-series under the current Grade 1 target design. |
+| Offline mobile TFLite fallback | IMPLEMENTED / BUILD VALIDATION PENDING | Phase 13 added a TFLite export from the existing V2 Keras model, bundled mobile class/forecast assets, and wired Flutter analysis/recommendation through an offline service. Local Flutter formatting/analyze/build did not complete because the toolchain timed out. |
 
 ## Dataset Status
 
@@ -249,6 +252,7 @@ Phase 2 artifacts:
 
 - `ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.keras`
 - `ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.onnx`
+- `mobile/assets/models/berry_mobilenetv2_v2_best.tflite`
 - `ml/grading_forecast/berry_grading/models/v2/class_names.json`
 - `ml/grading_forecast/berry_grading/models/v2/training_history.json`
 - `ml/grading_forecast/berry_grading/models/v2/berry_model_metadata.json`
@@ -340,7 +344,8 @@ Forecasting Phase 4 artifacts:
 
 ## Current Pending Work
 
-- Flutter API integration exists, but end-to-end Flutter validation remains pending.
+- Flutter offline TFLite integration exists, but successful Flutter build/device validation remains pending.
+- Flutter API mode still exists, but hosted-backend end-to-end validation remains pending because production API calls were rate limited/timed out during manual testing.
 - Manual cross-component integration remains pending.
 
 ## Phase 7 Existing Implementation Audit Result
@@ -535,6 +540,39 @@ Recommendation impact:
 
 The recommendation receives the actual runtime grade and actual `naive_persistence` forecast. Therefore, an incorrect berry grade can propagate into an incorrect recommendation even when forecast and recommendation services behave as implemented.
 
+## Phase 13 Offline Mobile TFLite Fallback Result
+
+Status: IMPLEMENTED / BUILD VALIDATION PENDING.
+
+Purpose:
+
+Manual hosted-backend testing was blocked by timeout and HTTP 429 behavior. Phase 13 adds an offline mobile fallback so the grading-forecast flow can run without Railway, Hugging Face, or a local FastAPI backend.
+
+Implementation result:
+
+- Added TFLite export script: `ml/grading_forecast/berry_grading/training/export_berry_tflite_model.py`.
+- Exported mobile model: `mobile/assets/models/berry_mobilenetv2_v2_best.tflite`.
+- Exported mobile metadata: `mobile/assets/models/berry_mobilenetv2_v2_best_metadata.json`.
+- Bundled mobile data assets: `mobile/assets/data/berry_grading_class_names.json`, `mobile/assets/data/naive_persistence_metrics.json`, and `mobile/assets/data/national_grade1_average_weekly.csv`.
+- Added Flutter offline inference service: `mobile/lib/features/grading_forecast/services/offline_grading_forecast_service.dart`.
+- Added Flutter mode router: `mobile/lib/features/grading_forecast/services/grading_forecast_analysis_service.dart`.
+- Updated grading-forecast screens to use the mode router instead of directly depending on the API client.
+
+Runtime behavior:
+
+- Default mobile mode is offline because `PEPPER_ANALYSIS_MODE` defaults to `offline`.
+- API mode can be enabled with `--dart-define=PEPPER_ANALYSIS_MODE=api` and still uses `GradingForecastApiService`.
+- Offline grading uses the TFLite model with input shape `[1, 224, 224, 3]`, float32 RGB pixels in the `0..255` range, and output shape `[1, 3]`.
+- Offline forecasting uses the same bundled National Grade 1 average weekly series and returns `naive_persistence_mobile`.
+- Offline persistence returns `saved_to_firebase: false`; live Firebase persistence remains a backend responsibility.
+
+Validation status:
+
+- TFLite export completed from the existing V2 Keras model; no training was run.
+- TFLite tensor metadata inspection confirmed input `[1, 224, 224, 3]` float32 and output `[1, 3]` float32.
+- Backend artifact tests passed separately after the bundled-artifact fallback work.
+- Flutter formatting/analyze/build validation is still pending because local Flutter/Dart tooling timed out.
+
 ## Phase 6 Evidence and Documentation Result
 
 Status: COMPLETE.
@@ -592,10 +630,13 @@ Mobile status:
 - Keep V2 RandomForest as the required ML baseline and evidence that the simple method generalized better on the current short test window.
 - Phase 4 extended-lag RandomForest improved over the Phase 3 RandomForest baseline, but still did not beat Naive Persistence.
 - Phase 5 backend API validation is sufficient for PP2 demo path evidence, but the runtime model/fallback behavior must be described separately from the V2 research metrics.
+- Keep the backend API as the canonical integrated runtime when hosted or local backend infrastructure is available.
+- Use the offline mobile TFLite path as the practical fallback when hosted backend, Hugging Face, or local backend access is unavailable.
+- Do not treat the TFLite conversion as a new trained model or as new model-evaluation evidence; it is an export of the selected V2 Keras model.
 - Do not make ARIMA, SARIMA, XGBoost, Prophet, or LSTM mandatory before PP2.
 - Do not fabricate missing Grade 2 price observations.
 - Do not manually annotate unavailable camera/background/capture metadata for PP2.
 
 ## Next Exact Action
 
-Phase 13: Manual Cross-Component Integration. Do not start Flutter end-to-end, UI/UX work, or final integrated validation before the cross-component API contract is checked.
+Validate the Phase 13 Flutter offline build and emulator flow on a working Flutter toolchain, then compare a small fixed image sample between mobile TFLite output and backend ONNX output before presenting offline mode as final integrated evidence.

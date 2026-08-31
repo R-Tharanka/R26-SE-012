@@ -2,7 +2,7 @@
 
 This guide is a **PowerShell-first** reference for running the backend, rebuilding datasets, training real models, and verifying everything works.
 
-PP2 status update, 2026-08-28:
+PP2 status update, 2026-08-31:
 
 - Berry V2 MobileNetV2 baseline training, test evaluation, and ONNX export are complete.
 - Use explicit V2 paths for any Berry V2 command.
@@ -11,6 +11,7 @@ PP2 status update, 2026-08-28:
 - Phase 4 limited improvement is complete; use explicit `v2_phase4` paths to reproduce it.
 - Phase 5 backend integration validation is complete with runtime limitations.
 - Phase 6 evidence documentation is complete.
+- Phase 13 offline mobile TFLite fallback is implemented, but Flutter build/device validation is still pending.
 
 ---
 
@@ -230,6 +231,24 @@ Expected:
 
 Historical V1 artifacts remain in `ml\grading_forecast\berry_grading\models\`. Do not overwrite them when working with V2.
 
+### 4.5.1 Export berry V2 model to TFLite for mobile offline mode
+
+This converts the existing selected V2 Keras model. It does not train or evaluate a model.
+
+```powershell
+.\.venv\Scripts\python.exe ml/grading_forecast/berry_grading/training/export_berry_tflite_model.py
+```
+
+Expected:
+
+- `mobile\assets\models\berry_mobilenetv2_v2_best.tflite`
+- `mobile\assets\models\berry_mobilenetv2_v2_best_metadata.json`
+
+Expected tensor contract:
+
+- Input: `[1, 224, 224, 3]` float32 RGB `0..255`.
+- Output: `[1, 3]` float32 class probabilities.
+
 ### 4.6 Train forecast model, PP2 V2 RandomForest
 
 ```powershell
@@ -344,8 +363,8 @@ python -m uvicorn app.main:app --reload --app-dir backend
 
 ### 5.3 Confirm backend is using real models
 
-- Berry grading response includes explanation: `Real grading model (ONNX) was used for predicted grade.`
-- Forecast response has: `forecast.model == "random_forest_regressor_v1"`
+- Berry grading response includes model evidence for `BERRY-V2-MNV2`.
+- Forecast response has `forecast.model == "naive_persistence"` in the current Phase 9+ backend runtime.
 
 If you ever need to force fallback mode for debugging/tests:
 
@@ -377,10 +396,9 @@ curl.exe http://127.0.0.1:8000/api/v1/grading-forecast/price-forecast
 
 Verify in the JSON response:
 
-- `forecast.model` is `random_forest_regressor_v1` when these exist:
-  - `ml/grading_forecast/price_forecasting/models/forecast_model.joblib`
-  - `ml/grading_forecast/price_forecasting/models/forecast_features.json`
-- If artifacts are missing (or `GRADING_FORECAST_DISABLE_REAL_MODELS=1`), it will fall back to `moving_average_baseline` or `demo_baseline`.
+- `forecast.model` is `naive_persistence` in the current Phase 9+ runtime.
+- The runtime reads `data/processed/grading_forecast/price_v2/national_grade1_average_weekly.csv`.
+- If the forecast data is missing or malformed, the service reports `forecast_unavailable` instead of fabricating demo values.
 
 Berry quality detection model (Berry Grading) endpoints are available under the same component prefix:
 
@@ -395,10 +413,10 @@ curl.exe -X POST -F "image=@path\\to\\test.jpg" http://127.0.0.1:8000/api/v1/gra
 
 Verify in the JSON response:
 
-- `grading.explanation` contains: `Real grading model (ONNX) was used for predicted grade.` when these exist:
-  - `ml/grading_forecast/berry_grading/models/berry_mobilenetv2_best.onnx`
-  - `ml/grading_forecast/berry_grading/models/class_names.json`
-- If artifacts are missing (or `GRADING_FORECAST_DISABLE_REAL_MODELS=1`), it will fall back to heuristic grading and mention heuristic mode in the explanation.
+- `grading.explanation` identifies real ONNX grading when these exist:
+  - `ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.onnx`
+  - `ml/grading_forecast/berry_grading/models/v2/class_names.json`
+- If selected V2 artifacts are missing in the current hardened backend, grading fails explicitly instead of silently using the legacy/root ONNX model.
 - Also verify core outputs are present and valid:
   - `grading.predicted_grade` is one of `Grade 1 | Grade 2 | Grade 3`
   - `grading.quality_score` is `0..100`
@@ -419,7 +437,7 @@ Verify in the JSON response:
 - Berry model:
   - Same checks as `grade-only` for `grading.*`
 - Forecast model:
-  - `forecast.model` is `random_forest_regressor_v1` when forecast artifacts exist
+  - `forecast.model` is `naive_persistence` in the current Phase 9+ runtime.
 - End-to-end:
   - Response contains `grading`, `forecast`, `recommendation`, and `storage`
 
@@ -440,7 +458,7 @@ Example response:
 
 #### `GET /api/v1/grading-forecast/price-forecast`
 
-Purpose: run **price forecasting** (uses RandomForest if artifacts exist; otherwise falls back).
+Purpose: run **price forecasting** using the current Phase 9+ `naive_persistence` runtime.
 
 Example response (real model):
 
@@ -449,10 +467,10 @@ Example response (real model):
   "status": "success",
   "component": "berry_grading_export_price_forecasting",
   "forecast": {
-    "model": "random_forest_regressor_v1",
-    "current_price_lkr_per_kg": 2027,
-    "predicted_price_lkr_per_kg": 2068,
-    "trend": "upward",
+    "model": "naive_persistence",
+    "current_price_lkr_per_kg": 1886,
+    "predicted_price_lkr_per_kg": 1886,
+    "trend": "stable",
     "forecast_period": "next_period",
     "metrics": { "mae": null, "rmse": null }
   }
@@ -461,7 +479,7 @@ Example response (real model):
 
 What to verify:
 
-- `forecast.model == "random_forest_regressor_v1"` indicates the backend loaded `forecast_model.joblib` + `forecast_features.json`.
+- `forecast.model == "naive_persistence"` indicates the backend loaded the V2 National Grade 1 average weekly series and the saved naive metrics.
 - `forecast.trend` is one of: `upward | downward | stable`.
 
 #### `POST /api/v1/grading-forecast/grade-only` (multipart upload)
@@ -538,7 +556,7 @@ Example response shape (fields abbreviated):
     "note": "Camera-based visual analysis only"
   },
   "grading": { "predicted_grade": "Grade 2", "quality_score": 70.8, "confidence": 0.9 },
-  "forecast": { "model": "random_forest_regressor_v1", "trend": "upward" },
+  "forecast": { "model": "naive_persistence", "trend": "stable" },
   "recommendation": { "decision": "WAIT_SHORTLY", "urgency_level": "LOW" },
   "storage": { "saved_to_firebase": false, "document_id": null }
 }
@@ -579,9 +597,49 @@ Example response shape:
 }
 ```
 
+## 6) Flutter offline/API mode
+
+Run these from `mobile\`.
+
+Offline mode is the default for grading-forecast analysis:
+
+```powershell
+flutter run
+```
+
+Explicit offline mode:
+
+```powershell
+flutter run --dart-define=PEPPER_ANALYSIS_MODE=offline
+```
+
+Hosted/backend API mode:
+
+```powershell
+flutter run --dart-define=PEPPER_ANALYSIS_MODE=api --dart-define=PEPPER_API_BASE_URL=https://r26-se-012-production.up.railway.app --dart-define=PEPPER_API_FALLBACK_BASE_URL=http://10.0.2.2:8000
+```
+
+Release APK using offline mode:
+
+```powershell
+flutter build apk --release --dart-define=PEPPER_ANALYSIS_MODE=offline
+```
+
+Release APK using hosted backend API mode:
+
+```powershell
+flutter build apk --release --dart-define=PEPPER_ANALYSIS_MODE=api --dart-define=PEPPER_API_BASE_URL=https://r26-se-012-production.up.railway.app
+```
+
+Current validation note:
+
+- Phase 13 Flutter formatter/analyzer/build validation is still pending because the local Flutter/Dart toolchain timed out during attempted validation.
+- Offline mode does not call Railway, Hugging Face, local FastAPI, or Firebase.
+- API mode still uses the configured backend URL and can be affected by network, Railway, backend startup, Hugging Face artifact loading, or rate limiting.
+
 ---
 
-## 6) Git hygiene (do not commit artifacts)
+## 7) Git hygiene
 
 Quick check before committing:
 
@@ -592,10 +650,13 @@ git status
 Do **not** commit:
 
 - `*.keras`
-- `*.onnx`
-- `*.joblib`
-- `*.tflite`
 - Anything under `*_outputs\` plot folders
+
+Do commit selected runtime artifacts when the project intentionally needs bundled fallback/offline behavior:
+
+- `ml\grading_forecast\berry_grading\models\v2\berry_mobilenetv2_v2_best.onnx`
+- `ml\grading_forecast\price_forecasting\models\v2\forecast_model.joblib`
+- `mobile\assets\models\berry_mobilenetv2_v2_best.tflite`
 
 Do commit:
 
