@@ -34,6 +34,7 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
   LeafAnalysis? _result;
   String? _error;
 
+  // Starts the leaf analysis as soon as the screen state is initialized.
   @override
   void initState() {
     super.initState();
