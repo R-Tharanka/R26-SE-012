@@ -57,8 +57,12 @@ class PestAnalysis {
         v is num ? v.toDouble() : (double.tryParse('${v ?? ''}') ?? 0);
     int asInt(Object? v) =>
         v is num ? v.round() : (int.tryParse('${v ?? ''}') ?? 0);
+
+  // Convert the JSON response into a PestAnalysis object.
     return PestAnalysis(
       isPepperPlant: j['is_pepper_plant'] == true,
+
+      // Checks whether the plant was classified as healthy.
       healthy: j['healthy'] == true,
       pestType: (j['pest_type'] ?? 'Uncertain').toString(),
       plantPart: (j['plant_part'] ?? 'unknown').toString(),
