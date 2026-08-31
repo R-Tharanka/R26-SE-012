@@ -21,8 +21,9 @@ class _BerryCaptureScreenState extends State<BerryCaptureScreen> {
     try {
       final picked = await _picker.pickImage(
         source: source,
-        imageQuality: 90,
-        maxWidth: 2048,
+        imageQuality: 75,
+        maxWidth: 1280,
+        maxHeight: 1280,
       );
       if (!mounted) return;
       if (picked == null) {
@@ -135,4 +136,3 @@ class _BerryCaptureScreenState extends State<BerryCaptureScreen> {
     );
   }
 }
-

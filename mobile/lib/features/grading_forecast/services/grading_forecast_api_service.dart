@@ -29,9 +29,10 @@ class GradingForecastApiService {
 
   static const _envKey = 'PEPPER_API_BASE_URL';
   static const _fallbackEnvKey = 'PEPPER_API_FALLBACK_BASE_URL';
-  static const _timeout = Duration(seconds: 30);
+  static const _analyzeTimeout = Duration(seconds: 120);
+  static const _recommendTimeout = Duration(seconds: 45);
   static const _maxAttemptsPerBaseUrl = 2;
-  static const _retryDelay = Duration(milliseconds: 900);
+  static const _retryDelay = Duration(seconds: 2);
 
   final List<String> _baseUrls;
 
@@ -59,7 +60,7 @@ class GradingForecastApiService {
             ),
           );
 
-          final streamed = await request.send().timeout(_timeout);
+          final streamed = await request.send().timeout(_analyzeTimeout);
           final response = await http.Response.fromStream(streamed);
 
           if (response.statusCode < 200 || response.statusCode >= 300) {
@@ -68,7 +69,7 @@ class GradingForecastApiService {
               message: _bestEffortErrorMessage(response.body, response.statusCode),
             );
 
-            if (_isTransientStatus(response.statusCode) &&
+            if (_isRetryableStatus(response.statusCode) &&
                 attempt < _maxAttemptsPerBaseUrl) {
               lastConnectionError = exception;
               await Future<void>.delayed(_retryDelay);
@@ -94,7 +95,7 @@ class GradingForecastApiService {
           return GradingForecastResult.fromJson(decoded.cast<String, dynamic>());
         } on TimeoutException catch (e) {
           lastConnectionError = GradingForecastApiException(
-            message: 'The server is taking too long. Please try again.',
+            message: 'The hosted backend is still processing the image. Please try again.',
             cause: e,
           );
           if (attempt < _maxAttemptsPerBaseUrl) {
@@ -171,7 +172,7 @@ class GradingForecastApiService {
                 headers: const {'Content-Type': 'application/json'},
                 body: json.encode(payload),
               )
-              .timeout(_timeout);
+              .timeout(_recommendTimeout);
 
           if (response.statusCode < 200 || response.statusCode >= 300) {
             final exception = GradingForecastApiException(
@@ -179,7 +180,7 @@ class GradingForecastApiService {
               message: _bestEffortErrorMessage(response.body, response.statusCode),
             );
 
-            if (_isTransientStatus(response.statusCode) &&
+            if (_isRetryableStatus(response.statusCode) &&
                 attempt < _maxAttemptsPerBaseUrl) {
               lastConnectionError = exception;
               await Future<void>.delayed(_retryDelay);
@@ -258,6 +259,10 @@ class GradingForecastApiService {
   }
 
   static String _bestEffortErrorMessage(String body, int statusCode) {
+    if (statusCode == 429) {
+      return 'The hosted backend is rate limited. Please wait a minute and try again.';
+    }
+
     final trimmed = body.trim();
     if (trimmed.isEmpty) return 'Request failed (HTTP $statusCode).';
 
@@ -305,17 +310,19 @@ class GradingForecastApiService {
     const fallbackDefined = String.fromEnvironment(_fallbackEnvKey);
     addUrl(fallbackDefined);
 
-    addUrl(_platformDefaultBaseUrl());
+    if (urls.isEmpty) {
+      addUrl(_platformDefaultBaseUrl());
+    }
 
     return urls;
   }
 
   bool _shouldTryFallback(int statusCode, String failedBaseUrl) {
-    return failedBaseUrl != _baseUrls.last && _isTransientStatus(statusCode);
+    return failedBaseUrl != _baseUrls.last && _isRetryableStatus(statusCode);
   }
 
-  static bool _isTransientStatus(int statusCode) {
-    return statusCode == 408 || statusCode == 429 || statusCode >= 500;
+  static bool _isRetryableStatus(int statusCode) {
+    return statusCode == 408 || statusCode >= 500;
   }
 
   static String _platformDefaultBaseUrl() {
