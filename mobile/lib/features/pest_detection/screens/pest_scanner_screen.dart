@@ -13,6 +13,8 @@ const _pestConfig = ScannerModelConfig(
 
     // Unique ID used to identify this scanner/model
   id: 'pest',
+
+    // Display name of the model
   label: 'Pest',
   assetPath: 'assets/models/new_pest_yolo_model_int8.tflite',
   classNames: [
