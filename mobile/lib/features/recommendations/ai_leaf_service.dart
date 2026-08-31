@@ -47,8 +47,10 @@ class AiLeafService {
       responseSchema: _schema,
     ),
   );
-
+   // Main function used to analyse a captured leaf image
   Future<LeafAnalysis> analyze(Uint8List jpegBytes) async {
+
+     // Check whether the Gemini API key is available
     if (!AiConfig.hasKey) {
       throw LeafAnalysisException(
         'No AI API key. Run with --dart-define=GEMINI_API_KEY=your_key',
