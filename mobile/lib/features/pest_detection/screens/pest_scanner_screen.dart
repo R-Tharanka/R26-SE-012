@@ -10,6 +10,8 @@ import '../../../shared/widgets/scanner_view.dart';
 
 // Configuration details for the pest detection YOLO model
 const _pestConfig = ScannerModelConfig(
+
+    // Unique ID used to identify this scanner/model
   id: 'pest',
   label: 'Pest',
   assetPath: 'assets/models/new_pest_yolo_model_int8.tflite',
