@@ -1,6 +1,16 @@
-# Project Commands Guide (Backend + Phase 2 + Phase 3)
+# Project Commands Guide (Backend + PP2 Model Phases)
 
 This guide is a **PowerShell-first** reference for running the backend, rebuilding datasets, training real models, and verifying everything works.
+
+PP2 status update, 2026-08-28:
+
+- Berry V2 MobileNetV2 baseline training, test evaluation, and ONNX export are complete.
+- Use explicit V2 paths for any Berry V2 command.
+- Bare no-argument berry commands may target historical V1 artifacts.
+- Price Forecasting V2 baseline training/evaluation is complete; Naive Persistence outperformed RandomForest on the V2 test period.
+- Phase 4 limited improvement is complete; use explicit `v2_phase4` paths to reproduce it.
+- Phase 5 backend integration validation is complete with runtime limitations.
+- Phase 6 evidence documentation is complete.
 
 ---
 
@@ -116,6 +126,13 @@ python -m pytest -q backend\tests
 
 Run these if you changed raw data or need to recreate processed CSVs/processed images.
 
+Important for PP2 V2:
+
+- Do not rerun dataset-generation commands unless you intentionally want to rebuild inputs.
+- The current V2 berry dataset and sample-level split are already prepared.
+- The current V2 price cleaned data and chronological split are already prepared.
+- The commands below are legacy/V1-oriented unless they are explicitly parameterized.
+
 ### 3.1 Validate berry labels + images
 
 ```powershell
@@ -159,76 +176,155 @@ python -m pip install -U pip setuptools wheel
 pip install -r ml\grading_forecast\requirements-training.txt
 ```
 
-### 4.2 Train berry grading model (MobileNetV2)
+### 4.2 Berry grading model, PP2 V2 baseline
+
+The PP2 V2 baseline has already been trained and evaluated. Do not rerun this command unless you are intentionally reproducing the same baseline.
+
+Training command used:
 
 ```powershell
-python ml\grading_forecast\berry_grading\training\train_berry_classifier.py
+.\.venv\Scripts\python.exe ml/grading_forecast/berry_grading/training/train_berry_classifier.py --train-dir data/processed/grading_forecast/berry_split_v2/train --val-dir data/processed/grading_forecast/berry_split_v2/val --output-dir ml/grading_forecast/berry_grading/models/v2 --model-filename berry_mobilenetv2_v2_best.keras --metadata-version v2 --batch-size 16 --stage1-epochs 15 --stage2-epochs 5 --stage1-lr 1e-3 --stage2-lr 1e-5 --patience 3
 ```
 
-Expected outputs in `ml\grading_forecast\berry_grading\models\`:
+Expected V2 outputs in `ml\grading_forecast\berry_grading\models\v2\`:
 
-- `berry_mobilenetv2_best.keras`
+- `berry_mobilenetv2_v2_best.keras`
 - `class_names.json`
 - `training_history.json`
 - `berry_model_metadata.json`
 
-### 4.3 Evaluate berry model
+### 4.3 Evaluate berry model on V2 test split
 
 ```powershell
-python ml\grading_forecast\berry_grading\training\evaluate_berry_classifier.py
+.\.venv\Scripts\python.exe ml/grading_forecast/berry_grading/training/evaluate_berry_classifier.py --model ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.keras --models-dir ml/grading_forecast/berry_grading/models/v2 --data-dir data/processed/grading_forecast/berry_split_v2/test --output-dir ml/grading_forecast/berry_grading/evaluation/_outputs/v2 --use-full-data-dir --split-name test
 ```
 
 Expected:
 
-- `ml\grading_forecast\berry_grading\models\berry_classifier_metrics.json`
-- Plots under `ml\grading_forecast\berry_grading\evaluation\_outputs\`
+- `ml\grading_forecast\berry_grading\models\v2\berry_classifier_metrics.json`
+- `ml\grading_forecast\berry_grading\evaluation\_outputs\v2\confusion_matrix.png`
+- `ml\grading_forecast\berry_grading\evaluation\_outputs\v2\training_curves.png`
 
-### 4.4 Export berry model to ONNX (backend uses this)
+Completed V2 test result:
+
+- Accuracy: 0.8073
+- Weighted F1: 0.8076
+- Grade 2 precision/recall/F1: 0.7805 / 0.8889 / 0.8312
+
+### 4.4 Export berry V2 model to ONNX
 
 ```powershell
-python ml\grading_forecast\berry_grading\training\export_berry_model.py
+.\.venv\Scripts\python.exe ml/grading_forecast/berry_grading/training/export_berry_model.py --model ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.keras --out ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.onnx --metadata-out ml/grading_forecast/berry_grading/models/v2/onnx_metadata.json
 ```
 
 Expected:
 
-- `ml\grading_forecast\berry_grading\models\berry_mobilenetv2_best.onnx`
-- `ml\grading_forecast\berry_grading\models\onnx_metadata.json`
+- `ml\grading_forecast\berry_grading\models\v2\berry_mobilenetv2_v2_best.onnx`
+- `ml\grading_forecast\berry_grading\models\v2\onnx_metadata.json`
 
-### 4.5 Test real berry inference (CLI)
-
-```powershell
-python ml\grading_forecast\berry_grading\inference\predict_berry_grade.py path\to\test.jpg
-```
-
-### 4.6 Train forecast model (RandomForestRegressor)
+### 4.5 Test real berry inference with V2 model (CLI)
 
 ```powershell
-python ml\grading_forecast\price_forecasting\training\train_forecast_model.py
+.\.venv\Scripts\python.exe ml/grading_forecast/berry_grading/inference/predict_berry_grade.py path\to\test.jpg --model ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.keras --class-names ml/grading_forecast/berry_grading/models/v2/class_names.json
 ```
 
-Expected outputs in `ml\grading_forecast\price_forecasting\models\`:
+Historical V1 artifacts remain in `ml\grading_forecast\berry_grading\models\`. Do not overwrite them when working with V2.
+
+### 4.6 Train forecast model, PP2 V2 RandomForest
+
+```powershell
+.\.venv\Scripts\python.exe ml/grading_forecast/price_forecasting/training/train_forecast_model.py --train-csv data/processed/grading_forecast/price_v2/forecast_train.csv --validation-csv data/processed/grading_forecast/price_v2/forecast_validation.csv --test-csv data/processed/grading_forecast/price_v2/forecast_test.csv --target-csv data/processed/grading_forecast/price_v2/national_grade1_average_weekly.csv --models-dir ml/grading_forecast/price_forecasting/models/v2 --dataset-version v2 --artifact-version v2 --seed 42 --n-estimators 400 --min-samples-leaf 1 --n-jobs -1 --require-v2-paths
+```
+
+Expected V2 outputs in `ml\grading_forecast\price_forecasting\models\v2\`:
 
 - `forecast_model.joblib`
 - `forecast_features.json`
 - `forecast_metrics.json`
 - `forecast_model_metadata.json`
 
-### 4.7 Evaluate forecast model
+Important: this is the Phase 3 command that was used. Rerun it only if you intentionally want to reproduce the same V2 baseline.
+
+Completed Phase 3 V2 result:
+
+- Naive Persistence MAE/RMSE/MAPE/R2: 16.4094 / 22.5208 / 0.8539 / 0.9045
+- RandomForest MAE/RMSE/MAPE/R2: 82.4179 / 88.4452 / 4.1679 / -0.4736
+- Decision: Naive Persistence is the stronger forecasting baseline for the V2 test period.
+
+### 4.7 Evaluate forecast model, PP2 V2 same test timestamps
 
 ```powershell
-python ml\grading_forecast\price_forecasting\training\evaluate_forecast_model.py
+.\.venv\Scripts\python.exe ml/grading_forecast/price_forecasting/training/evaluate_forecast_model.py --target-csv data/processed/grading_forecast/price_v2/national_grade1_average_weekly.csv --test-csv data/processed/grading_forecast/price_v2/forecast_test.csv --models-dir ml/grading_forecast/price_forecasting/models/v2 --output-dir ml/grading_forecast/price_forecasting/evaluation/_outputs/v2 --split-name test --require-v2-paths
 ```
 
 Expected:
 
-- Updated `ml\grading_forecast\price_forecasting\models\forecast_metrics.json`
-- Plots under `ml\grading_forecast\price_forecasting\evaluation\_outputs\`
+- Updated `ml\grading_forecast\price_forecasting\models\v2\forecast_metrics.json`
+- `ml\grading_forecast\price_forecasting\models\v2\naive_persistence_metrics.json`
+- Plots under `ml\grading_forecast\price_forecasting\evaluation\_outputs\v2\`
+
+This evaluation is prepared to compare actual prices, naive persistence predictions, and RandomForest predictions on the same 36 V2 test timestamps.
 
 ### 4.8 Test real forecast inference (CLI)
 
 ```powershell
-python ml\grading_forecast\price_forecasting\inference\predict_future_price.py
+.\.venv\Scripts\python.exe ml/grading_forecast/price_forecasting/inference/predict_future_price.py --data-csv data/processed/grading_forecast/price_v2/national_grade1_average_weekly.csv --models-dir ml/grading_forecast/price_forecasting/models/v2 --require-v2-paths
 ```
+
+### 4.9 Phase 4 - Berry limited improvement
+
+Selected change:
+
+- Dropout changed from 0.25 to 0.35.
+- Same V2 sample-level train/validation/test split as Phase 2.
+- Do not use this command for Phase 2 baseline reproduction; it writes to `v2_phase4`.
+
+Training reproduction command:
+
+```powershell
+.\.venv\Scripts\python.exe ml/grading_forecast/berry_grading/training/train_berry_classifier.py --train-dir data/processed/grading_forecast/berry_split_v2/train --val-dir data/processed/grading_forecast/berry_split_v2/val --output-dir ml/grading_forecast/berry_grading/models/v2_phase4 --model-filename berry_mobilenetv2_v2_phase4_best.keras --metadata-version v2_phase4 --batch-size 16 --stage1-epochs 15 --stage2-epochs 5 --stage1-lr 1e-3 --stage2-lr 1e-5 --patience 3 --dropout 0.35
+```
+
+Evaluation command used during Phase 4 finalization:
+
+```powershell
+.\.venv\Scripts\python.exe ml/grading_forecast/berry_grading/training/evaluate_berry_classifier.py --model ml/grading_forecast/berry_grading/models/v2_phase4/berry_mobilenetv2_v2_phase4_best.keras --models-dir ml/grading_forecast/berry_grading/models/v2_phase4 --data-dir data/processed/grading_forecast/berry_split_v2/test --output-dir ml/grading_forecast/berry_grading/evaluation/_outputs/v2_phase4 --use-full-data-dir --split-name test
+```
+
+Completed Phase 4 berry result:
+
+- Accuracy: 0.8073
+- Macro F1: 0.8068
+- Weighted F1: 0.8076
+- Grade 2 precision/recall/F1: 0.7805 / 0.8889 / 0.8312
+- Decision: dropout 0.35 did not improve the saved headline metrics compared with Phase 2.
+
+### 4.10 Phase 4 - Forecasting limited improvement
+
+Selected change:
+
+- Add `lag_4`, `lag_8`, and `lag_12`.
+- Same V2 National Grade 1 average weekly target and same 36 test timestamps as Phase 3.
+- Do not rerun this unless intentionally reproducing Phase 4; it writes to `v2_phase4`.
+
+Training command used:
+
+```powershell
+.\.venv\Scripts\python.exe ml/grading_forecast/price_forecasting/training/train_forecast_model_phase4.py --train-csv data/processed/grading_forecast/price_v2/forecast_train.csv --validation-csv data/processed/grading_forecast/price_v2/forecast_validation.csv --test-csv data/processed/grading_forecast/price_v2/forecast_test.csv --target-csv data/processed/grading_forecast/price_v2/national_grade1_average_weekly.csv --models-dir ml/grading_forecast/price_forecasting/models/v2_phase4 --dataset-version v2 --artifact-version v2_phase4 --seed 42 --n-estimators 400 --min-samples-leaf 1 --n-jobs -1 --require-v2-paths
+```
+
+Evaluation command used:
+
+```powershell
+.\.venv\Scripts\python.exe ml/grading_forecast/price_forecasting/training/evaluate_forecast_model_phase4.py --target-csv data/processed/grading_forecast/price_v2/national_grade1_average_weekly.csv --test-csv data/processed/grading_forecast/price_v2/forecast_test.csv --models-dir ml/grading_forecast/price_forecasting/models/v2_phase4 --phase3-models-dir ml/grading_forecast/price_forecasting/models/v2 --output-dir ml/grading_forecast/price_forecasting/evaluation/_outputs/v2_phase4 --split-name test --require-v2-paths
+```
+
+Completed Phase 4 forecasting result:
+
+- Naive Persistence MAE/RMSE/MAPE/R2: 16.4094 / 22.5208 / 0.8539 / 0.9045
+- Phase 3 RF MAE/RMSE/MAPE/R2: 82.4179 / 88.4452 / 4.1679 / -0.4736
+- Phase 4 extended-lag RF MAE/RMSE/MAPE/R2: 78.1641 / 84.8622 / 3.9482 / -0.3566
+- Decision: extended lags improved over Phase 3 RF, but Naive Persistence remained stronger.
 
 ---
 

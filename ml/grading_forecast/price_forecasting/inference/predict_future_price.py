@@ -27,6 +27,11 @@ def _trend(current: float, predicted: float) -> str:
     return "stable"
 
 
+def _is_v2_path(path: Path, marker: str) -> bool:
+    normalized = str(path).replace("\\", "/").lower()
+    return marker.lower() in normalized
+
+
 def _add_time_features(df: pd.DataFrame) -> pd.DataFrame:
     out = df.copy()
     out["month"] = out["date"].dt.month.astype(int)
@@ -67,6 +72,8 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Predict next-week pepper price using trained RandomForest model.")
     parser.add_argument("--data-csv", type=Path, default=None, help="Forecast training CSV (forecast_training_data.csv).")
     parser.add_argument("--models-dir", type=Path, default=None, help="Models dir with joblib + features.")
+    parser.add_argument("--require-v2-paths", action="store_true", help="Fail unless V2 data/model paths are used.")
+    parser.add_argument("--dry-run", action="store_true", help="Validate input/model paths and feature schema without prediction.")
     args = parser.parse_args(argv)
 
     repo_root = _repo_root()
@@ -78,13 +85,41 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     models_dir = args.models_dir or (repo_root / "ml" / "grading_forecast" / "price_forecasting" / "models")
+    if args.require_v2_paths:
+        if not _is_v2_path(data_csv, "data/processed/grading_forecast/price_v2/national_grade1_average_weekly.csv"):
+            print(f"Expected V2 target CSV, got: {data_csv}")
+            return 5
+        if not _is_v2_path(models_dir, "ml/grading_forecast/price_forecasting/models/v2"):
+            print(f"Expected V2 models directory, got: {models_dir}")
+            return 6
+
     model_path = models_dir / "forecast_model.joblib"
     features_path = models_dir / "forecast_features.json"
-    if not model_path.exists() or not features_path.exists():
+    if not args.dry_run and (not model_path.exists() or not features_path.exists()):
         print(f"Missing model/features. Need: {model_path} and {features_path}")
         return 3
 
-    spec = json.loads(features_path.read_text(encoding="utf-8"))
+    if features_path.exists():
+        spec = json.loads(features_path.read_text(encoding="utf-8"))
+    else:
+        spec = {
+            "lags": [1, 2, 3],
+            "rolling_windows": [3, 5],
+            "eps": 1.0,
+            "feature_names": [
+                "lag_1",
+                "lag_2",
+                "lag_3",
+                "rolling_mean_3",
+                "rolling_std_3",
+                "rolling_mean_5",
+                "rolling_std_5",
+                "month",
+                "week_of_year",
+                "price_change_1w",
+                "price_change_pct_1w",
+            ],
+        }
     feature_names: list[str] = list(spec["feature_names"])
 
     df = pd.read_csv(data_csv)
@@ -101,6 +136,21 @@ def main(argv: list[str] | None = None) -> int:
 
     latest = feats.iloc[-1]
     X = latest[feature_names].astype(float).to_numpy().reshape(1, -1)
+
+    if args.dry_run:
+        payload = {
+            "data_csv": str(data_csv),
+            "models_dir": str(models_dir),
+            "model_path": str(model_path),
+            "features_path": str(features_path),
+            "feature_names": feature_names,
+            "input_rows": int(len(df)),
+            "usable_feature_rows": int(len(feats)),
+            "latest_feature_date": str(pd.to_datetime(latest["date"]).date()),
+            "would_predict_next_observed_period": True,
+        }
+        print(json.dumps(payload, indent=2))
+        return 0
 
     model = joblib.load(model_path)
     pred = float(np.asarray(model.predict(X), dtype=float).reshape(-1)[0])

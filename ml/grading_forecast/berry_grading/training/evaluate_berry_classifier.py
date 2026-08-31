@@ -56,6 +56,22 @@ def _load_val_dir_from_metadata(models_dir: Path) -> Path | None:
         return None
 
 
+def _iter_image_files(root: Path) -> list[Path]:
+    exts = {".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff", ".webp"}
+    if not root.exists():
+        return []
+    return [p for p in root.rglob("*") if p.is_file() and p.suffix.lower() in exts]
+
+
+def _validate_class_dirs(root: Path, class_names: list[str], *, label: str) -> None:
+    missing = [c for c in class_names if not (root / c).is_dir()]
+    if missing:
+        raise ValueError(f"{label} is missing class directories: {missing}. Root: {root}")
+    empty = [c for c in class_names if not _iter_image_files(root / c)]
+    if empty:
+        raise ValueError(f"{label} has empty class directories: {empty}. Root: {root}")
+
+
 def _model_size_mb(path: Path) -> float | None:
     try:
         return round(path.stat().st_size / (1024.0 * 1024.0), 3)
@@ -89,11 +105,25 @@ def _letterbox_pil(img, *, size: tuple[int, int] = (224, 224)):
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Evaluate berry classifier and write metrics JSON + plots.")
-    parser.add_argument("--data-dir", type=Path, default=None, help="Dataset root (berry_images_processed).")
+    parser.add_argument("--data-dir", type=Path, default=None, help="Dataset root with grade_1/grade_2/grade_3 subfolders.")
+    parser.add_argument("--model", type=Path, default=None, help="Path to .keras model.")
+    parser.add_argument("--models-dir", type=Path, default=None, help="Directory containing class_names.json and output metrics.")
+    parser.add_argument("--output-dir", type=Path, default=None, help="Directory for evaluation plots.")
+    parser.add_argument(
+        "--use-full-data-dir",
+        action="store_true",
+        help="Evaluate every image under --data-dir. Use this for the V2 test split.",
+    )
+    parser.add_argument("--split-name", type=str, default="validation", help="Split name recorded in metrics.")
     parser.add_argument("--batch-size", type=int, default=16, help="Batch size.")
     parser.add_argument("--seed", type=int, default=42, help="Seed.")
     parser.add_argument("--val-split", type=float, default=0.2, help="Validation split ratio.")
     parser.add_argument("--runs", type=int, default=80, help="Inference timing runs (after warmup).")
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Validate paths and print resolved configuration without importing TensorFlow or evaluating.",
+    )
     args = parser.parse_args(argv)
 
     repo_root = _repo_root()
@@ -101,11 +131,45 @@ def main(argv: list[str] | None = None) -> int:
         repo_root / "data" / "processed" / "grading_forecast" / "berry_images_processed"
     )
 
-    models_dir = repo_root / "ml" / "grading_forecast" / "berry_grading" / "models"
-    eval_out = repo_root / "ml" / "grading_forecast" / "berry_grading" / "evaluation" / "_outputs"
+    default_models_dir = repo_root / "ml" / "grading_forecast" / "berry_grading" / "models"
+    model_path = args.model or (default_models_dir / "berry_mobilenetv2_best.keras")
+    models_dir = args.models_dir or model_path.parent
+    eval_out = args.output_dir or (repo_root / "ml" / "grading_forecast" / "berry_grading" / "evaluation" / "_outputs")
+
+    class_names_dir = ["grade_1", "grade_2", "grade_3"]
+    val_dir_override = _load_val_dir_from_metadata(models_dir)
+    eval_data_dir = data_dir if args.use_full_data_dir or val_dir_override is None else val_dir_override
+    try:
+        _validate_class_dirs(eval_data_dir, class_names_dir, label="evaluation data")
+    except ValueError as exc:
+        print(str(exc))
+        return 3
+
+    metrics_path = models_dir / "berry_classifier_metrics.json"
+    cm_path = eval_out / "confusion_matrix.png"
+    curves_path = eval_out / "training_curves.png"
+
+    if args.dry_run:
+        payload = {
+            "mode": "dry_run",
+            "model_path": str(model_path),
+            "model_exists": model_path.exists(),
+            "models_dir": str(models_dir),
+            "class_names_path": str(models_dir / "class_names.json"),
+            "data_dir": str(data_dir),
+            "evaluation_data_dir": str(eval_data_dir),
+            "split_name": str(args.split_name),
+            "use_full_data_dir": bool(args.use_full_data_dir),
+            "metrics_path": str(metrics_path),
+            "confusion_matrix_path": str(cm_path),
+            "training_curves_path": str(curves_path),
+            "class_dirs": class_names_dir,
+        }
+        print(json.dumps(payload, indent=2))
+        return 0
+
     eval_out.mkdir(parents=True, exist_ok=True)
 
-    model_path = models_dir / "berry_mobilenetv2_best.keras"
     if not model_path.exists():
         print(f"Missing trained model: {model_path}")
         return 2
@@ -117,9 +181,17 @@ def main(argv: list[str] | None = None) -> int:
     import tensorflow as tf
     from sklearn.metrics import classification_report, confusion_matrix, precision_recall_fscore_support
 
-    class_names_dir = ["grade_1", "grade_2", "grade_3"]
-    val_dir_override = _load_val_dir_from_metadata(models_dir)
-    if val_dir_override is not None:
+    if args.use_full_data_dir:
+        val_ds = tf.keras.utils.image_dataset_from_directory(
+            data_dir,
+            labels="inferred",
+            label_mode="int",
+            class_names=class_names_dir,
+            image_size=(224, 224),
+            batch_size=args.batch_size,
+            shuffle=False,
+        )
+    elif val_dir_override is not None:
         val_ds = tf.keras.utils.image_dataset_from_directory(
             val_dir_override,
             labels="inferred",
@@ -158,12 +230,15 @@ def main(argv: list[str] | None = None) -> int:
         y_prob.extend(probs.tolist())
 
     if not y_true:
-        print("Validation dataset is empty; cannot evaluate.")
+        print("Evaluation dataset is empty; cannot evaluate.")
         return 3
 
     cm = confusion_matrix(y_true, y_pred, labels=list(range(len(class_names))))
-    precision, recall, f1, _ = precision_recall_fscore_support(
+    precision_weighted, recall_weighted, f1_weighted, _ = precision_recall_fscore_support(
         y_true, y_pred, labels=list(range(len(class_names))), average="weighted", zero_division=0
+    )
+    precision_macro, recall_macro, f1_macro, _ = precision_recall_fscore_support(
+        y_true, y_pred, labels=list(range(len(class_names))), average="macro", zero_division=0
     )
     accuracy = float(np.mean(np.asarray(y_true) == np.asarray(y_pred)))
 
@@ -196,13 +271,11 @@ def main(argv: list[str] | None = None) -> int:
         for j in range(cm.shape[1]):
             ax.text(j, i, format(cm[i, j], "d"), ha="center", va="center", color="white" if cm[i, j] > thresh else "black")
     fig.tight_layout()
-    cm_path = eval_out / "confusion_matrix.png"
     fig.savefig(cm_path, dpi=140)
     plt.close(fig)
 
     # Training curves plot (if history exists)
     history_path = models_dir / "training_history.json"
-    curves_path = eval_out / "training_curves.png"
     if history_path.exists():
         try:
             payload = json.loads(history_path.read_text(encoding="utf-8"))
@@ -263,14 +336,20 @@ def main(argv: list[str] | None = None) -> int:
             timing["p95_ms"] = round(float(times_sorted[int(0.95 * (len(times_sorted) - 1))]), 3)
     rss_after = _memory_rss_bytes()
 
-    metrics_path = models_dir / "berry_classifier_metrics.json"
     metrics: dict[str, Any] = {
         "evaluated_at": _utc_now_iso(),
         "model_path": str(model_path),
+        "data_dir": str(data_dir),
+        "split_name": str(args.split_name),
+        "use_full_data_dir": bool(args.use_full_data_dir),
         "accuracy": round(accuracy, 4),
-        "precision_weighted": round(float(precision), 4),
-        "recall_weighted": round(float(recall), 4),
-        "f1_weighted": round(float(f1), 4),
+        "precision_macro": round(float(precision_macro), 4),
+        "recall_macro": round(float(recall_macro), 4),
+        "f1_macro": round(float(f1_macro), 4),
+        "precision_weighted": round(float(precision_weighted), 4),
+        "recall_weighted": round(float(recall_weighted), 4),
+        "f1_weighted": round(float(f1_weighted), 4),
+        "grade_2_recall": _safe_float((report.get("Grade 2") or {}).get("recall")),
         "confusion_matrix": cm.tolist(),
         "classification_report": report,
         "artifacts": {

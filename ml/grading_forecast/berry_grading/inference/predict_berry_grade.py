@@ -56,13 +56,35 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Predict pepper berry grade from an image using ONNX runtime.")
     parser.add_argument("image", type=Path, help="Path to input image.")
     parser.add_argument("--model", type=Path, default=None, help="Path to berry_mobilenetv2_best.onnx.")
+    parser.add_argument("--class-names", type=Path, default=None, help="Path to class_names.json. Defaults beside --model.")
     parser.add_argument("--topk", type=int, default=3, help="Top-k to print (default 3).")
     parser.add_argument("--runs", type=int, default=30, help="Timing runs (after warmup).")
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Validate image/model/class-name paths without running ONNX inference.",
+    )
     args = parser.parse_args(argv)
 
     repo_root = _repo_root()
-    models_dir = repo_root / "ml" / "grading_forecast" / "berry_grading" / "models"
-    onnx_path = args.model or (models_dir / "berry_mobilenetv2_best.onnx")
+    default_models_dir = repo_root / "ml" / "grading_forecast" / "berry_grading" / "models"
+    onnx_path = args.model or (default_models_dir / "berry_mobilenetv2_best.onnx")
+    class_names_path = args.class_names or (onnx_path.parent / "class_names.json")
+    models_dir = class_names_path.parent
+
+    if args.dry_run:
+        payload = {
+            "mode": "dry_run",
+            "image_path": str(args.image),
+            "image_exists": args.image.exists(),
+            "onnx_model_path": str(onnx_path),
+            "onnx_model_exists": onnx_path.exists(),
+            "class_names_path": str(class_names_path),
+            "class_names_exists": class_names_path.exists(),
+        }
+        print(json.dumps(payload, indent=2))
+        return 0
+
     if not onnx_path.exists():
         print(f"Missing ONNX model: {onnx_path}")
         return 2

@@ -1,0 +1,12 @@
+{
+  "exported_at": "2026-08-27T11:59:10+00:00",
+  "models_dir": "ml\\grading_forecast\\price_forecasting\\models\\v2",
+  "artifacts": {
+    "forecast_model.joblib": "ml\\grading_forecast\\price_forecasting\\models\\v2\\forecast_model.joblib",
+    "forecast_features.json": "ml\\grading_forecast\\price_forecasting\\models\\v2\\forecast_features.json",
+    "forecast_metrics.json": "ml\\grading_forecast\\price_forecasting\\models\\v2\\forecast_metrics.json",
+    "forecast_model_metadata.json": "ml\\grading_forecast\\price_forecasting\\models\\v2\\forecast_model_metadata.json"
+  },
+  "missing": [],
+  "manifest_path": "ml\\grading_forecast\\price_forecasting\\models\\v2\\forecast_export_manifest.json"
+}

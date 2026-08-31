@@ -1,0 +1,65 @@
+{
+  "model_name": "berry_mobilenetv2",
+  "version": "v2_phase4",
+  "phase": "phase4",
+  "improvement": "dropout_0.35",
+  "baseline_reference": {
+    "phase2_version": "v2",
+    "phase2_dropout": 0.25,
+    "phase2_model": "ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.keras"
+  },
+  "selected_change": {
+    "dropout": 0.35,
+    "note": "Only dropout was selected as the Phase 4 berry limited-improvement variable."
+  },
+  "seed": 42,
+  "image_size": [
+    224,
+    224
+  ],
+  "classes": [
+    "Grade 1",
+    "Grade 2",
+    "Grade 3"
+  ],
+  "dataset_version": "berry_v2",
+  "split": {
+    "strategy": "explicit_sample_level_train_val_test_directories",
+    "train_dir": "data/processed/grading_forecast/berry_split_v2/train",
+    "val_dir": "data/processed/grading_forecast/berry_split_v2/val",
+    "test_dir": "data/processed/grading_forecast/berry_split_v2/test",
+    "test_images": 109,
+    "sample_leakage": "No grade + sample_id group crosses train, validation, and test according to Phase 1 validation."
+  },
+  "training_configuration": {
+    "model": "MobileNetV2",
+    "imagenet_initialization": true,
+    "include_top": false,
+    "batch_size": 16,
+    "stage1_max_epochs": 15,
+    "stage2_max_epochs": 5,
+    "stage1_learning_rate": 0.001,
+    "stage2_learning_rate": 0.00001,
+    "patience": 3,
+    "fine_tune_final_mobilenetv2_layers": 20,
+    "loss": "sparse_categorical_crossentropy",
+    "optimizer": "Adam",
+    "augmentation": {
+      "flip": true,
+      "rotation": 0.06,
+      "zoom": 0.1,
+      "brightness_factor": 0.12
+    }
+  },
+  "training_history_available": false,
+  "training_history_note": "training_history.json was not present in the Phase 4 berry artifact directory when Phase 4 finalization was performed, so actual completed epoch counts are unavailable from saved artifacts.",
+  "artifact_paths": {
+    "keras_model": "ml/grading_forecast/berry_grading/models/v2_phase4/berry_mobilenetv2_v2_phase4_best.keras",
+    "class_names": "ml/grading_forecast/berry_grading/models/v2_phase4/class_names.json",
+    "metrics": "ml/grading_forecast/berry_grading/models/v2_phase4/berry_classifier_metrics.json",
+    "confusion_matrix": "ml/grading_forecast/berry_grading/evaluation/_outputs/v2_phase4/confusion_matrix.png"
+  },
+  "model_sha256": "9F445372387B2DD3C668743D92FFC554F704BC7349C27C03D53553E6FEB259CC",
+  "phase2_model_sha256": "A30A5985AF9AD2812E8E41764ED778D2054106911D6C4D0B77A876E3BFFC623F",
+  "finalization_note": "The Phase 4 model was not retrained during finalization. Existing model artifact was evaluated once on the untouched V2 test split."
+}

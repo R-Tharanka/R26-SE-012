@@ -62,6 +62,41 @@ def _feature_spec(*, lags: list[int], rolling_windows: list[int], eps: float) ->
     return {"lags": lags, "rolling_windows": rolling_windows, "eps": eps, "feature_names": features}
 
 
+TARGET_DEFINITION = {
+    "commodity": "black_pepper",
+    "country": "Sri Lanka",
+    "district": "National",
+    "grade": "Grade 1",
+    "price_type": "average",
+    "market_level": "farm_gate",
+    "frequency": "weekly",
+}
+
+
+def _is_v2_path(path: Path, marker: str) -> bool:
+    normalized = str(path).replace("\\", "/").lower()
+    return marker.lower() in normalized
+
+
+def _date_range_payload(df: pd.DataFrame) -> dict[str, str | None]:
+    if df.empty or "date" not in df.columns:
+        return {"start": None, "end": None}
+    dates = pd.to_datetime(df["date"], errors="coerce").dropna()
+    if dates.empty:
+        return {"start": None, "end": None}
+    return {"start": str(dates.min().date()), "end": str(dates.max().date())}
+
+
+def _csv_summary(path: Path | None) -> dict[str, Any] | None:
+    if path is None or not path.exists():
+        return None
+    df = pd.read_csv(path)
+    payload: dict[str, Any] = {"rows": int(len(df))}
+    if "date" in df.columns:
+        payload.update(_date_range_payload(df))
+    return payload
+
+
 def _add_time_features(df: pd.DataFrame) -> pd.DataFrame:
     out = df.copy()
     out["month"] = out["date"].dt.month.astype(int)
@@ -109,6 +144,13 @@ def build_features(
     return df
 
 
+def _validate_v2_paths(*, train_csv: Path, models_dir: Path) -> None:
+    if not _is_v2_path(train_csv, "data/processed/grading_forecast/price_v2/forecast_train.csv"):
+        raise ValueError(f"Expected V2 train CSV, got: {train_csv}")
+    if not _is_v2_path(models_dir, "ml/grading_forecast/price_forecasting/models/v2"):
+        raise ValueError(f"Expected V2 models directory, got: {models_dir}")
+
+
 def _hash_feature_spec(spec: dict[str, Any]) -> str:
     b = json.dumps(spec, sort_keys=True).encode("utf-8")
     return hashlib.sha256(b).hexdigest()[:16]
@@ -134,6 +176,13 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--min-samples-leaf", type=int, default=1, help="RandomForest min_samples_leaf.")
     parser.add_argument("--n-jobs", type=int, default=-1, help="RandomForest n_jobs.")
     parser.add_argument("--train-linear-baseline", action="store_true", help="Also train LinearRegression baseline.")
+    parser.add_argument("--dataset-version", default="v1", help="Dataset version recorded in metadata.")
+    parser.add_argument("--artifact-version", default="v1", help="Artifact/model version recorded in metadata.")
+    parser.add_argument("--target-csv", type=Path, default=None, help="Full target series CSV for metadata/dry-run checks.")
+    parser.add_argument("--validation-csv", type=Path, default=None, help="Validation CSV for metadata/dry-run checks.")
+    parser.add_argument("--test-csv", type=Path, default=None, help="Test CSV for metadata/dry-run checks.")
+    parser.add_argument("--require-v2-paths", action="store_true", help="Fail unless V2 input/output paths are used.")
+    parser.add_argument("--dry-run", action="store_true", help="Validate configuration and feature schema without training.")
     args = parser.parse_args(argv)
 
     _set_seeds(args.seed)
@@ -147,12 +196,15 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     models_dir = args.models_dir or (repo_root / "ml" / "grading_forecast" / "price_forecasting" / "models")
-    models_dir.mkdir(parents=True, exist_ok=True)
+    if args.require_v2_paths:
+        try:
+            _validate_v2_paths(train_csv=train_csv, models_dir=models_dir)
+        except ValueError as exc:
+            print(str(exc))
+            return 4
 
     spec = _feature_spec(lags=[1, 2, 3], rolling_windows=[3, 5], eps=1.0)
     feature_hash = _hash_feature_spec(spec)
-    features_path = models_dir / "forecast_features.json"
-    features_path.write_text(json.dumps(spec, indent=2), encoding="utf-8")
 
     df = pd.read_csv(train_csv)
     feats = build_features(df, lags=spec["lags"], rolling_windows=spec["rolling_windows"], eps=float(spec["eps"]))
@@ -162,6 +214,54 @@ def main(argv: list[str] | None = None) -> int:
     if feats.empty:
         print("Not enough training rows after feature engineering.")
         return 3
+
+    metadata_paths = {
+        "train_csv": str(train_csv),
+        "validation_csv": str(args.validation_csv) if args.validation_csv else None,
+        "test_csv": str(args.test_csv) if args.test_csv else None,
+        "target_csv": str(args.target_csv) if args.target_csv else None,
+        "models_dir": str(models_dir),
+    }
+    split_inputs = {
+        "target": _csv_summary(args.target_csv),
+        "train": _csv_summary(train_csv),
+        "validation": _csv_summary(args.validation_csv),
+        "test": _csv_summary(args.test_csv),
+    }
+    dry_payload = {
+        "dataset_version": args.dataset_version,
+        "artifact_version": args.artifact_version,
+        "target_definition": TARGET_DEFINITION,
+        "split_strategy": "chronological_train_validation_test",
+        "train_input_rows": int(len(df)),
+        "train_feature_rows": int(len(feats)),
+        "train_feature_date_range": _date_range_payload(feats),
+        "feature_spec_hash": feature_hash,
+        "feature_spec": spec,
+        "rf_config": {
+            "n_estimators": int(args.n_estimators),
+            "random_state": int(args.seed),
+            "n_jobs": int(args.n_jobs),
+            "max_depth": None if args.max_depth is None else int(args.max_depth),
+            "min_samples_leaf": int(args.min_samples_leaf),
+        },
+        "paths": metadata_paths,
+        "split_inputs": split_inputs,
+        "training_would_write": {
+            "model": str(models_dir / "forecast_model.joblib"),
+            "features": str(models_dir / "forecast_features.json"),
+            "metrics": str(models_dir / "forecast_metrics.json"),
+            "metadata": str(models_dir / "forecast_model_metadata.json"),
+        },
+    }
+
+    if args.dry_run:
+        print(json.dumps(dry_payload, indent=2))
+        return 0
+
+    models_dir.mkdir(parents=True, exist_ok=True)
+    features_path = models_dir / "forecast_features.json"
+    features_path.write_text(json.dumps(spec, indent=2), encoding="utf-8")
 
     X = feats[spec["feature_names"]].astype(float).to_numpy()
     y = feats["y_next_price"].astype(float).to_numpy()
@@ -190,12 +290,20 @@ def main(argv: list[str] | None = None) -> int:
 
     meta = {
         "model_name": "random_forest_regressor",
-        "version": "v1",
+        "version": args.artifact_version,
+        "dataset_version": args.dataset_version,
         "trained_at": _utc_now_iso(),
         "seed": int(args.seed),
         "git_sha": _git_sha(repo_root),
         "train_csv": str(train_csv),
+        "validation_csv": str(args.validation_csv) if args.validation_csv else None,
+        "test_csv": str(args.test_csv) if args.test_csv else None,
+        "target_csv": str(args.target_csv) if args.target_csv else None,
+        "target_definition": TARGET_DEFINITION,
+        "split_strategy": "chronological_train_validation_test",
+        "split_inputs": split_inputs,
         "feature_spec_hash": feature_hash,
+        "feature_spec": spec,
         "n_rows": int(len(feats)),
         "date_range": {
             "start": str(pd.to_datetime(feats["date"]).min().date()),
@@ -206,7 +314,7 @@ def main(argv: list[str] | None = None) -> int:
 
     metrics_out = {
         "evaluated_at": _utc_now_iso(),
-        "model": "random_forest_regressor_v1",
+        "model": f"random_forest_regressor_{args.artifact_version}",
         "train_metrics": train_metrics,
         "baseline_metrics": baseline_metrics,
     }
