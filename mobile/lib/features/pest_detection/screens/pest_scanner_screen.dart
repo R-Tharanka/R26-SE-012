@@ -19,6 +19,9 @@ const _pestConfig = ScannerModelConfig(
 
     // Path to the trained TensorFlow Lite pest detection model
   assetPath: 'assets/models/new_pest_yolo_model_int8.tflite',
+  
+  // Pest classes that the AI model can detect
+  // The order must match the class order used during model training
   classNames: [
     'Diconocoris distanti',
     'Gynaikothrips karny',
