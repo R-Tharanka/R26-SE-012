@@ -1,7 +1,16 @@
+// Imports the pest analysis model that contains the AI detection result.
 import 'pest_analysis.dart';
 import 'remediation_engine.dart' show Market, TreatmentOption;
 
-/// Treatment advice for a pest analysis + market, built on IPM principles.
+/// Represents the final treatment recommendation generated
+/// from the pest analysis result.
+///
+/// This model stores:
+/// - Main recommended action
+/// - Whether the economic treatment threshold is exceeded
+/// - Available treatment options
+/// - Safety/export warnings
+/// - Additional treatment or export notes
 class PestTreatment {
   final String action; // headline
   final bool aboveThreshold; // false → monitoring only (below the ETL)
