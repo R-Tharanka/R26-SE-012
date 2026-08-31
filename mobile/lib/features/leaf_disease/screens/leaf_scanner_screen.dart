@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../../shared/models/scanner_model_config.dart';
 import '../../../shared/widgets/scanner_view.dart';
 
+// Defines the leaf-disease model and the labels displayed for its predictions.
+
 const _leafConfig = ScannerModelConfig(
   id: 'leaf',
   label: 'Leaf',
