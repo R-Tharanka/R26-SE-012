@@ -1,4 +1,6 @@
+// Used to decode the JSON response returned by the AI.
 import 'dart:convert';
+// Used to handle the captured image as raw byte data.
 import 'dart:typed_data';
 
 import 'package:google_generative_ai/google_generative_ai.dart';
