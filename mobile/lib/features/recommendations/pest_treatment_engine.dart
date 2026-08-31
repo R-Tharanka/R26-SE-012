@@ -99,7 +99,7 @@ class PestTreatmentEngine {
     allowedInMarket: true, // overridden per market below
     phi: _confirmPhi,
   );
-
+/// Acetamiprid chemical treatment option.
   static const _acetamiprid = TreatmentOption(
     name: 'Acetamiprid',
     mix: '25 ml per 10 L water',
