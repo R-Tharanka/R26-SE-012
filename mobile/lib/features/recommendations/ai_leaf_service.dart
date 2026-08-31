@@ -155,6 +155,8 @@ Rules:
         description: 'One plain-language sentence for the farmer.',
       ),
     },
+    // These fields are compulsory in every AI response
+    // This helps prevent missing data in the application
     requiredProperties: [
       'is_pepper_leaf',
       'healthy',
