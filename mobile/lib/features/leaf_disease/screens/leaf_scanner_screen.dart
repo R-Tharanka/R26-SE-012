@@ -5,6 +5,7 @@ import '../../../shared/widgets/scanner_view.dart';
 
 // Defines the leaf-disease model and the labels displayed for its predictions.
 // Keep [classNames] and [classColors] in the same order as the model's output
+// classes so that each detection receives the correct label and color.
 const _leafConfig = ScannerModelConfig(
   id: 'leaf',
   label: 'Leaf',
