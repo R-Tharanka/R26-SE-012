@@ -47,6 +47,7 @@ class LeafAnalysis {
     required this.summary,
   });
 
+  /// A disease is valid only when the image contains a pepper leaf that is not healthy.
   bool get diseaseDetected => isPepperLeaf && !healthy;
 
   factory LeafAnalysis.fromJson(Map<String, dynamic> j) {
