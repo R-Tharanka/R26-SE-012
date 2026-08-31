@@ -342,10 +342,10 @@ class YoloDetector {
       final h = bh / box.scale;
 
       // normalize to 0..1 of the upright frame
-      final left = (x / uw).clamp(0.0, 1.0);
-      final top = (y / uh).clamp(0.0, 1.0);
-      final right = ((x + w) / uw).clamp(0.0, 1.0);
-      final bottom = ((y + h) / uh).clamp(0.0, 1.0);
+      final left = (x / uw).clamp(0.0, 1.0).toDouble();
+      final top = (y / uh).clamp(0.0, 1.0).toDouble();
+      final right = ((x + w) / uw).clamp(0.0, 1.0).toDouble();
+      final bottom = ((y + h) / uh).clamp(0.0, 1.0).toDouble();
 
       raw.add(Detection(
         classId: bestCls,

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ui';
 
 import 'package:flutter/services.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
@@ -180,10 +181,10 @@ class AiDetectionService {
           : config.colorFor(classId);
       double n(Object? v) =>
           (v is num ? v.toDouble() : double.tryParse('${v ?? ''}') ?? 0) / 1000.0;
-      final l = n(raw['xmin']).clamp(0.0, 1.0);
-      final t = n(raw['ymin']).clamp(0.0, 1.0);
-      final r = n(raw['xmax']).clamp(0.0, 1.0);
-      final b = n(raw['ymax']).clamp(0.0, 1.0);
+      final l = n(raw['xmin']).clamp(0.0, 1.0).toDouble();
+      final t = n(raw['ymin']).clamp(0.0, 1.0).toDouble();
+      final r = n(raw['xmax']).clamp(0.0, 1.0).toDouble();
+      final b = n(raw['ymax']).clamp(0.0, 1.0).toDouble();
       if (r <= l || b <= t) continue;
       final conf = raw['confidence'];
       dets.add(Detection(

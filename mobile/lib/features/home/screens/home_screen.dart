@@ -1,8 +1,7 @@
-```dart
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_theme.dart';
-import '../../berry_disease/screens/berry_scanner_screen.dart';
+import '../../berry_disease/berry_scanner_screen.dart';
 import '../../grading_forecast/screens/berry_capture_screen.dart';
 import '../../grading_forecast/screens/grading_forecast_home_screen.dart';
 import '../../plant_health/screens/plant_health_scanner_screen.dart';
@@ -1017,5 +1016,4 @@ class _SpottedLeafPainter extends CustomPainter {
   ) {
     return false;
   }
-}
-```
+} 

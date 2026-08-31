@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../shared/models/scanner_model_config.dart';
-import '../../../shared/widgets/scanner_view.dart';
+import '../../shared/models/scanner_model_config.dart';
+import '../../shared/widgets/scanner_view.dart';
 
 const _berryConfig = ScannerModelConfig(
   id: 'berry',

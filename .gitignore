@@ -27,6 +27,7 @@ backend/secrets/
 data/raw/berry_images
 data/processed/grading_forecast/berry_images_processed/
 data/processed/grading_forecast/*.csv
+data/raw/market_prices/
 
 # Deterministic split directories created during training
 data/processed/grading_forecast/berry_split_v2/

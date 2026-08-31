@@ -3,12 +3,9 @@ import 'package:flutter/material.dart';
 import '../../../shared/models/scanner_model_config.dart';
 import '../../../shared/widgets/scanner_view.dart';
 
-/// Combined leaf-disease + pest scanner. The AI (see AiDetectionService, domain
-/// 'plant') decides leaf-vs-pest and the specific class from the merged
-/// vocabulary; recommendations then route to the leaf or pest flow.
-///
-/// The YOLO fallback (offline only) uses the leaf model — Gemini is the primary
-/// path and covers both leaf and pest.
+/// Combined leaf-disease + pest scanner. The AI detector decides leaf-vs-pest
+/// and the specific class from the merged vocabulary; recommendations then
+/// route to the matching leaf or pest flow.
 const _plantConfig = ScannerModelConfig(
   id: 'plant',
   label: 'Plant Health',

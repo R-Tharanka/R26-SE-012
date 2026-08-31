@@ -7,10 +7,10 @@ void main() {
   testWidgets('App boots into the home grid', (tester) async {
     await tester.pumpWidget(const MyApp());
 
-    expect(find.text('Berry Scan'), findsOneWidget);
-    expect(find.text('Leaf Scan'), findsOneWidget);
-    expect(find.text('Pest Scan'), findsOneWidget);
-    expect(find.text('Grading & Forecast'), findsOneWidget);
+    expect(find.text('Pests'), findsOneWidget);
+    expect(find.text('Leaf Health'), findsOneWidget);
+    expect(find.text('Berry Disease'), findsOneWidget);
+    expect(find.text('Quality &\nPrice'), findsOneWidget);
   });
 
   // The grading feature no longer sits at the app's root, so this covers both
@@ -21,7 +21,7 @@ void main() {
     await tester.pumpWidget(const MyApp());
 
     final card = find.ancestor(
-      of: find.text('Grading & Forecast'),
+      of: find.text('Quality &\nPrice'),
       matching: find.byType(InkWell),
     );
     await tester.ensureVisible(card);

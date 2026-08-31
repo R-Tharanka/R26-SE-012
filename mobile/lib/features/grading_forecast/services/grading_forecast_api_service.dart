@@ -30,6 +30,8 @@ class GradingForecastApiService {
   static const _envKey = 'PEPPER_API_BASE_URL';
   static const _fallbackEnvKey = 'PEPPER_API_FALLBACK_BASE_URL';
   static const _timeout = Duration(seconds: 30);
+  static const _maxAttemptsPerBaseUrl = 2;
+  static const _retryDelay = Duration(milliseconds: 900);
 
   final List<String> _baseUrls;
 
@@ -46,55 +48,85 @@ class GradingForecastApiService {
     for (final baseUrl in _baseUrls) {
       final uri = Uri.parse('$baseUrl/api/v1/grading-forecast/analyze');
 
-      try {
-        final request = http.MultipartRequest('POST', uri);
-        request.files.add(
-          http.MultipartFile.fromBytes('image', imageBytes, filename: filename),
-        );
-
-        final streamed = await request.send().timeout(_timeout);
-        final response = await http.Response.fromStream(streamed);
-
-        if (response.statusCode < 200 || response.statusCode >= 300) {
-          final exception = GradingForecastApiException(
-            statusCode: response.statusCode,
-            message: _bestEffortErrorMessage(response.body, response.statusCode),
+      for (var attempt = 1; attempt <= _maxAttemptsPerBaseUrl; attempt += 1) {
+        try {
+          final request = http.MultipartRequest('POST', uri);
+          request.files.add(
+            http.MultipartFile.fromBytes(
+              'image',
+              imageBytes,
+              filename: filename,
+            ),
           );
 
-          if (_shouldTryFallback(response.statusCode, baseUrl)) {
-            lastConnectionError = exception;
-            continue;
+          final streamed = await request.send().timeout(_timeout);
+          final response = await http.Response.fromStream(streamed);
+
+          if (response.statusCode < 200 || response.statusCode >= 300) {
+            final exception = GradingForecastApiException(
+              statusCode: response.statusCode,
+              message: _bestEffortErrorMessage(response.body, response.statusCode),
+            );
+
+            if (_isTransientStatus(response.statusCode) &&
+                attempt < _maxAttemptsPerBaseUrl) {
+              lastConnectionError = exception;
+              await Future<void>.delayed(_retryDelay);
+              continue;
+            }
+
+            if (_shouldTryFallback(response.statusCode, baseUrl)) {
+              lastConnectionError = exception;
+              break;
+            }
+
+            throw exception;
           }
 
-          throw exception;
-        }
+          final decoded = json.decode(response.body);
+          if (decoded is! Map) {
+            throw GradingForecastApiException(
+              statusCode: response.statusCode,
+              message: 'Unexpected response format from server.',
+            );
+          }
 
-        final decoded = json.decode(response.body);
-        if (decoded is! Map) {
+          return GradingForecastResult.fromJson(decoded.cast<String, dynamic>());
+        } on TimeoutException catch (e) {
+          lastConnectionError = GradingForecastApiException(
+            message: 'The server is taking too long. Please try again.',
+            cause: e,
+          );
+          if (attempt < _maxAttemptsPerBaseUrl) {
+            await Future<void>.delayed(_retryDelay);
+            continue;
+          }
+        } on SocketException catch (e) {
+          lastConnectionError = GradingForecastApiException(
+            message: 'Cannot reach the backend. Check your connection and try again.',
+            cause: e,
+          );
+          if (attempt < _maxAttemptsPerBaseUrl) {
+            await Future<void>.delayed(_retryDelay);
+            continue;
+          }
+        } on http.ClientException catch (e) {
+          lastConnectionError = GradingForecastApiException(
+            message: 'Cannot reach the backend. Check your connection and try again.',
+            cause: e,
+          );
+          if (attempt < _maxAttemptsPerBaseUrl) {
+            await Future<void>.delayed(_retryDelay);
+            continue;
+          }
+        } on GradingForecastApiException {
+          rethrow;
+        } catch (e) {
           throw GradingForecastApiException(
-            statusCode: response.statusCode,
-            message: 'Unexpected response format from server.',
+            message: 'Something went wrong while analyzing the image. Please try again.',
+            cause: e,
           );
         }
-
-        return GradingForecastResult.fromJson(decoded.cast<String, dynamic>());
-      } on TimeoutException catch (e) {
-        lastConnectionError = GradingForecastApiException(
-          message: 'The server is taking too long. Please try again.',
-          cause: e,
-        );
-      } on SocketException catch (e) {
-        lastConnectionError = GradingForecastApiException(
-          message: 'Cannot reach the backend. Check your connection and try again.',
-          cause: e,
-        );
-      } on GradingForecastApiException {
-        rethrow;
-      } catch (e) {
-        throw GradingForecastApiException(
-          message: 'Something went wrong while analyzing the image. Please try again.',
-          cause: e,
-        );
       }
     }
 
@@ -131,65 +163,91 @@ class GradingForecastApiService {
     for (final baseUrl in _baseUrls) {
       final uri = Uri.parse('$baseUrl/api/v1/grading-forecast/recommend');
 
-      try {
-        final response = await http
-            .post(
-              uri,
-              headers: const {'Content-Type': 'application/json'},
-              body: json.encode(payload),
-            )
-            .timeout(_timeout);
+      for (var attempt = 1; attempt <= _maxAttemptsPerBaseUrl; attempt += 1) {
+        try {
+          final response = await http
+              .post(
+                uri,
+                headers: const {'Content-Type': 'application/json'},
+                body: json.encode(payload),
+              )
+              .timeout(_timeout);
 
-        if (response.statusCode < 200 || response.statusCode >= 300) {
-          final exception = GradingForecastApiException(
-            statusCode: response.statusCode,
-            message: _bestEffortErrorMessage(response.body, response.statusCode),
-          );
+          if (response.statusCode < 200 || response.statusCode >= 300) {
+            final exception = GradingForecastApiException(
+              statusCode: response.statusCode,
+              message: _bestEffortErrorMessage(response.body, response.statusCode),
+            );
 
-          if (_shouldTryFallback(response.statusCode, baseUrl)) {
-            lastConnectionError = exception;
-            continue;
+            if (_isTransientStatus(response.statusCode) &&
+                attempt < _maxAttemptsPerBaseUrl) {
+              lastConnectionError = exception;
+              await Future<void>.delayed(_retryDelay);
+              continue;
+            }
+
+            if (_shouldTryFallback(response.statusCode, baseUrl)) {
+              lastConnectionError = exception;
+              break;
+            }
+
+            throw exception;
           }
 
-          throw exception;
-        }
+          final decoded = json.decode(response.body);
+          if (decoded is! Map) {
+            throw GradingForecastApiException(
+              statusCode: response.statusCode,
+              message: 'Unexpected response format from server.',
+            );
+          }
 
-        final decoded = json.decode(response.body);
-        if (decoded is! Map) {
+          final recommendationJson = decoded['recommendation'];
+          if (recommendationJson is! Map) {
+            throw GradingForecastApiException(
+              statusCode: response.statusCode,
+              message: 'Unexpected response format from server.',
+            );
+          }
+
+          return RecommendationResult.fromJson(
+            Map<String, dynamic>.from(recommendationJson),
+          );
+        } on TimeoutException catch (e) {
+          lastConnectionError = GradingForecastApiException(
+            message: 'The server is taking too long. Please try again.',
+            cause: e,
+          );
+          if (attempt < _maxAttemptsPerBaseUrl) {
+            await Future<void>.delayed(_retryDelay);
+            continue;
+          }
+        } on SocketException catch (e) {
+          lastConnectionError = GradingForecastApiException(
+            message: 'Cannot reach the backend. Check your connection and try again.',
+            cause: e,
+          );
+          if (attempt < _maxAttemptsPerBaseUrl) {
+            await Future<void>.delayed(_retryDelay);
+            continue;
+          }
+        } on http.ClientException catch (e) {
+          lastConnectionError = GradingForecastApiException(
+            message: 'Cannot reach the backend. Check your connection and try again.',
+            cause: e,
+          );
+          if (attempt < _maxAttemptsPerBaseUrl) {
+            await Future<void>.delayed(_retryDelay);
+            continue;
+          }
+        } on GradingForecastApiException {
+          rethrow;
+        } catch (e) {
           throw GradingForecastApiException(
-            statusCode: response.statusCode,
-            message: 'Unexpected response format from server.',
+            message: 'Something went wrong while updating the recommendation. Please try again.',
+            cause: e,
           );
         }
-
-        final recommendationJson = decoded['recommendation'];
-        if (recommendationJson is! Map) {
-          throw GradingForecastApiException(
-            statusCode: response.statusCode,
-            message: 'Unexpected response format from server.',
-          );
-        }
-
-        return RecommendationResult.fromJson(
-          Map<String, dynamic>.from(recommendationJson),
-        );
-      } on TimeoutException catch (e) {
-        lastConnectionError = GradingForecastApiException(
-          message: 'The server is taking too long. Please try again.',
-          cause: e,
-        );
-      } on SocketException catch (e) {
-        lastConnectionError = GradingForecastApiException(
-          message: 'Cannot reach the backend. Check your connection and try again.',
-          cause: e,
-        );
-      } on GradingForecastApiException {
-        rethrow;
-      } catch (e) {
-        throw GradingForecastApiException(
-          message: 'Something went wrong while updating the recommendation. Please try again.',
-          cause: e,
-        );
       }
     }
 
@@ -253,8 +311,11 @@ class GradingForecastApiService {
   }
 
   bool _shouldTryFallback(int statusCode, String failedBaseUrl) {
-    return failedBaseUrl != _baseUrls.last &&
-        (statusCode == 408 || statusCode == 429 || statusCode >= 500);
+    return failedBaseUrl != _baseUrls.last && _isTransientStatus(statusCode);
+  }
+
+  static bool _isTransientStatus(int statusCode) {
+    return statusCode == 408 || statusCode == 429 || statusCode >= 500;
   }
 
   static String _platformDefaultBaseUrl() {

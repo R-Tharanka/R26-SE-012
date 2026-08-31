@@ -106,21 +106,19 @@ def _load_forecast_model_bundle(models_dir_override: Path | None = None) -> tupl
         return None
 
     artifacts = get_runtime_artifacts()
-    models_dir = models_dir_override or (
-        artifacts.forecast_model_path.parent if artifacts is not None else _forecast_models_dir(repo_root=root)
-    )
-    model_path = models_dir / "forecast_model.joblib"
+    if models_dir_override is not None:
+        models_dir = models_dir_override
+        model_path = models_dir / "forecast_model.joblib"
+    elif artifacts is not None:
+        models_dir = artifacts.forecast_model_path.parent
+        model_path = artifacts.forecast_model_path
+    else:
+        models_dir = _forecast_models_dir(repo_root=root)
+        model_path = models_dir / "forecast_model.joblib"
+
     spec_path = models_dir / "forecast_features.json"
     if not model_path.is_file() or not spec_path.is_file():
         return None
-
-
-def initialize_forecast_runtime() -> None:
-    """Validate the runtime forecast data and metrics during application startup."""
-
-    forecast = build_price_forecast(seed_hint="startup")
-    if forecast.model == "forecast_unavailable":
-        raise RuntimeError("Price forecast runtime artifacts are unavailable or invalid.")
 
     try:
         import joblib  # type: ignore
@@ -133,6 +131,14 @@ def initialize_forecast_runtime() -> None:
         return model, spec
     except Exception:
         return None
+
+
+def initialize_forecast_runtime() -> None:
+    """Validate the runtime forecast data and metrics during application startup."""
+
+    forecast = build_price_forecast(seed_hint="startup")
+    if forecast.model == "forecast_unavailable":
+        raise RuntimeError("Price forecast runtime artifacts are unavailable or invalid.")
 
 
 def select_input_csv_path(*, repo_root: Path | None = None) -> Path | None:
