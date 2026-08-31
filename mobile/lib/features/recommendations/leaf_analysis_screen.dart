@@ -166,7 +166,12 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
         const SizedBox(height: 16),
         AnimatedBar(fraction: sev / 100, color: accent),
       ],
+    
+      // =====================================================
+      // AFFECTED REGIONS
+      // =====================================================
 
+      // Display where the AI detected visible symptoms
       if (r.affectedRegions.isNotEmpty)
         SectionCard(
           icon: IconlyBold.show,
@@ -174,6 +179,12 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
           child: Text(r.affectedRegions,
               style: TextStyle(color: kTextSub, height: 1.45)),
         ),
+
+      // =====================================================
+      // TREATMENT RECOMMENDATIONS
+      // =====================================================
+
+      // Display treatment suggestions only when treatments exist
 
       if (r.treatments.isNotEmpty)
         SectionCard(
