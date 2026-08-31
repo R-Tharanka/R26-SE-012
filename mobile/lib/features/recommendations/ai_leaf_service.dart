@@ -35,6 +35,8 @@ class AiLeafService {
 
   static const List<String> _severityBands = ['none', 'mild', 'moderate', 'severe'];
 
+  // Configure the Gemini Generative AI model
+  // The system prompt tells the AI to behave like a black pepper agronomist
   late final GenerativeModel _model = GenerativeModel(
     model: AiConfig.model,
     apiKey: AiConfig.apiKey,
