@@ -41,6 +41,7 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
     _run();
   }
 
+  // Runs the AI analysis and updates the UI with its result or an error.
   Future<void> _run() async {
     setState(() {
       _loading = true;
