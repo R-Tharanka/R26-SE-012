@@ -34,6 +34,7 @@ class LeafAnalysis {
   /// One-line plain-language summary for the farmer.
   final String summary;
 
+// Constructor used to create a LeafAnalysis object with all required analysis values
   const LeafAnalysis({
     required this.isPepperLeaf,
     required this.healthy,
