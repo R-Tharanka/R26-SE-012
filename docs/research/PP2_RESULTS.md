@@ -20,7 +20,7 @@ Phase 5 Integration Validation result: COMPLETE with runtime limitations.
 
 Phase 6 PP2 Evidence and Documentation result: COMPLETE.
 
-Post-PP2 runtime update: Phase 8 integrated the selected Berry V2 ONNX into the backend runtime, Phase 9 changed the price forecast runtime from `demo_baseline` to the validated `naive_persistence` method using the V2 National Grade 1 average weekly target, Phase 10 validated the existing recommendation logic with the real runtime grading and forecasting outputs, Phase 11 hardened backend error handling for this component, Phase 12 implemented Firebase persistence with fail-safe behavior when credentials are unavailable, and Phase 13 implemented an offline Flutter TFLite fallback that still requires successful build/device validation.
+Post-PP2 runtime update: Phase 8 integrated the selected Berry V2 ONNX into the backend runtime, Phase 9 changed the price forecast runtime from `demo_baseline` to the validated `naive_persistence` method using the V2 National Grade 1 average weekly target, Phase 10 validated the existing recommendation logic with the real runtime grading and forecasting outputs, Phase 11 hardened backend error handling for this component, Phase 12 implemented Firebase persistence with fail-safe behavior when credentials are unavailable, and Phase 13 implemented an offline Flutter TFLite fallback plus grade-aware predicted-market-price display that still requires successful Flutter build/device validation.
 
 ## Final PP2 Evidence Summary
 
@@ -611,11 +611,15 @@ Implemented behavior:
 - The grading-forecast UI now uses an analysis service that defaults to offline TFLite mode and can switch back to backend API mode with `--dart-define=PEPPER_ANALYSIS_MODE=api`.
 - Offline forecast output uses `naive_persistence_mobile` and the same single-series Grade 1 target limitation as the backend runtime.
 - Offline storage reports `saved_to_firebase: false`; Firebase persistence remains backend-only.
+- The price screen now shows a single `Predicted market price` value for the model-predicted grade and no longer provides a manual grade selector.
+- Grade 2 predicted market price uses a 100 LKR/kg discount derived from the latest observed National average Grade 1 vs Grade 2 gap: 1886.14 minus 1800.00 LKR/kg on 2026-08-18, rounded for display.
+- Grade 3 predicted market price is shown as unavailable because no reliable Grade 3 historical price series exists.
 
 Validation status:
 
 - TFLite export and tensor metadata inspection completed without retraining.
 - Confirmed TFLite input is `[1, 224, 224, 3]` float32 RGB `0..255`, with output `[1, 3]` float32.
+- Focused backend tests for grade-aware pricing and route behavior passed.
 - Flutter build, analyzer, formatter, and emulator validation remain pending because local Flutter/Dart tooling timed out.
 
 Validated API endpoints:

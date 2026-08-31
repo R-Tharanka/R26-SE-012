@@ -126,6 +126,8 @@ Forecasting:
 - Offline mobile visual-feature extraction is implemented in Dart and should be compared against the backend OpenCV-derived feature values before final reporting.
 - Offline mobile forecasting uses the bundled National Grade 1 average weekly series and `naive_persistence_mobile`; it remains single-series and not grade-specific.
 - Offline mobile mode does not write to Firebase. It returns `saved_to_firebase: false`; backend mode is still required for live Firestore persistence.
+- The Grade 2 predicted market price is an estimated adjustment, not an independently trained Grade 2 forecast. It subtracts a rounded 100 LKR/kg discount derived from the latest observed National average Grade 1 vs Grade 2 gap.
+- Grade 3 predicted market price is intentionally unavailable because there is no reliable Grade 3 historical price series in the current market dataset.
 
 ## Script Safety Limitation
 

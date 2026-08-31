@@ -6,7 +6,7 @@ This document is the current source of truth for the PP2 recovery work for the i
 
 ## Current Phase
 
-Current phase: Phase 13 Offline Mobile TFLite Fallback is implemented and awaiting Flutter build/device validation. Manual cross-component integration remains pending.
+Current phase: Phase 13 Offline Mobile TFLite Fallback and grade-aware predicted market price display are implemented and awaiting Flutter build/device validation. Manual cross-component integration remains pending.
 
 Phase 0, Repository and Research Audit, is complete.
 
@@ -39,6 +39,8 @@ Phase 12, Firebase Persistence Implementation, is complete. Firebase persistence
 Phase 12.5, Runtime Model & Forecast Diagnostic Validation, is complete. Direct ONNX inference and backend service inference agreed on a 9-image V2 test diagnostic sample, but a training-vs-runtime preprocessing mismatch was confirmed for later review: training used direct 224x224 resize, while backend runtime uses RGB letterbox to 224x224. Forecast diagnostics confirmed the current runtime uses a single National Grade 1 average weekly `naive_persistence` series, so identical forecasts across berry grades are expected under the current design.
 
 Phase 13, Offline Mobile TFLite Fallback, is implemented and awaiting Flutter validation. The existing selected V2 Keras model was converted to a TensorFlow Lite artifact for on-device berry grading. Flutter now routes grading-forecast analysis through an analysis service that defaults to offline mode and can still use the backend API when built with `--dart-define=PEPPER_ANALYSIS_MODE=api`. No model retraining, dataset modification, or new evaluation metrics were produced during this phase.
+
+Phase 13 price-display correction is implemented. The price page no longer allows manual grade selection and no longer shows separate current/predicted prices. It shows one `Predicted market price` for the model-predicted grade from the uploaded image. Grade 1 uses the National Grade 1 average weekly naive-persistence value. Grade 2 uses a documented gap adjustment from observed National average Grade 1 vs Grade 2 rows. The latest overlapping date, 2026-08-18, had Grade 1 = 1886.14 LKR/kg and Grade 2 = 1800.00 LKR/kg, so the app uses a rounded 100 LKR/kg Grade 2 discount. Grade 3 price is reported as unavailable because no reliable Grade 3 historical price series exists.
 
 ## Project Scope
 
@@ -83,7 +85,7 @@ The SLS 105 Part 1: 2022 reference includes visual, physical, and chemical requi
 | --- | --- | --- |
 | Research audit | COMPLETE | Official documents, guides, codebase, raw data, processed data, and model artifacts were inspected. |
 | Backend API | VALIDATED WITH LIMITATIONS | FastAPI started and required grading-forecast endpoints returned HTTP 200 during Phase 5. |
-| Flutter UI | OFFLINE FALLBACK IMPLEMENTED / BUILD VALIDATION PENDING | Component screens now route grading-forecast analysis through an offline-aware service. Default mode is on-device TFLite; API mode remains available through `PEPPER_ANALYSIS_MODE=api`. |
+| Flutter UI | OFFLINE FALLBACK + GRADE-AWARE PRICE DISPLAY IMPLEMENTED / BUILD VALIDATION PENDING | Component screens now route grading-forecast analysis through an offline-aware service. The price screen shows one predicted market price for the model-predicted grade, with no manual grade selector. |
 | Firebase storage | IMPLEMENTED / LIVE VALIDATION NOT CONFIGURED | Phase 12 implemented Firestore result-history persistence using generated analysis IDs and runtime evidence. Analyze returns `saved_to_firebase: false` without blocking grading, forecast, and recommendation when Firebase is unavailable or save fails. |
 | Berry V1 model | COMPLETED BUT OUTDATED | MobileNetV2 model exists, trained on old 360-image processed dataset. |
 | Berry V2 model | COMPLETE | MobileNetV2 V2 baseline trained, tested, and exported under `ml/grading_forecast/berry_grading/models/v2/`. |
@@ -101,7 +103,7 @@ The SLS 105 Part 1: 2022 reference includes visual, physical, and chemical requi
 | Backend reliability | COMPLETE | Phase 11 added focused request validation and safe error handling for the grading-forecast API without changing datasets, artifacts, model choices, Firebase, or Flutter. |
 | Firebase persistence | COMPLETE / LIVE WRITE NOT VALIDATED | Phase 12 implemented application-level Firestore result persistence, validated mocked success and failure behavior, and made no credential changes. |
 | Runtime diagnostic validation | COMPLETE / ACTION REQUIRED LATER | Phase 12.5 confirmed direct ONNX and backend predictions agree, identified a training-vs-runtime resize/letterbox mismatch for later review, and confirmed forecast output is intentionally single-series under the current Grade 1 target design. |
-| Offline mobile TFLite fallback | IMPLEMENTED / BUILD VALIDATION PENDING | Phase 13 added a TFLite export from the existing V2 Keras model, bundled mobile class/forecast assets, and wired Flutter analysis/recommendation through an offline service. Local Flutter formatting/analyze/build did not complete because the toolchain timed out. |
+| Offline mobile TFLite fallback | IMPLEMENTED / BUILD VALIDATION PENDING | Phase 13 added a TFLite export from the existing V2 Keras model, bundled mobile class/forecast assets, wired Flutter analysis/recommendation through an offline service, and added grade-aware predicted-market-price display. Local Flutter formatting/analyze/build did not complete because the toolchain timed out. |
 
 ## Dataset Status
 
@@ -346,6 +348,7 @@ Forecasting Phase 4 artifacts:
 
 - Flutter offline TFLite integration exists, but successful Flutter build/device validation remains pending.
 - Flutter API mode still exists, but hosted-backend end-to-end validation remains pending because production API calls were rate limited/timed out during manual testing.
+- Mobile/backend grade-aware price behavior needs emulator/API screenshot validation: Grade 1 should show the Grade 1 predicted market price, Grade 2 should show the gap-adjusted predicted market price, and Grade 3 should show price unavailable.
 - Manual cross-component integration remains pending.
 
 ## Phase 7 Existing Implementation Audit Result
@@ -565,12 +568,15 @@ Runtime behavior:
 - Offline grading uses the TFLite model with input shape `[1, 224, 224, 3]`, float32 RGB pixels in the `0..255` range, and output shape `[1, 3]`.
 - Offline forecasting uses the same bundled National Grade 1 average weekly series and returns `naive_persistence_mobile`.
 - Offline persistence returns `saved_to_firebase: false`; live Firebase persistence remains a backend responsibility.
+- Price display is grade-aware: Grade 1 uses the Grade 1 series directly, Grade 2 subtracts the documented 100 LKR/kg Grade 2 discount, and Grade 3 shows unavailable instead of a fabricated predicted price.
+- The Flutter price page shows one label, `Predicted market price`, and does not let the user manually select a different grade.
 
 Validation status:
 
 - TFLite export completed from the existing V2 Keras model; no training was run.
 - TFLite tensor metadata inspection confirmed input `[1, 224, 224, 3]` float32 and output `[1, 3]` float32.
 - Backend artifact tests passed separately after the bundled-artifact fallback work.
+- Focused backend tests for grade-aware pricing and route behavior passed: `14 passed`.
 - Flutter formatting/analyze/build validation is still pending because local Flutter/Dart tooling timed out.
 
 ## Phase 6 Evidence and Documentation Result

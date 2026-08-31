@@ -3,8 +3,6 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
 import '../models/grading_forecast_result.dart';
-import '../services/grading_forecast_analysis_service.dart';
-import '../services/grading_forecast_api_service.dart';
 
 class PriceForecastScreen extends StatefulWidget {
   const PriceForecastScreen({
@@ -21,84 +19,14 @@ class PriceForecastScreen extends StatefulWidget {
 }
 
 class _PriceForecastScreenState extends State<PriceForecastScreen> {
-  static const _gradeOptions = <String>['Grade 1', 'Grade 2', 'Grade 3'];
-  static const _gradeDataNote =
-      'Grade-specific forecasting will be improved after grade-wise market data is available.';
-
-  final _analysisService = GradingForecastAnalysisService();
-
-  late String _selectedGrade;
-  late RecommendationResult _recommendation;
-  bool _isUpdating = false;
-  String? _updateError;
-
-  @override
-  void initState() {
-    super.initState();
-    final initial = widget.result.grading.predictedGrade;
-    _selectedGrade = _gradeOptions.contains(initial) ? initial : _gradeOptions.first;
-    _recommendation = widget.result.recommendation;
-  }
-
-  @override
-  void dispose() {
-    _analysisService.dispose();
-    super.dispose();
-  }
-
-  Future<void> _onGradeChanged(String? next) async {
-    if (next == null || next.trim().isEmpty || next == _selectedGrade) return;
-
-    setState(() {
-      _selectedGrade = next;
-      _isUpdating = true;
-      _updateError = null;
-    });
-
-    final forecast = widget.result.forecast;
-    final grading = widget.result.grading;
-
-    try {
-      final updated = await _analysisService.recommend(
-        grade: next,
-        trend: forecast.trend,
-        qualityScore: grading.qualityScore,
-        currentPriceLkrPerKg: forecast.currentPriceLkrPerKg,
-        predictedPriceLkrPerKg: forecast.predictedPriceLkrPerKg,
-      );
-      if (!mounted) return;
-      setState(() {
-        _recommendation = updated;
-        _isUpdating = false;
-      });
-    } on GradingForecastApiException catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _isUpdating = false;
-        _updateError = e.message;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not update recommendation. Showing previous recommendation.')),
-      );
-    } catch (_) {
-      if (!mounted) return;
-      setState(() {
-        _isUpdating = false;
-        _updateError = 'Could not update recommendation. Please try again.';
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not update recommendation. Showing previous recommendation.')),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final forecast = widget.result.forecast;
     final grading = widget.result.grading;
-    final rec = _recommendation;
+    final rec = widget.result.recommendation;
+    final priceAvailable = _hasPredictedMarketPrice(forecast);
 
     final trendLabel = _prettyTrend(forecast.trend);
     final trendIcon = _trendIcon(forecast.trend);
@@ -130,42 +58,24 @@ class _PriceForecastScreenState extends State<PriceForecastScreen> {
                   Text('Price Forecast', style: theme.textTheme.titleLarge),
                   const SizedBox(height: 12),
                   _kvRow(context, label: 'Predicted grade', value: grading.predictedGrade),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<String>(
-                    value: _selectedGrade,
-                    items: _gradeOptions
-                        .map((g) => DropdownMenuItem<String>(value: g, child: Text(g)))
-                        .toList(growable: false),
-                    decoration: const InputDecoration(
-                      labelText: 'Use grade for recommendation (optional)',
-                      border: OutlineInputBorder(),
-                    ),
-                    onChanged: _onGradeChanged,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(_gradeDataNote, style: theme.textTheme.bodySmall),
                   const SizedBox(height: 16),
                   const Divider(),
                   const SizedBox(height: 12),
                   _kvRow(
                     context,
-                    label: 'Current price (LKR/kg)',
-                    value: forecast.currentPriceLkrPerKg.toString(),
+                    label: 'Predicted market price',
+                    value: _predictedMarketPriceLabel(forecast),
                   ),
-                  _kvRow(
-                    context,
-                    label: 'Predicted price (LKR/kg)',
-                    value: forecast.predictedPriceLkrPerKg.toString(),
-                  ),
-                  _trendRow(
-                    context,
-                    label: 'Trend',
-                    icon: trendIcon,
-                    iconColor: trendColor,
-                    value: trendLabel,
-                  ),
+                  if (priceAvailable)
+                    _trendRow(
+                      context,
+                      label: 'Trend',
+                      icon: trendIcon,
+                      iconColor: trendColor,
+                      value: trendLabel,
+                    ),
                   const SizedBox(height: 8),
-                  Text('Model: ${forecast.model}', style: theme.textTheme.bodySmall),
+                  Text(_priceDataNote(grading.predictedGrade), style: theme.textTheme.bodySmall),
                 ],
               ),
             ),
@@ -180,19 +90,8 @@ class _PriceForecastScreenState extends State<PriceForecastScreen> {
                   Row(
                     children: [
                       Expanded(child: Text('Recommendation', style: theme.textTheme.titleLarge)),
-                      if (_isUpdating)
-                        const SizedBox(width: 16, height: 16, child: CircularProgressIndicator()),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  if (_isUpdating) const LinearProgressIndicator(),
-                  if (_updateError != null) ...[
-                    const SizedBox(height: 8),
-                    Text(
-                      _updateError!,
-                      style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.error),
-                    ),
-                  ],
                   const SizedBox(height: 12),
                   Wrap(
                     spacing: 8,
@@ -237,6 +136,31 @@ class _PriceForecastScreenState extends State<PriceForecastScreen> {
         ],
       ),
     );
+  }
+
+  static bool _hasPredictedMarketPrice(ForecastResult forecast) {
+    return forecast.predictedPriceLkrPerKg > 0 &&
+        !forecast.model.toLowerCase().contains('unavailable');
+  }
+
+  static String _predictedMarketPriceLabel(ForecastResult forecast) {
+    if (!_hasPredictedMarketPrice(forecast)) {
+      return 'Not available';
+    }
+    return 'Rs. ${forecast.predictedPriceLkrPerKg} / kg';
+  }
+
+  static String _priceDataNote(String grade) {
+    switch (grade.trim()) {
+      case 'Grade 1':
+        return 'Based on National Grade 1 average weekly market data.';
+      case 'Grade 2':
+        return 'Estimated from National Grade 1 data using the observed Grade 1 to Grade 2 market-price gap.';
+      case 'Grade 3':
+        return 'Grade 3 market-price prediction is not shown because historical Grade 3 price data is not available.';
+      default:
+        return 'Grade-specific market-price data is limited.';
+    }
   }
 
   static Widget _bulletLine(String line) {

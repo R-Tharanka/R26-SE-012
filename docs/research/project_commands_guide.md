@@ -11,7 +11,7 @@ PP2 status update, 2026-08-31:
 - Phase 4 limited improvement is complete; use explicit `v2_phase4` paths to reproduce it.
 - Phase 5 backend integration validation is complete with runtime limitations.
 - Phase 6 evidence documentation is complete.
-- Phase 13 offline mobile TFLite fallback is implemented, but Flutter build/device validation is still pending.
+- Phase 13 offline mobile TFLite fallback and grade-aware predicted-market-price display are implemented, but Flutter build/device validation is still pending.
 
 ---
 
@@ -636,6 +636,8 @@ Current validation note:
 - Phase 13 Flutter formatter/analyzer/build validation is still pending because the local Flutter/Dart toolchain timed out during attempted validation.
 - Offline mode does not call Railway, Hugging Face, local FastAPI, or Firebase.
 - API mode still uses the configured backend URL and can be affected by network, Railway, backend startup, Hugging Face artifact loading, or rate limiting.
+- The price page shows one `Predicted market price` for the model-predicted grade. It does not provide manual grade selection.
+- Grade 2 uses the documented 100 LKR/kg market-gap adjustment. Grade 3 shows price unavailable because Grade 3 historical price data is unavailable.
 
 ---
 

@@ -14,11 +14,15 @@ class OfflineGradingForecastService {
   static const _classNamesAsset = 'assets/data/berry_grading_class_names.json';
   static const _priceCsvAsset = 'assets/data/national_grade1_average_weekly.csv';
   static const _metricsAsset = 'assets/data/naive_persistence_metrics.json';
+  static const _gradeAdjustmentsAsset = 'assets/data/grade_price_adjustments.json';
   static const _inputSize = 224;
+  static const _grade2AdjustedModel = 'naive_persistence_grade2_gap_adjusted_mobile';
+  static const _grade3UnavailableModel = 'price_unavailable_grade3_mobile';
 
   Interpreter? _interpreter;
   List<String>? _classNames;
   ForecastMetrics? _metrics;
+  int? _grade2Discount;
 
   Future<GradingForecastResult> analyzeBytes(
     Uint8List imageBytes,
@@ -32,13 +36,15 @@ class OfflineGradingForecastService {
     final prediction = await _predictGrade(decoded);
     final features = _extractVisualFeatures(decoded);
     final grading = _buildGrading(prediction, features);
-    final forecast = await _buildForecast();
+    final forecast = await _buildForecast(grading.predictedGrade);
     final recommendation = _buildRecommendation(
       grade: grading.predictedGrade,
       trend: forecast.trend,
       qualityScore: grading.qualityScore,
-      currentPriceLkrPerKg: forecast.currentPriceLkrPerKg,
-      predictedPriceLkrPerKg: forecast.predictedPriceLkrPerKg,
+      currentPriceLkrPerKg:
+          forecast.predictedPriceLkrPerKg <= 0 ? null : forecast.currentPriceLkrPerKg,
+      predictedPriceLkrPerKg:
+          forecast.predictedPriceLkrPerKg <= 0 ? null : forecast.predictedPriceLkrPerKg,
     );
 
     return GradingForecastResult(
@@ -72,8 +78,8 @@ class OfflineGradingForecastService {
       grade: grade,
       trend: trend,
       qualityScore: qualityScore ?? 0,
-      currentPriceLkrPerKg: currentPriceLkrPerKg ?? 0,
-      predictedPriceLkrPerKg: predictedPriceLkrPerKg ?? 0,
+      currentPriceLkrPerKg: currentPriceLkrPerKg,
+      predictedPriceLkrPerKg: predictedPriceLkrPerKg,
     );
   }
 
@@ -321,17 +327,57 @@ class OfflineGradingForecastService {
     );
   }
 
-  Future<ForecastResult> _buildForecast() async {
-    final current = await _latestObservedPrice();
+  Future<ForecastResult> _buildForecast(String grade) async {
+    final grade1Price = await _latestObservedPrice();
     final metrics = await _loadMetrics();
+    final normalized = grade.trim();
+    if (normalized == 'Grade 3') {
+      return ForecastResult(
+        model: _grade3UnavailableModel,
+        currentPriceLkrPerKg: 0,
+        predictedPriceLkrPerKg: 0,
+        trend: 'stable',
+        forecastPeriod: 'next_period',
+        metrics: ForecastMetrics(mae: null, rmse: null),
+      );
+    }
+
+    final price = normalized == 'Grade 2'
+        ? math.max(0, grade1Price - await _loadGrade2Discount()).toInt()
+        : grade1Price;
     return ForecastResult(
-      model: 'naive_persistence_mobile',
-      currentPriceLkrPerKg: current,
-      predictedPriceLkrPerKg: current,
+      model: normalized == 'Grade 2'
+          ? _grade2AdjustedModel
+          : 'naive_persistence_mobile',
+      currentPriceLkrPerKg: price,
+      predictedPriceLkrPerKg: price,
       trend: 'stable',
       forecastPeriod: 'next_period',
-      metrics: metrics,
+      metrics: normalized == 'Grade 2' ? ForecastMetrics(mae: null, rmse: null) : metrics,
     );
+  }
+
+  Future<int> _loadGrade2Discount() async {
+    final loaded = _grade2Discount;
+    if (loaded != null) return loaded;
+
+    try {
+      final raw = await rootBundle.loadString(_gradeAdjustmentsAsset);
+      final decoded = json.decode(raw);
+      if (decoded is Map) {
+        final value = decoded['grade_2_discount_lkr_per_kg'];
+        final parsed = value is num ? value.round() : int.tryParse(value.toString());
+        if (parsed != null && parsed > 0) {
+          _grade2Discount = parsed;
+          return parsed;
+        }
+      }
+    } catch (_) {
+      // Fall through to the documented default below.
+    }
+
+    _grade2Discount = 113;
+    return 113;
   }
 
   Future<int> _latestObservedPrice() async {
@@ -381,18 +427,20 @@ class OfflineGradingForecastService {
     required String grade,
     required String trend,
     required double qualityScore,
-    required int currentPriceLkrPerKg,
-    required int predictedPriceLkrPerKg,
+    required int? currentPriceLkrPerKg,
+    required int? predictedPriceLkrPerKg,
   }) {
     final decision = _decisionFor(grade, trend);
-    final delta = predictedPriceLkrPerKg - currentPriceLkrPerKg;
     return RecommendationResult(
       decision: decision,
       message: _messageFor(decision),
       explanation: [
         'Predicted grade: $grade. Forecast trend: $trend.',
         'Quality score: ${qualityScore.toStringAsFixed(1)}/100.',
-        'Current: $currentPriceLkrPerKg LKR/kg; Predicted: $predictedPriceLkrPerKg LKR/kg (${delta >= 0 ? '+' : ''}$delta).',
+        if (predictedPriceLkrPerKg != null && predictedPriceLkrPerKg > 0)
+          'Predicted market price: $predictedPriceLkrPerKg LKR/kg.'
+        else
+          'Predicted market price is unavailable for $grade because grade-specific historical price data is not available.',
       ],
       urgencyLevel: _urgencyFor(decision),
       suggestedAction: _suggestedActionFor(decision),

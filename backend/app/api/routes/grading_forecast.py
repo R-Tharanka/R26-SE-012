@@ -128,15 +128,19 @@ async def analyze(image: UploadFile | None = None) -> AnalyzeResponse:
 
     grading = _safe_grading_result(image_bytes, image_name)
 
-    forecast = build_price_forecast(seed_hint=image_name)
+    forecast = build_price_forecast(seed_hint=image_name, grade=grading.predicted_grade)
     _require_forecast_available(forecast.model)
     try:
         recommendation = build_recommendation(
             grade=grading.predicted_grade,
             trend=forecast.trend,
             quality_score=grading.quality_score,
-            current_price_lkr_per_kg=forecast.current_price_lkr_per_kg,
-            predicted_price_lkr_per_kg=forecast.predicted_price_lkr_per_kg,
+            current_price_lkr_per_kg=(
+                None if forecast.predicted_price_lkr_per_kg <= 0 else forecast.current_price_lkr_per_kg
+            ),
+            predicted_price_lkr_per_kg=(
+                None if forecast.predicted_price_lkr_per_kg <= 0 else forecast.predicted_price_lkr_per_kg
+            ),
         )
     except Exception as exc:
         LOGGER.exception("Unexpected recommendation failure.")

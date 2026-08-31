@@ -724,6 +724,8 @@ Scope:
 - Bundle class names, Naive Persistence metrics, and the National Grade 1 weekly price series into Flutter assets.
 - Route Flutter grading-forecast screens through an analysis service that defaults to offline mode.
 - Keep backend API mode available through `--dart-define=PEPPER_ANALYSIS_MODE=api`.
+- Show one `Predicted market price` for the model-predicted grade instead of separate current/predicted prices.
+- Use the observed Grade 1 vs Grade 2 market-price gap for Grade 2 adjustment and show Grade 3 price as unavailable.
 
 Validation boundary:
 

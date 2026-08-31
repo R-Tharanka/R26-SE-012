@@ -464,6 +464,11 @@ Status: IMPLEMENTED / BUILD VALIDATION PENDING
 - [x] Keep backend API mode available with `PEPPER_ANALYSIS_MODE=api`.
 - [x] Keep offline Firebase persistence disabled and report `saved_to_firebase: false`.
 - [x] Confirm TFLite tensor metadata without running model training.
+- [x] Remove manual grade selection from the price forecast page.
+- [x] Show one `Predicted market price` label instead of separate current and predicted prices.
+- [x] Apply Grade 2 predicted market price adjustment from the observed Grade 1 vs Grade 2 historical gap.
+- [x] Mark Grade 3 predicted market price unavailable because Grade 3 historical price data is unavailable.
+- [x] Run focused backend tests for grade-aware pricing and route behavior.
 - [ ] Run Flutter formatter successfully.
 - [ ] Run Flutter analyzer successfully.
 - [ ] Build APK successfully.
@@ -482,6 +487,9 @@ Evidence:
 - Flutter services: `mobile/lib/features/grading_forecast/services/offline_grading_forecast_service.dart`, `mobile/lib/features/grading_forecast/services/grading_forecast_analysis_service.dart`.
 - TFLite input: `[1, 224, 224, 3]` float32 RGB `0..255`.
 - TFLite output: `[1, 3]` float32.
+- Grade 2 price adjustment: 100 LKR/kg discount, based on latest overlapping National average Grade 1 vs Grade 2 gap on 2026-08-18.
+- Grade 3 price behavior: unavailable, not displayed as a fabricated price.
+- Focused backend validation command: `.\.venv\Scripts\python.exe -m pytest --basetemp=C:\tmp\pytest-pepper backend\tests\test_price_forecast_service.py backend\tests\test_grading_forecast_routes.py`, result `14 passed`.
 - No model training, dataset modification, or new evaluation metrics were produced.
 - Flutter formatter/analyzer/build validation is pending because local Flutter/Dart tooling timed out.
 
