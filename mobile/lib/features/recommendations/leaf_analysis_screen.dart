@@ -78,6 +78,7 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
     );
   }
 
+  // Selects the appropriate content for the current loading, error, or result state.
   List<Widget> _body() {
     if (_loading) {
       return const [LoadingView(message: 'Analysing leaf with AI…')];
