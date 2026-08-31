@@ -26,6 +26,7 @@ class PestAnalysis {
   final String affectedRegions;
   final String summary;
 
+  /// Creates a new pest analysis result.
   const PestAnalysis({
     required this.isPepperPlant,
     required this.healthy,
@@ -46,6 +47,11 @@ class PestAnalysis {
     return 'severe';
   }
 
+  /// Creates a [PestAnalysis] object from JSON data.
+  ///
+  /// This is normally used to convert the response received
+  /// from the AI backend/API into a Dart object that can be used
+  /// throughout the Flutter application.
   factory PestAnalysis.fromJson(Map<String, dynamic> j) {
     double asDouble(Object? v) =>
         v is num ? v.toDouble() : (double.tryParse('${v ?? ''}') ?? 0);
