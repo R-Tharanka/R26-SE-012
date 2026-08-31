@@ -1,11 +1,23 @@
+// Imports Flutter Material package for UI components
+
 import 'package:flutter/material.dart';
 
+// Imports the model configuration class used to configure the scanner model
 import '../../../shared/models/scanner_model_config.dart';
+
+// Imports the reusable scanner UI that performs the scanning process
 import '../../../shared/widgets/scanner_view.dart';
 
+// Configuration details for the pest detection YOLO model
 const _pestConfig = ScannerModelConfig(
+
+    // Unique ID used to identify this scanner/model
   id: 'pest',
+
+    // Display name of the model
   label: 'Pest',
+
+    // Path to the trained TensorFlow Lite pest detection model
   assetPath: 'assets/models/new_pest_yolo_model_int8.tflite',
   classNames: [
     'Diconocoris distanti',
