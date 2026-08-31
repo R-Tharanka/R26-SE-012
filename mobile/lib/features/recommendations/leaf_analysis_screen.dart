@@ -124,7 +124,12 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
           ),
         ),
       ]),
+    
+      // =====================================================
+      // SEVERITY AND CONFIDENCE
+      // =====================================================
 
+      // Display severity percentage and AI confidence side by side
       const SizedBox(height: 18),
       Row(children: [
         Expanded(
