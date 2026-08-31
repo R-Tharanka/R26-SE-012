@@ -13,6 +13,12 @@ import 'remediation_engine.dart' show Market, TreatmentOption;
 /// - Additional treatment or export notes
 class PestTreatment {
   final String action; // headline
+
+  /// Indicates whether the pest infestation has crossed
+  /// the economic treatment threshold.
+  ///
+  /// false = monitoring/prevention only.
+  /// true = treatment may be required.
   final bool aboveThreshold; // false → monitoring only (below the ETL)
   final List<TreatmentOption> options; // ordered: cultural → biological → chemical
   final List<String> warnings;
