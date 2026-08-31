@@ -89,6 +89,7 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
     return _result == null ? const [] : _resultBody(_result!);
   }
 
+  // Builds the appropriate result widgets from the completed leaf analysis.
   List<Widget> _resultBody(LeafAnalysis r) {
     if (!r.isPepperLeaf) {
       return [
