@@ -26,6 +26,7 @@ class LeafAnalysisScreen extends StatefulWidget {
   State<LeafAnalysisScreen> createState() => _LeafAnalysisScreenState();
 }
 
+// Holds and manages the changing state of the analysis screen
 class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
   final _service = AiLeafService();
   late Future<LeafAnalysis>? _pending = widget.prefetch;
@@ -33,12 +34,14 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
   LeafAnalysis? _result;
   String? _error;
 
+  // Starts the leaf analysis as soon as the screen state is initialized.
   @override
   void initState() {
     super.initState();
     _run();
   }
 
+  // Runs the AI analysis and updates the UI with its result or an error.
   Future<void> _run() async {
     setState(() {
       _loading = true;
@@ -64,6 +67,7 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
     }
   }
 
+  // Builds the shared analysis layout with the selected leaf image and results.
   @override
   Widget build(BuildContext context) {
     return AnalysisScaffold(
@@ -74,6 +78,7 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
     );
   }
 
+  // Selects the appropriate content for the current loading, error, or result state.
   List<Widget> _body() {
     if (_loading) {
       return const [LoadingView(message: 'Analysing leaf with AI…')];
@@ -84,6 +89,7 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
     return _result == null ? const [] : _resultBody(_result!);
   }
 
+  // Builds the appropriate result widgets from the completed leaf analysis.
   List<Widget> _resultBody(LeafAnalysis r) {
     if (!r.isPepperLeaf) {
       return [
@@ -97,9 +103,11 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
       ];
     }
 
+    // Choose the result accent color from the leaf's health and severity status.
     final accent = r.healthy ? kBrand : bandColor(r.severityBand);
     final sev = r.severityPercentage ?? 0;
 
+    // Assemble the diagnosis summary and supporting detail sections.
     return [
       // headline
       Row(children: [
@@ -123,7 +131,12 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
           ),
         ),
       ]),
+    
+      // =====================================================
+      // SEVERITY AND CONFIDENCE
+      // =====================================================
 
+      // Display severity percentage and AI confidence side by side
       const SizedBox(height: 18),
       Row(children: [
         Expanded(
@@ -165,7 +178,12 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
         const SizedBox(height: 16),
         AnimatedBar(fraction: sev / 100, color: accent),
       ],
+    
+      // =====================================================
+      // AFFECTED REGIONS
+      // =====================================================
 
+      // Display where the AI detected visible symptoms
       if (r.affectedRegions.isNotEmpty)
         SectionCard(
           icon: IconlyBold.show,
@@ -173,6 +191,12 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
           child: Text(r.affectedRegions,
               style: TextStyle(color: kTextSub, height: 1.45)),
         ),
+
+      // =====================================================
+      // TREATMENT RECOMMENDATIONS
+      // =====================================================
+
+      // Display treatment suggestions only when treatments exist
 
       if (r.treatments.isNotEmpty)
         SectionCard(
@@ -213,6 +237,13 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
           ),
         ),
 
+      // =====================================================
+      // AI DISCLAIMER
+      // =====================================================
+
+      // Inform the farmer that the result is only an AI estimate
+      // and professional confirmation is recommended
+
       const InfoCard(
         icon: IconlyBold.info_circle,
         color: Color(0xFF64748B),
@@ -222,6 +253,12 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
       ),
 
       const SizedBox(height: 18),
+      // =====================================================
+      // RETAKE BUTTON
+      // =====================================================
+
+      // Return to the previous screen so the user can
+      // capture and analyse another leaf image
       FilledButton.icon(
         onPressed: () => Navigator.of(context).pop(),
         style: FilledButton.styleFrom(
@@ -234,5 +271,6 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
     ];
   }
 
+// Converts the AI confidence value into an easy-to-understand label
   String _conf(double c) => c >= 0.75 ? 'High' : (c >= 0.5 ? 'Medium' : 'Low');
 }

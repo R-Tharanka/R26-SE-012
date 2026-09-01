@@ -19,7 +19,7 @@ const _leafConfig = ScannerModelConfig(
   ],
 );
 
-// Displays the shared scanner UI configured for leaf-disease detection.
+/// Displays the shared scanner UI configured for leaf-disease detection.
 class LeafScannerScreen extends StatelessWidget {
   const LeafScannerScreen({super.key});
 

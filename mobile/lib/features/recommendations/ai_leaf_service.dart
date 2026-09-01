@@ -73,6 +73,7 @@ class AiLeafService {
     }
 
     final text = res.text?.trim();
+    // Check whether Gemini returned an empty response
     if (text == null || text.isEmpty) {
       throw LeafAnalysisException(
         'AI returned no result (possibly blocked or empty).',
@@ -80,7 +81,11 @@ class AiLeafService {
     }
 
     try {
+       // Convert the JSON text response into a Dart Map
       final json = jsonDecode(text) as Map<String, dynamic>;
+
+       // Convert the Dart Map into a LeafAnalysis object
+      // which can be used by the application UI
       return LeafAnalysis.fromJson(json);
     } catch (_) {
       throw LeafAnalysisException('Could not parse AI response:\n$text');
@@ -114,11 +119,14 @@ Rules:
 - Be honest about confidence. A single photo has limits.
 ''';
 
+ // Simple instruction sent together with the leaf image
+  // asking Gemini to perform the analysis
   static const String _taskPrompt =
       'Analyse this black pepper leaf photo and return the JSON result.';
 
   static final Schema _schema = Schema.object(
     properties: {
+      // Define the structure of the expected JSON response
       'is_pepper_leaf': Schema.boolean(
         description: 'True only if the image clearly shows a black pepper leaf.',
       ),
@@ -150,6 +158,8 @@ Rules:
         description: 'One plain-language sentence for the farmer.',
       ),
     },
+    // These fields are compulsory in every AI response
+    // This helps prevent missing data in the application
     requiredProperties: [
       'is_pepper_leaf',
       'healthy',
