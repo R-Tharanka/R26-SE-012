@@ -555,3 +555,95 @@ Open decisions:
 Decision record: `docs/research/V3_DECISION_RECORD.md`.
 
 Gate result: `BLOCKED — RESEARCHER DECISION REQUIRED` before Phase 1/model development.
+
+## Phase 1 V3 Audit and Grading Diagnosis
+
+### V3-PHASE1-AUDIT
+
+Date: 2026-10-06.
+
+Phase: 1 - dataset audit and grading diagnosis; no model training.
+
+Dataset version: `berry_v3`.
+
+Physical-sample grouping source:
+
+- `D:/work/Year - 4/pepper/project/datset reorder/`
+- This pre-Roboflow source was used only for image-to-physical-sample identity.
+- Roboflow V3 remains the source of YOLO bounding-box annotations and V3 class labels.
+
+Source and exact-hash mapping result:
+
+- Source structure: `grade_1` = 112 physical samples/448 images; `grade_2` = 82 physical samples/327 images.
+- Total: 194 physical samples and 775 images.
+- SHA-256 exact V3-to-source matches: 775/775.
+- Unmatched: 0.
+- Ambiguous matches: 0.
+- Duplicate source-hash groups: 0.
+- Class consistency: all 448 source `grade_1` images map to V3 Grade 1 and all 327 source `grade_2` images map to V3 Grade 2.
+
+Group-aware split, seed 42:
+
+- TRAIN: 135 groups, 539 images; V3 Grade 1 = 312 images, V3 Grade 2 = 227 images.
+- VALIDATION: 29 groups, 116 images; V3 Grade 1 = 68 images, V3 Grade 2 = 48 images.
+- TEST: 30 groups, 120 images; V3 Grade 1 = 68 images, V3 Grade 2 = 52 images.
+- Pairwise physical-sample intersections are empty.
+- The partition union contains all 194 groups and every V3 image appears exactly once.
+
+Blind-review status:
+
+- A validation-only blind package was prepared with 20 V3 Grade 1 and 20 V3 Grade 2 images, neutral IDs, seed 42, and a separate concealed key.
+- Status: complete; all 40 responses were valid and the key was opened only after completion.
+- Overall agreement: 32/40 = 80.0%.
+- V3 Grade 1 agreement: 18/20 = 90.0%.
+- V3 Grade 2 agreement: 14/20 = 70.0%.
+- Uncertain: 4/40 = 10.0%, with two from each V3 grade.
+- Agreement among 36 non-uncertain responses: 32/36 = 88.9%.
+- Confusion matrix, rows = true V3 Grade 1/Grade 2 and columns = researcher Grade 1/Grade 2/Uncertain: `[[18, 0, 2], [4, 14, 2]]`.
+- Cohen's kappa across all 40 responses, treating Uncertain as a third response category: 0.636.
+- Supplementary accepted-only binary kappa across 36 non-uncertain responses: 0.778.
+- All four incorrect decisive responses were V3 Grade 2 labeled Grade 1 and came from two physical samples, with two views from each sample.
+
+Shortcut audit result:
+
+- Risk: **HIGH**.
+- All images are 4:3 and mean brightness is similar by class.
+- Device/resolution is strongly class-correlated: Galaxy A06 appears in 144/448 V3 Grade 1 images but only 1/327 V3 Grade 2 images; 4080x3060 or 8160x6120 occurs in 144 Grade 1 images but only one Grade 2 image.
+- Background contact-sheet inspection found hands, pale paper/surfaces, and grey/metal-like surfaces in both classes; it did not prove an exclusive background rule.
+
+V2 saliency result:
+
+- Existing frozen V2 MobileNetV2 only; no retraining or model change.
+- 109 historical test images were screened to select nine deterministic examples: three correct and six incorrect, covering all three historical classes.
+- Input-gradient saliency classifications: three PEPPER-FOCUSED, six MIXED, zero BACKGROUND-FOCUSED, zero UNCLEAR.
+- Hands and surrounding surfaces contributed visibly in multiple examples. Saliency is diagnostic and does not prove causal reasoning.
+
+Final Phase 1 verdict:
+
+```text
+LABEL QUALITY: acceptable
+SHORTCUT RISK: high
+SPLIT: leakage-free
+TASK: feasible
+```
+
+Unresolved issues:
+
+- The high camera/resolution shortcut risk must be mitigated and evaluated if the task proceeds.
+- Dataset label agreement still does not establish equivalence to official SLS, buyer, or price-data grades.
+- The blind review is a small single-researcher diagnostic and not definitive statistical or external validation.
+- V3 Grade 2 had lower human agreement than V3 Grade 1 and requires explicit per-class monitoring.
+
+Artifacts:
+
+- `docs/research/V3_PHASE1_AUDIT.md`
+- `data/processed/grading_forecast/berry_v3/v3_image_sample_manifest.csv`
+- `data/processed/grading_forecast/berry_v3/v3_group_split_manifest.csv`
+- `data/processed/grading_forecast/berry_v3/v3_phase1_audit_summary.json`
+- `data/processed/grading_forecast/berry_v3/v3_background_contact_sheet.jpg`
+- `data/processed/grading_forecast/berry_v3/blind_review/`
+- `ml/grading_forecast/berry_grading/evaluation/_outputs/v3_phase1_v2_saliency/`
+- `ml/grading_forecast/berry_grading/preprocessing/audit_berry_v3_phase1.py`
+- `ml/grading_forecast/berry_grading/evaluation/diagnose_v2_saliency.py`
+
+Gate result: `PHASE 1 COMPLETE`. The task is feasible for a separately authorized Phase 2, subject to the documented shortcut and semantic limitations. No Phase 2 work was started.
