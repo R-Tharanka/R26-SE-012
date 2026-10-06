@@ -518,3 +518,40 @@ Limitations:
 - Missing calendar weeks remain; lags represent previous available observations.
 - Test period contains only 36 prediction timestamps.
 - Grade 2 forecasting remains out of scope.
+
+## Phase 0 V3 Research Definition Decision
+
+### V3-PHASE0-RESEARCH-DEFINITION
+
+Date: 2026-10-06.
+
+Phase: 0 — Research-definition lock; documentation decision, not a model experiment.
+
+Dataset version: `berry_v3` source/export review.
+
+Research decision:
+
+- The V3 unit of prediction is the harvested pepper sample/batch represented in a smartphone image, not an individual berry.
+- The intended task is YOLO-based sample/batch detection/localization followed by sample/batch-level classification as V3 Grade 1 or V3 Grade 2.
+- The system must reject non-pepper/invalid inputs, inadequate-quality images, and insufficient-confidence detections or grades instead of always forcing a grade.
+- Confidence and quality thresholds will be selected later using validation data; no Phase 0 thresholds were invented.
+- Final V3 evaluation must use physical-sample/group-aware splits and a sealed held-out test set. The current Roboflow image-level split is not accepted as the final research split because 146 of 194 physical sample groups cross split boundaries.
+- V1 and V2 remain unchanged historical baselines. V3 will use separate versioned artifacts.
+
+Verified taxonomy mapping:
+
+```text
+Original/source Grade 1 + Original/source Grade 2 -> V3 Grade 1
+Original/source Grade 3                           -> V3 Grade 2
+```
+
+Open decisions:
+
+- The repository does not establish scientific equivalence between this custom two-class collapse and SLS grades. The included SLS standard defines three whole-pepper grades.
+- The original folder-label provenance and expert/measurement validation are not recorded.
+- The Department of Export Agriculture price data uses Grade 1/2 names, but its definitions are not stored, so compatibility with V3 image classes is unproven.
+- V3 contains only positive pepper images with one box each; a later approved negative/invalid-input protocol is required to train/calibrate/evaluate rejection.
+
+Decision record: `docs/research/V3_DECISION_RECORD.md`.
+
+Gate result: `BLOCKED — RESEARCHER DECISION REQUIRED` before Phase 1/model development.
