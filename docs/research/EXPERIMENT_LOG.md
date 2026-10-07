@@ -1127,3 +1127,25 @@ Artifacts:
 - `ml/grading_forecast/decision_support/phase6/phase6_decision_trace.csv`
 - `ml/grading_forecast/decision_support/phase6/phase6_metrics.json`
 - `ml/grading_forecast/decision_support/phase6/phase6_integrity.json`
+
+## Phase 7 — ONNX/TFLite + Backend/Mobile Integration
+
+### PHASE7-ONNX-BACKEND-MOBILE-001
+
+Date: 2026-10-07.
+
+- Objective: convert the frozen V3 grading/rejection model and Phase 6 rule layer into an executable backend/mobile research path without retraining or changing research decisions.
+- Frozen inputs: Phase 3 follow-up `.pt` and decision thresholds, Phase 4 canonical data, Phase 5 external predictions/model specification, and the Phase 6 configuration and decision modules were hash-pinned.
+- Conversion: exported a fixed `[1,3,640,640]` YOLO11n ONNX opset-20 graph with embedded NMS and `[1,300,6]` output. Normalized export metadata made two exports byte-identical. ONNX SHA-256: `f8bb36b3ce9c354fd0707f555dbff88bc4f24606b4b93be99a74b03e6db54d38`.
+- Equivalence: five fixed Grade 1, Grade 2, non-pepper, poor-quality, and uncertain cases passed 5/5 at predeclared tolerances. Decision and rejection agreement were 5/5; maximum confidence difference was `1.78813934326172e-07` and maximum box difference was `0.000823974609375` original-image pixel.
+- Runtime: backend ONNX Runtime was selected. V3 TFLite was not produced or claimed; the older bundled MobileNet TFLite model is not the frozen V3 detector. Direct ONNX Runtime Mobile was not selected because the existing API architecture can preserve one verified implementation of preprocessing, decisions, pricing, and trace logic.
+- Price service: selected the latest approved frozen Phase 5 forecast record for the exact grade. This is not live forecasting and does not pretend a serialized Phase 5 checkpoint exists.
+- Integration: `POST /api/v1/grading-forecast/analyze` now returns Phase 6-compatible `grading`, `market`, `decision_support`, and `trace` structures. Legacy standalone grading/forecast/recommendation paths are retired to prevent older three-grade, discounted-price, and trading-style behavior.
+- Mobile: Flutter consumes the backend schema and exposes rejection, uncertainty, accepted outlook, source, interval, persistence comparison, limitations, and trace states. Static analysis passed with no issues and 2/2 focused parser tests passed.
+- Backend tests: 8/8 focused tests passed, including a real Grade 1 multipart API path and explicit missing-price/missing-forecast responses.
+- End-to-end controlled set: Grade 1 and Grade 2 routed correctly; non-pepper, poor-quality, and uncertain inputs were blocked from pricing; deterministic repeat passed.
+- Integrity: 22/22 checks passed. Frozen research artifacts remained unchanged.
+- Mobile runtime boundary: Android debug build entered Gradle but did not complete within the bounded window and was stopped. No emulator or physical-device execution is claimed.
+- Limitations: no field/domain-shift evidence, uncalibrated grading scores, project-specific V3 taxonomy, mixed Phase 5 signal, weaker Grade 2 price performance, wide intervals, frozen rather than live forecasts, and no independent end-to-end field or user-usefulness evaluation.
+- Decision: `COMPLETE WITH LIMITATIONS`. This phase establishes conversion and integration behavior, not new predictive accuracy or production readiness.
+- Next phase: Phase 8 is ready with limitations for separately authorized prospective field validation. It was not started.

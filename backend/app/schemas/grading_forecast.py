@@ -5,6 +5,75 @@ from enum import Enum
 from pydantic import BaseModel, Field
 
 
+class Phase7GradingResult(BaseModel):
+    status: str
+    decision: str
+    grade: str | None = None
+    model_confidence: float | None = None
+    detection_confidence: float | None = None
+    class_margin: float | None = None
+    quality_status: str
+    rejection_reason: str | None = None
+    physical_sample_id: str | None = None
+    confidence_interpretation: str
+    image_decisions: list[dict] | None = None
+    aggregation: dict | None = None
+
+
+class Phase7ForecastInterval(BaseModel):
+    lower: float
+    upper: float
+    label: str
+    probability_claim: bool
+
+
+class Phase7MarketResult(BaseModel):
+    status: str
+    source: str | None = None
+    source_organization: str | None = None
+    source_url: str | None = None
+    unit: str | None = None
+    price_grade: str | None = None
+    model_scope: str | None = None
+    latest_reference_date: str | None = None
+    latest_reference_price: float | None = None
+    latest_price_interpretation: str | None = None
+    previous_reference_price: float | None = None
+    latest_observed_return: float | None = None
+    forecast_target_date: str | None = None
+    forecast_log_return: float | None = None
+    forecast_return: float | None = None
+    forecast_price: float | None = None
+    forecast_direction: str | None = None
+    forecast_interval: Phase7ForecastInterval | None = None
+    persistence_price: float | None = None
+    model_vs_persistence: str | None = None
+    forecast_signal: str | None = None
+    evidence_partition: str | None = None
+
+
+class Phase7DecisionSupport(BaseModel):
+    category: str
+    summary: str
+    limitations: list[str]
+
+
+class Phase7Runtime(BaseModel):
+    grading: str
+    price: str
+    mobile: str
+    tflite: str
+
+
+class Phase7AnalyzeResponse(BaseModel):
+    schema_version: str
+    grading: Phase7GradingResult
+    market: Phase7MarketResult
+    decision_support: Phase7DecisionSupport
+    trace: dict
+    runtime: Phase7Runtime
+
+
 class GradeEnum(str, Enum):
     grade_1 = "Grade 1"
     grade_2 = "Grade 2"

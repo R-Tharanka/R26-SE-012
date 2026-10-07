@@ -3,7 +3,8 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
 import '../services/grading_forecast_analysis_service.dart';
-import '../services/grading_forecast_api_service.dart' show GradingForecastApiException;
+import '../services/grading_forecast_api_service.dart'
+    show GradingForecastApiException;
 import 'berry_quality_result_screen.dart';
 
 class ProcessingScreen extends StatefulWidget {
@@ -91,7 +92,9 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
                         children: [
                           CircularProgressIndicator(),
                           SizedBox(height: 16),
-                          Text('Analyzing berry quality...'),
+                          Text(
+                            'Running frozen grading and price decision support...',
+                          ),
                         ],
                       )
                     : Column(
