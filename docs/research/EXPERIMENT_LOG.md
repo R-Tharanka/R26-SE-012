@@ -746,3 +746,60 @@ Artifacts:
 - `ml/grading_forecast/berry_grading/evaluation/v3_yolo/`
 
 Gate result: `PHASE 2 COMPLETE`. Stop for researcher review; Phase 3 was not started.
+
+## Phase 3 Non-Pepper Rejection, Image-Quality Gating, and Uncertainty Calibration
+
+### BERRY-V3-YOLO11N-PHASE3-001
+
+Date: 2026-10-07.
+
+Objective: evaluate the frozen Phase 2 YOLO11n checkpoint on external non-pepper inputs and add validation-calibrated quality and uncertainty rejection logic. No training, V3 modification, application integration, or sealed-test reuse was permitted.
+
+Preservation and data discipline:
+
+- Frozen checkpoint: `ml/grading_forecast/berry_grading/models/v3_yolo/best.pt`.
+- Checkpoint SHA-256 before/after: `c35cc40515adcb6130a4bc93e8ad3de161dcf46b263a9d7df8286a5b4239a9c4`; unchanged.
+- Phase 2 sealed TEST accessed: no.
+- Calibration positives: the 116-image V3 VALIDATION partition only.
+- External negatives: 80 Wikimedia Commons thumbnails across 10 retrieval strata; deterministic seed-42 split into 40 CALIBRATION and 40 held-out EVALUATION images.
+- External manifest: 80 unique hashes, zero V3 hash overlap, and complete source-page/license metadata. Contact-sheet audit confirmed 80/80 were non-pepper.
+
+Frozen-model negative baseline over all 80 images:
+
+- Confidence 0.05: 58/80 rejected (72.5%); 22/80 falsely accepted (27.5%).
+- Confidence 0.25: 65/80 rejected (81.25%); 15/80 falsely accepted (18.75%).
+- At 0.25, false acceptance was concentrated in leaves/plants (6/8) and other crops (4/8).
+
+Validation-only/calibration-negative decisions:
+
+- Detection confidence: 0.55, selected by minimizing calibration-negative false acceptance while retaining at least 95% of validation pepper images. It retained 116/116 and falsely accepted 6/40 calibration negatives.
+- Quality rules: Laplacian variance >= 10; brightness >= 50/255; minimum dimension >= 320; detected-box area ratio >= 0.20.
+- Controlled quality diagnostic: 12 source validation images produced 36 derived challenges; the respective gates rejected 12/12 blur, 12/12 dark, and 12/12 low-resolution variants, with 0/116 natural validation quality rejections.
+- Uncertainty rules: top grade confidence >= 0.05 and class margin >= 0.30. These are abstention heuristics, not calibrated probabilities.
+
+Final consolidated result:
+
+- Valid validation images: 111/116 accepted (95.69% coverage); 5/116 uncertainty rejections (4.31% false-rejection rate); accepted accuracy 108/111 = 97.30%; accepted macro F1 0.9725.
+- Accepted grade confusion matrix, true rows Grade 1/2: `[[61, 3], [0, 47]]`.
+- Held-out non-pepper images: 35/40 rejected (87.5%); 5/40 falsely accepted (12.5%). Decisions: 33 `NO_PEPPER`, 2 `POOR_IMAGE`, 3 false Grade 1, 2 false Grade 2.
+- Consolidated matrix, rows valid pepper/non-pepper and columns Grade 1/Grade 2/Poor Image/No Pepper/Uncertain: `[[61, 50, 0, 0, 5], [3, 2, 2, 33, 0]]`.
+
+Failure pattern and conclusion:
+
+- All five held-out false accepts were leaves/plants or other crops, with confidence 0.589-0.943. The highest-confidence error was a full-image aerial-crop detection at 0.943.
+- Raising the threshold enough to eliminate this pattern would violate the predeclared valid-pepper retention constraint.
+- Phase 3 evaluation is complete, but operational non-pepper rejection is not solved. A separately authorized controlled hard-negative/open-set experiment is justified; no retraining was performed in this phase.
+- Status: `PHASE 3 COMPLETE - OPERATIONAL REJECTION GATE NOT PASSED`.
+- Phase 4 readiness: no; researcher authorization/decision is required before any hard-negative retraining or integration.
+
+Artifacts:
+
+- `docs/research/V3_PHASE3_REJECTION_RESULTS.md`
+- `data/external/phase3_rejection/non_pepper/`
+- `data/processed/grading_forecast/berry_v3/phase3_negative_manifest.csv`
+- `data/processed/grading_forecast/berry_v3/phase3_negative_dataset_summary.json`
+- `ml/grading_forecast/berry_grading/rejection/phase3/`
+- `ml/grading_forecast/berry_grading/quality/phase3/`
+- `ml/grading_forecast/berry_grading/evaluation/v3_phase3/`
+
+Gate result: `PHASE 3 COMPLETE`. Stop for researcher review. Do not begin retraining, Phase 4, backend/mobile integration, or price-forecasting work without separate authorization.

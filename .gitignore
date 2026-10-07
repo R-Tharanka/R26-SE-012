@@ -64,6 +64,10 @@ ml/grading_forecast/berry_grading/models/v3_yolo/training_run/weights/
 ml/**/evaluation/_outputs/
 ml/**/evaluation/_outputs/*
 
+# Phase 3 controlled quality perturbations are reproducibly generated from
+# validation images; keep the calibration code/results, not derived pixels.
+data/processed/grading_forecast/berry_v3/phase3_quality_challenges/
+
 # Flutter/Dart
 .dart_tool/
 .flutter-plugins
