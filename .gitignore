@@ -29,6 +29,7 @@ backend/secrets/
 data/raw/Pepper Berry Grading V3.yolov8
 data/processed/grading_forecast/berry_v3/blind_review/review_images/
 data/processed/grading_forecast/berry_v3/yolo_phase2/materialized/
+data/processed/grading_forecast/berry_v3/phase3_followup_yolo/materialized/
 data/raw/berry_images
 data/processed/grading_forecast/berry_images_processed/
 data/processed/grading_forecast/*.csv
@@ -68,6 +69,8 @@ model_cache/
 /weights/
 ml/grading_forecast/berry_grading/models/v3_yolo/last.pt
 ml/grading_forecast/berry_grading/models/v3_yolo/training_run/weights/
+ml/grading_forecast/berry_grading/models/v3_phase3_followup/last.pt
+ml/grading_forecast/berry_grading/models/v3_phase3_followup/training_run/weights/
 
 # Training/evaluation outputs
 ml/**/evaluation/_outputs/

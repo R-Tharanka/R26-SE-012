@@ -954,3 +954,23 @@ Artifacts:
 - `ml/grading_forecast/price_forecasting/phase5/outputs/`
 
 Gate result: `PHASE 5 COMPLETE — MIXED EVIDENCE BEYOND PERSISTENCE`. Stop for researcher review. Phase 6 was not started.
+
+
+## Phase 3 Follow-up — Controlled Hard-Negative Training
+
+### BERRY-V3-YOLO11N-PHASE3-FOLLOWUP-001
+
+Date: 2026-10-07.
+
+- Objective: reduce vegetation/crop false acceptance without unacceptable genuine-pepper or G1/G2 regression.
+- Hypothesis: controlled empty-label hard negatives improve the operational rejection gate.
+- Dataset: licensed/provenanced Wikimedia negatives, SHA-256 deduplicated, creator-group-aware 60/20/20 split; frozen V3 TRAIN/VALIDATION/TEST preserved.
+- Model: frozen Phase 2 YOLO11n checkpoint plus one-shot hard-negative fine-tuning; architecture unchanged.
+- Training configuration: 640 px, batch 4, AdamW, LR 0.0001, seed 42, deterministic, maximum 30 epochs/patience 8; early stopped after epoch 27 with epoch 19 selected.
+- Threshold rule: validation-only grid; require at least 95% valid coverage, maximize negative rejection, then accepted macro F1, then coverage, then lowest threshold. Selected 0.05.
+- Validation: valid coverage 98.28%; negative rejection 100.00%.
+- Final new holdout: 49/49 rejected (100.00%); 0 false accepts.
+- Phase 2 TEST regression: accuracy 0.9583; macro F1 0.9643; G1/G2 F1 0.9781/0.9505; 2 rejections.
+- Decision: `COMPLETE — OPERATIONAL GATE IMPROVED`; hypothesis `SUPPORTED`.
+- Limitations: internet-domain negatives, finite unseen holdout, unresolved field/camera shift, no confidence calibration, exact-hash but not semantic deduplication.
+- Next phase: stop for researcher review; do not proceed to Phase 6 automatically.
