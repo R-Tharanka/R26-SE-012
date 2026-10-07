@@ -647,3 +647,102 @@ Artifacts:
 - `ml/grading_forecast/berry_grading/evaluation/diagnose_v2_saliency.py`
 
 Gate result: `PHASE 1 COMPLETE`. The task is feasible for a separately authorized Phase 2, subject to the documented shortcut and semantic limitations. No Phase 2 work was started.
+
+## Phase 2 V3 YOLO-Based Sample Detection and Grade Classification
+
+### BERRY-V3-YOLO11N-001
+
+Date: 2026-10-07.
+
+Objective: train and evaluate one lightweight YOLO-based harvested pepper sample/batch detector and two-grade classifier using the leakage-free physical-sample split. This was not per-berry detection or grading.
+
+Dataset and split:
+
+- Dataset version: `berry_v3`; 775 images, 194 physical samples, one sample-level YOLO box per image.
+- TRAIN: 135 groups/539 images; V3 Grade 1 = 312, V3 Grade 2 = 227.
+- VALIDATION: 29 groups/116 images; V3 Grade 1 = 68, V3 Grade 2 = 48.
+- TEST: 30 groups/120 images; V3 Grade 1 = 68, V3 Grade 2 = 52.
+- Pairwise sample-ID intersections were empty; all 775 images appeared exactly once.
+- The Roboflow split was not used as the experimental split. The original source hierarchy remained grouping/reference metadata only.
+
+Dataset preparation and preservation:
+
+- Generated a manifest-driven Ultralytics configuration and minimum materialized working layer from the canonical Roboflow V3 images/labels.
+- Ultralytics was observed repairing JPEG end markers during its first scan. The scan was stopped before epoch training; every affected canonical image was restored by exact source mapping and all 775 canonical SHA-256 values were reverified.
+- Final training/evaluation used derived, ignored working copies so framework repairs could not touch canonical data.
+- Final post-evaluation canonical audit: 775/775 SHA-256 matches; zero mismatches.
+
+Model and environment:
+
+- Framework: Ultralytics 8.4.174; PyTorch 2.14.1+cu130.
+- Model: YOLO11n detection, transfer learning from `yolo11n.pt`.
+- Image size 640; batch 4; AdamW; initial LR 0.001; weight decay 0.0005; seed 42; deterministic mode; NVIDIA GeForce RTX 2050 4 GB.
+- Maximum 75 epochs; patience 12; early stopped after 57 epochs. Best checkpoint: epoch 45.
+- Training wrapper wall time: 4,829.93 seconds (80 minutes 29.93 seconds); Ultralytics training time: 1.295 hours.
+- Best checkpoint: `ml/grading_forecast/berry_grading/models/v3_yolo/best.pt`.
+
+Threshold decision:
+
+- Baseline threshold: 0.25.
+- Validation-only scan: 0.05-0.90 by 0.01, maximizing macro F1 with rejected valid inputs counted as errors; predeclared tie break = lowest threshold.
+- Selected/frozen before test: 0.05.
+- Selected 0.05 and baseline 0.25 both produced validation macro F1 0.9562, 100% coverage, and zero rejections. This is not a universal threshold and the positive-only data cannot validate non-pepper rejection.
+
+Validation result:
+
+- Detection: precision 0.9479; recall 0.9682; mAP@0.5 0.9879; mAP@0.5:0.95 0.8617.
+- Grade: accuracy 0.9569; balanced accuracy 0.9632; macro F1 0.9562; weighted F1 0.9571.
+- Grade 1 precision/recall/F1: 1.0000/0.9265/0.9618.
+- Grade 2 precision/recall/F1: 0.9057/1.0000/0.9505.
+- Confusion matrix, true rows Grade 1/2 and predicted columns Grade 1/2/REJECT: `[[63, 5, 0], [0, 48, 0]]`.
+
+Single sealed TEST result; no post-test tuning or retraining:
+
+- Primary grade metrics: macro F1 0.9578; Grade 1 F1 0.9624; Grade 2 F1 0.9533; balanced accuracy 0.9610.
+- Secondary grade metrics: accuracy 0.9583 (115/120); weighted F1 0.9584; Grade 1 precision/recall 0.9846/0.9412; Grade 2 precision/recall 0.9273/0.9808.
+- Confusion matrix, true rows Grade 1/2 and predicted columns Grade 1/2/REJECT: `[[64, 4, 0], [1, 51, 0]]`.
+- Detection: precision 0.9402; recall 0.9552; mAP@0.5 0.9791; mAP@0.5:0.95 0.8505.
+- Coverage 1.0000; zero rejections among the 120 positive pepper images.
+
+Physical-sample result:
+
+- Majority vote: 30/30 correct; accuracy and macro F1 1.0000.
+- Confidence-weighted aggregation: 30/30 correct; accuracy and macro F1 1.0000.
+- 26 samples unanimous; four samples had conflicting view predictions, all resolved correctly by aggregation.
+
+Operational result:
+
+- Checkpoint size: 5,461,466 bytes (5.21 MiB); 2,590,230 loaded parameters; approximately 6.4 GFLOPs.
+- RTX 2050 reported inference: mean/median 7.12 ms/image at batch 4 and 640 input.
+- End-to-end 120-image prediction pass: 44.27 seconds, including high-resolution file decode/I/O and batching.
+
+Camera/resolution diagnostic:
+
+- Shortcut risk remains HIGH/unresolved.
+- Galaxy A06/4080x3060 test subset: 24 images, all V3 Grade 1, accuracy 1.0000; not class-comparable because Grade 2 support is zero.
+- SM-A127F/4000x3000 test subset: 96 images, 44 Grade 1/52 Grade 2; accuracy 0.9479, macro F1 0.9472.
+- All five image errors were in the mixed-class SM-A127F subset. Strong performance within that condition is encouraging, but the confounded Galaxy A06 subset prevents a camera-invariance claim.
+
+Error analysis:
+
+- Five incorrect images came from four physical samples. Four Grade 1 images were predicted Grade 2 and one Grade 2 image was predicted Grade 1.
+- Representative boxes covered broad pepper sample regions; corrected representative IoUs were approximately 0.906-0.987.
+- Box visualizations are diagnostic localization evidence, not proof of causal grade reasoning.
+
+Conclusion:
+
+- Phase 2 demonstrates strong detection and two-grade V3 classification on unseen physical-sample groups, plus promising multi-view consistency and a lightweight checkpoint.
+- It does not demonstrate official SLS/buyer-grade recognition, per-berry grading, non-pepper rejection accuracy, camera-independent reasoning, field robustness, mobile latency, or price correctness.
+- Status: `PHASE 2 COMPLETE`.
+- Phase 3 readiness: yes for a separately authorized negative/invalid-input rejection and calibration study, with the high camera shortcut risk explicitly retained.
+
+Artifacts:
+
+- `docs/research/V3_PHASE2_YOLO_RESULTS.md`
+- `data/processed/grading_forecast/berry_v3/yolo_phase2/`
+- `ml/grading_forecast/requirements-yolo.txt`
+- `ml/grading_forecast/berry_grading/training/v3_yolo/`
+- `ml/grading_forecast/berry_grading/models/v3_yolo/`
+- `ml/grading_forecast/berry_grading/evaluation/v3_yolo/`
+
+Gate result: `PHASE 2 COMPLETE`. Stop for researcher review; Phase 3 was not started.
