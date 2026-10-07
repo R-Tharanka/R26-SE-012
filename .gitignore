@@ -34,6 +34,15 @@ data/processed/grading_forecast/berry_images_processed/
 data/processed/grading_forecast/*.csv
 data/raw/market_prices/
 
+# Phase 4: retain the compact authoritative reconstruction and index snapshot,
+# while leaving the 493-page resumable retrieval cache local.
+!data/raw/market_prices/
+data/raw/market_prices/*
+!data/raw/market_prices/eac_phase4/
+data/raw/market_prices/eac_phase4/*
+!data/raw/market_prices/eac_phase4/dea_eac_index_*.html
+!data/raw/market_prices/eac_phase4/dea_eac_pepper_observations_retrieved_*.csv
+
 # Deterministic split directories created during training
 data/processed/grading_forecast/berry_split_v2/
 data/processed/grading_forecast/_berry_split_v1/

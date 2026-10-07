@@ -803,3 +803,79 @@ Artifacts:
 - `ml/grading_forecast/berry_grading/evaluation/v3_phase3/`
 
 Gate result: `PHASE 3 COMPLETE`. Stop for researcher review. Do not begin retraining, Phase 4, backend/mobile integration, or price-forecasting work without separate authorization.
+
+## Phase 4 Price Data Reconstruction and Market-Aware Forecasting Foundation
+
+### PRICE-EAC-RECONSTRUCTED-V1-001
+
+Date: 2026-10-07.
+
+Objective: replace the incomplete Grade-1/absolute-price foundation with a source-reconstructed, grade-aware EAC farm-gate dataset, next-observation return target, and strict chronological evaluation protocol. No backend/mobile integration, deployment, or later phase was authorized.
+
+Source and reconstruction:
+
+- Authoritative source: DEA Sri Lanka Economic Research Unit, Producers' Prices (Farm Gate) of EAC; index `https://exagri.info/mkt/index.html`.
+- Retrieval date 2026-10-07; dataset version `eac_reconstructed_v1`.
+- 495 dated index links; 493 successfully parsed pepper pages; broken dated links for 2023-04-25 and 2026-06-23 were retained as missing.
+- 16,903 canonical pepper observations from 2016-10-04 through 2026-09-29; zero duplicate canonical keys and zero conflicting duplicates.
+- National average series: Grade 1 = 493 observations; Grade 2 = 358; both observed = 358 dates; Grade 2 missing on 135 dates relative to the union.
+- No Grade 2 discount, interpolation, resampling, forward fill, or invented observation was used. Raw observations retain exact dated-page provenance.
+
+Existing-data correction:
+
+- Old local range was 2021-02-22 through 2026-08-18 despite its 2016–2026 filename; National averages were Grade 1 = 232 and Grade 2 = 161.
+- Five later source dates per grade were isolated: 2026-08-25 through 2026-09-29.
+- Historical V2 absolute-price Random Forest and runtime persistence/Grade 2 adjustment artifacts were preserved unchanged.
+
+Target and features:
+
+- Primary target: next-observation percentage return; derived price = dated reference price × (1 + predicted return).
+- Horizon: next actual EAC observation; irregular intervals retained.
+- Direction: source-exact UP/DOWN/FLAT; predicted FLAT only after equality at the published 0.01 LKR resolution.
+- Features: reference price, two price lags, current/prior return, backward three-observation mean and return volatility, and days since prior observation; shared models also used a grade indicator.
+
+Temporal protocol:
+
+- Expanding walk-forward evaluation; a historical row entered training only once its next-observation outcome was known.
+- TRAIN targets: 2016-10-11 to 2023-09-19, Grade 1/2 rows 340/213.
+- VALIDATION targets: 2023-09-26 to 2025-02-25, rows 73/66.
+- FINAL TEST targets: 2025-03-04 to 2026-08-18, rows 74/73.
+- EXTERNAL NEWEST targets: 2026-08-25 to 2026-09-29, rows 5/5; excluded from model selection.
+
+Baselines and models actually evaluated:
+
+- Baselines: zero-return persistence, last observed return, expanding grade-specific mean return.
+- Models: separate and shared Ridge (`alpha=1.0`); separate and shared Random Forest (100 trees, max depth 5, minimum leaf size 5). Shared variants used a grade indicator.
+- Selection score: validation macro-average per-grade return RMSE. Separate Ridge was the best ML candidate at 0.04434, but persistence was better at 0.04319. No tested ML candidate established validation superiority.
+
+Frozen final temporal test, separate Ridge versus persistence:
+
+- Ridge return MAE/RMSE/R²: 0.01989/0.02954/0.1398; persistence: 0.01858/0.03187/-0.0010.
+- Ridge directional accuracy: 46.26% overall and 51.52% for non-flat UP/DOWN observations; persistence: 10.20%/0.00% because it always predicts FLAT.
+- Ridge derived-price MAE/RMSE: 37.29/54.55 LKR/kg; persistence: 34.62/58.12 LKR/kg.
+- Return MAPE was omitted because returns contain and approach zero.
+- Result is mixed: Ridge improved RMSE/direction but worsened MAE. It is not established as a superior final forecaster.
+
+Newest temporal reality check:
+
+- Ten observations (five per grade) were evaluated after all selection decisions.
+- Ridge return MAE/RMSE: 0.02714/0.03557; direction accuracy 30%; derived-price MAE/RMSE 50.19/64.68 LKR/kg.
+- Persistence return MAE/RMSE: 0.02305/0.03259; derived-price MAE/RMSE 42.33/58.22 LKR/kg.
+- The best Phase 4 ML candidate did not beat persistence on the genuinely newer observations.
+
+Integrity and conclusion:
+
+- Focused integrity validation passed: source/canonical identity, no duplicates/fabrication, chronological targets, backward lags, no random split, and no test/external selection contamination.
+- The reconstructed data foundation and evaluation protocol are ready for a separately authorized Phase 5 experiment, but Phase 4 does not support deployment of the Ridge candidate or a claim of ML superiority.
+- Latest verified source, Grade 1, and Grade 2 dates are all 2026-09-29. This is a dated EAC reference, not a real-time buyer quote.
+- Status: `PHASE 4 COMPLETE — DATA FOUNDATION READY; FORECASTING IMPROVEMENT NOT YET DEMONSTRATED`.
+
+Artifacts:
+
+- `docs/research/PHASE4_PRICE_DATA_AUDIT.md`
+- `docs/research/PHASE4_PRICE_FOUNDATION_RESULTS.md`
+- `data/raw/market_prices/eac_phase4/`
+- `data/processed/grading_forecast/price/eac_reconstructed_v1/`
+- `ml/grading_forecast/price_forecasting/phase4/`
+
+Gate result: `PHASE 4 COMPLETE`. Stop for researcher review. Phase 5, application integration, and deployment were not started.
