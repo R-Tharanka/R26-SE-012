@@ -55,7 +55,7 @@ The full V3 dataset contains **775 images from 194 physical samples**, with broa
 
 Integrity checks accounted for every image and sample and found no sample-group leakage.
 
-A blinded 40-image review achieved **85% agreement** overall: 95% for Grade 1 and 75% for Grade 2. The review supported continuing the experiment but also showed that Grade 2 is the less visually reliable class.
+A blinded 40-image review achieved **80% primary agreement** overall: 18/20 (90%) for Grade 1 and 14/20 (70%) for Grade 2. Four responses were `Uncertain`; agreement among the 36 decisive responses was 32/36 (88.9%). Cohen's kappa was 0.636 when `Uncertain` was retained as a third response category, and the supplementary binary kappa excluding uncertain responses was 0.778. The review supported continuing the experiment but also showed that Grade 2 is the less visually reliable class.
 
 Shortcut risk was assessed as **high**. Camera/resolution and grade are partially confounded. A V2 saliency review found 3 pepper-focused and 6 mixed examples, with none judged purely background-focused, but this small diagnostic could not eliminate shortcut concerns.
 

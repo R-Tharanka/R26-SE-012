@@ -974,3 +974,89 @@ Date: 2026-10-07.
 - Decision: `COMPLETE — OPERATIONAL GATE IMPROVED`; hypothesis `SUPPORTED`.
 - Limitations: internet-domain negatives, finite unseen holdout, unresolved field/camera shift, no confidence calibration, exact-hash but not semantic deduplication.
 - Next phase: stop for researcher review; do not proceed to Phase 6 automatically.
+
+## Phase 6 — Final Freeze and Prospective Field/Domain-Shift Readiness
+
+### BERRY-V3-PHASE6-FREEZE-AND-FIELD-READINESS-001
+
+Date: 2026-10-07.
+
+Research question:
+
+> How well does the frozen berry grading and rejection pipeline generalize to genuinely new, field-like images captured under different acquisition conditions, and what failure modes remain before prospective deployment evaluation?
+
+Frozen artifacts:
+
+- Phase 2 model: `ml/grading_forecast/berry_grading/models/v3_yolo/best.pt`, SHA-256 `c35cc40515adcb6130a4bc93e8ad3de161dcf46b263a9d7df8286a5b4239a9c4`.
+- Phase 3 follow-up model: `ml/grading_forecast/berry_grading/models/v3_phase3_followup/best.pt`, SHA-256 `e825278e0cf8eaff64cd05a2941cf96794e573027823a0ccd308bbc3f1a418ca`.
+- Frozen follow-up decision configuration retained without threshold changes.
+- Phase 4 canonical data and Phase 5 method/results retained without retraining, feature changes, or retrospective tuning.
+
+Freeze and integrity:
+
+- Phase 6 validator: 29 PASS, 0 FAIL, 1 UNAVAILABLE.
+- All 775 V3 images matched Phase 1 SHA-256 values.
+- All 775 annotations matched recorded class and box values.
+- Phase 1 split remained TRAIN 539 / VALIDATION 116 / TEST 120 across 194 non-leaking physical-sample groups.
+- Original Phase 3 negatives remained 40 calibration / 40 evaluation with 80/80 file-hash matches.
+- Follow-up negatives remained 152 train / 49 validation / 49 final, 250/250 file-hash matches, 250 unique hashes, and 172 non-leaking source groups.
+- Phase 4 canonical price data remained 16,903 rows through 2026-09-29 and matched its protected hash.
+- Phase 5 specification, metrics, predictions, and ten-row external comparison matched their Phase 6 freeze hashes.
+- Phase 2 and follow-up model files are separate and non-identical.
+
+Historical reuse clarification:
+
+- The original Phase 2 test was frozen as historical baseline evidence, then intentionally re-evaluated under the frozen Phase 3 follow-up pipeline for regression analysis. Its original Phase 2 metrics remain preserved.
+- The original Phase 3 evaluation subset was intentionally reused for controlled frozen-model comparison. Its original 35/40 result remains preserved.
+
+Blind-review correction:
+
+- The response CSV and concealed key confirm 32/40 = 80.0% overall, Grade 1 18/20 = 90.0%, Grade 2 14/20 = 70.0%, and 4/40 uncertain.
+- Agreement among decisive responses is 32/36 = 88.9%; kappa is 0.636 including `Uncertain` and supplementary binary kappa is 0.778 excluding uncertain responses.
+- `V3_PHASE1_AUDIT.md` and this experiment log already held the correct result. The later progress report's 85%/95%/75% summary was corrected; underlying evidence and the historical Phase 1 report were not changed.
+
+Prospective dataset:
+
+- No clearly identifiable new field/prospective dataset exists in the repository.
+- Existing V3 images and Phase 3 internet negatives were not relabelled as field evidence.
+- Field image, physical-sample, device, label, and domain-shift counts are unavailable.
+- No model inference was run for Phase 6.
+
+Prepared methodology and artifacts:
+
+- Multi-device field collection and independent-label protocol.
+- Physical-sample-aware calibration/final partition policy.
+- Field manifest schema and template.
+- Fail-closed frozen-model evaluation script.
+- Machine-readable blocked metrics with unavailable values represented as `null`.
+- Freeze/integrity validator and result.
+- Phase 6 readiness and results reports.
+
+Price temporal continuation:
+
+- No verified official EAC observations after the frozen 2026-09-29 cutoff exist in the repository.
+- Result: `NO NEW TEMPORAL PRICE EVALUATION AVAILABLE`.
+
+Limitations:
+
+- Field generalization, device stability, lighting/background sensitivity, field rejection, physical-sample grading, and uncertainty behavior remain unknown.
+- Exact-hash controls do not establish semantic independence for a future dataset.
+- Existing model scores remain uncalibrated.
+- Phase 5 retains limited/mixed evidence beyond persistence and substantial Grade 2 uncertainty.
+
+Decision:
+
+`COMPLETE — PREPARATION DONE, FIELD DATA BLOCKED`
+
+All Phases 0-5 and the Phase 3 follow-up are frozen. A future prospective evaluation is justified only after protocol-compliant independent field data is collected and sealed. Any model or threshold improvement after observing that final set must become a separately authorized Phase 7 experiment.
+
+Artifacts:
+
+- `docs/research/PHASE6_FREEZE_AND_READINESS.md`
+- `docs/research/PHASE6_FIELD_DATA_PROTOCOL.md`
+- `docs/research/PHASE6_FIELD_DOMAIN_VALIDATION_RESULTS.md`
+- `ml/grading_forecast/berry_grading/evaluation/phase6/phase6_field_manifest_template.csv`
+- `ml/grading_forecast/berry_grading/evaluation/phase6/evaluate_phase6_field.py`
+- `ml/grading_forecast/berry_grading/evaluation/phase6/validate_phase6_integrity.py`
+- `ml/grading_forecast/berry_grading/evaluation/phase6/phase6_metrics.json`
+- `ml/grading_forecast/berry_grading/evaluation/phase6/phase6_integrity.json`
