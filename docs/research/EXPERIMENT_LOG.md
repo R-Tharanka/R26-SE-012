@@ -1060,3 +1060,70 @@ Artifacts:
 - `ml/grading_forecast/berry_grading/evaluation/phase6/validate_phase6_integrity.py`
 - `ml/grading_forecast/berry_grading/evaluation/phase6/phase6_metrics.json`
 - `ml/grading_forecast/berry_grading/evaluation/phase6/phase6_integrity.json`
+
+## Phase 6 — Grade + Price Decision Engine
+
+### BERRY-V3-PHASE6-GRADE-PRICE-DECISION-001
+
+Date: 2026-10-07.
+
+Research question:
+
+> Can the frozen V3 grading/rejection pipeline and frozen Phase 5 grade-specific price forecasts be combined into a deterministic, traceable decision-support engine without retraining, leakage, fabricated measurements, or hidden scoring?
+
+Frozen inputs:
+
+- Phase 2 grading model SHA-256: `c35cc40515adcb6130a4bc93e8ad3de161dcf46b263a9d7df8286a5b4239a9c4`.
+- Phase 3 follow-up grading model SHA-256: `e825278e0cf8eaff64cd05a2941cf96794e573027823a0ccd308bbc3f1a418ca`.
+- Frozen follow-up decision configuration SHA-256: `39ca99a7e0049fb620a141cde80d539700945b2f812cc6cf7b15f289f8e158b8`.
+- Phase 4 canonical price dataset SHA-256: `ea800ea576817f07ad54d50317dbd68254fc5dc824447380e58688b6b711c0f6`.
+- Phase 5 configuration, selected-model specification, metrics, walk-forward predictions, and external predictions were hash-pinned in the Phase 6 configuration.
+- No grading or price model was retrained or refit.
+
+Engine design:
+
+- The grading gate runs first. `NO_PEPPER` and `POOR_IMAGE` terminate with `REJECT`; `UNCERTAIN_GRADE` and conflicting physical-sample views terminate without a market outlook.
+- Accepted `V3 Grade 1` routes only to the `Grade 1` market series; accepted `V3 Grade 2` routes only to `Grade 2`. A mismatch fails closed.
+- Price direction uses the Phase 5 rule exactly: compare forecast and reference prices after rounding both to LKR 0.01; classify as `UP`, `DOWN`, or exact `FLAT`.
+- A forecast interval crossing the current reference price is classified `HIGH_UNCERTAINTY`. A documented Ridge advantage with a non-crossing interval gives `RELATIVE_SUPPORT`; other visible directions remain `LIMITED_SIGNAL`.
+- The output preserves grading evidence, market evidence, routing, rationale, source identifiers, and configuration provenance. It does not use a composite score or fixed price discount.
+
+Scenario construction:
+
+- 13 empirical compositional scenarios: ten frozen Phase 5 external predictions paired deterministically with same-grade recorded grading decisions, plus recorded `NO_PEPPER`, `POOR_IMAGE`, and `UNCERTAIN_GRADE` cases.
+- 15 explicitly synthetic logic-only scenarios cover the mandatory branches, including both grades and directions, exact flat, conflicting views, missing inputs, interval uncertainty, persistence/Ridge comparisons, and wrong-series routing.
+- Synthetic branch cases are labelled `SYNTHETIC_LOGIC_TEST_NOT_EMPIRICAL` and are not counted as observed performance.
+
+Results:
+
+- 28/28 scenario expectations passed.
+- Routing checks passed for Grade 1 (12/12), Grade 2 (7/7), and rejection/uncertainty blocking (7/7); deliberate grade/price mismatch failed closed as required.
+- All 28 outputs contained complete explainability traces.
+- Empirical market-outlook coverage was 10/13 (76.92%); two scenarios rejected and one remained grade-uncertain.
+- All ten accepted empirical compositions were `HIGH_UNCERTAINTY_OUTLOOK` because the frozen empirical forecast interval crossed the current reference price. This is a conservative consequence of Phase 5 uncertainty, not an engine failure.
+- Deterministic repeated evaluation reproduced identical scenario and trace artifacts.
+- Unit tests: 15 passed, 0 failed. Final integrity validation is recorded in `phase6_integrity.json`.
+
+Limitations and interpretation:
+
+- This is a deterministic integration experiment, not a newly trained predictive model; conventional accuracy is therefore not the primary metric.
+- The empirical scenarios are compositional rather than contemporaneously observed grade-plus-sale outcomes. They test controlled compatibility and traceability, not end-to-end field utility or causal pricing benefit.
+- Phase 5 exposes frozen prediction artifacts rather than one portable serialized forecasting checkpoint; the engine consumes those recorded outputs and never refits the model.
+- The ten-row external price sample is small, Grade 2 evidence remains weak, intervals are wide, and no exogenous market variables are available.
+- Grading confidence remains uncalibrated, field/domain-shift behavior remains unknown, and no production, backend, mobile, or deployment integration was attempted.
+
+Decision:
+
+`PHASE 6 COMPLETE WITH LIMITATIONS`
+
+The rule engine is reproducible, traceable, scientifically conservative, and ready to inform a separately authorized Phase 7 decision-support design. Phase 7 was not started. The later repository work labelled Phase 6 field/domain-shift readiness remains a separate protocol-preparation record; it did not supply field evidence to this experiment and field validation remains unexecuted.
+
+Artifacts:
+
+- `docs/research/PHASE6_GRADE_PRICE_DECISION_ENGINE_RESULTS.md`
+- `ml/grading_forecast/decision_support/phase6/phase6_config.yaml`
+- `ml/grading_forecast/decision_support/phase6/decision_engine.py`
+- `ml/grading_forecast/decision_support/phase6/phase6_decision_scenarios.csv`
+- `ml/grading_forecast/decision_support/phase6/phase6_decision_trace.csv`
+- `ml/grading_forecast/decision_support/phase6/phase6_metrics.json`
+- `ml/grading_forecast/decision_support/phase6/phase6_integrity.json`

@@ -1,5 +1,7 @@
 # Phase 6 Field and Domain-Shift Validation Results
 
+> **Roadmap clarification:** This blocked/preparation result belongs to the later external field/domain-shift validation stage. It is not the original Phase 6 “Combine grade + price” result, which is documented separately in `PHASE6_GRADE_PRICE_DECISION_ENGINE_RESULTS.md`. No field evaluation is executed by the grade-price fusion phase.
+
 **Status:** `COMPLETE — PREPARATION DONE, FIELD DATA BLOCKED`  
 **Prospective evaluation:** `BLOCKED_PENDING_FIELD_DATA`  
 **Date:** 2026-10-07

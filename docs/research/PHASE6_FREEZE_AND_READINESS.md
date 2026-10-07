@@ -1,5 +1,7 @@
 # Phase 6 Freeze and Readiness Record
 
+> **Roadmap clarification:** This document records freeze/readiness work for the later external field/domain-shift validation stage. The original roadmap's Phase 6 “Combine grade + price” objective is evaluated separately in `PHASE6_GRADE_PRICE_DECISION_ENGINE_RESULTS.md`. This readiness record is preserved and not renumbered.
+
 **Date:** 2026-10-07  
 **Phase 6 status:** `COMPLETE — PREPARATION DONE, FIELD DATA BLOCKED`  
 **Freeze validation:** PASS — 29 checks passed, 0 failed, 1 unavailable because no field dataset exists

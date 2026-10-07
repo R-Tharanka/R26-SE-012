@@ -1,5 +1,7 @@
 # Phase 6 Prospective Field Data Protocol
 
+> **Roadmap clarification:** This protocol is preparation for the later external field/domain-shift validation stage, not the original Phase 6 “Combine grade + price” objective. The grade-price fusion result is documented separately in `PHASE6_GRADE_PRICE_DECISION_ENGINE_RESULTS.md`; this protocol remains available for future use and is not executed here.
+
 **Status:** READY FOR DATA COLLECTION  
 **Evaluation status:** `BLOCKED_PENDING_FIELD_DATA`  
 **Purpose:** collect genuinely new smartphone field/domain-shift evidence for the already frozen Phase 3 follow-up decision pipeline. This protocol does not authorize training, threshold tuning, model conversion, or application integration.
