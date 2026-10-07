@@ -879,3 +879,78 @@ Artifacts:
 - `ml/grading_forecast/price_forecasting/phase4/`
 
 Gate result: `PHASE 4 COMPLETE`. Stop for researcher review. Phase 5, application integration, and deployment were not started.
+
+## Phase 5 Price Movement Forecasting Research
+
+### PRICE-EAC-PHASE5-001
+
+Date: 2026-10-07.
+
+Objective: determine whether short-term Grade 1 and Grade 2 movement can be forecast more usefully than persistence using the frozen `eac_reconstructed_v1` foundation. No Phase 4 overwrite, decision engine, backend/mobile integration, berry-grading change, or Phase 6 work was permitted.
+
+Dataset and preservation:
+
+- Canonical input: 493 National Grade 1 and 358 National Grade 2 averages, 2016-10-04 through 2026-09-29.
+- Phase 4 canonical SHA-256 remained `ea800ea576817f07ad54d50317dbd68254fc5dc824447380e58688b6b711c0f6`.
+- No interpolation, resampling, forward filling, or fabricated Grade 2 observation.
+- Phase 4 reports/data, V2 artifacts, all 775 V3 images/annotations, berry pipeline, backend, and mobile remained unchanged.
+
+Targets and horizon:
+
+- Compared next-observation simple return, log return, and absolute price delta.
+- Validation selected next-observation log return.
+- Fixed calendar horizons were not evaluated because the source is irregular and no resampling/imputation was authorized.
+
+Features and ablation:
+
+- Tested recent return lags; technical/rolling features; calendar features; and a common-cohort grade-relationship experiment.
+- Selected feature group: four completed-return lags plus days since previous observation.
+- Macro-grade validation RMSE: return lags 0.04188; technical 0.04633; technical/calendar 0.04645.
+- On the same 131-row relationship-eligible cohort, return lags scored 0.04182 versus 0.06090 after adding spread/ratio/other-grade return.
+
+Methods:
+
+- Baselines: persistence, last return, expanding mean return, and explicitly defined historical price drift.
+- Statistical: SES alpha 0.2/0.5; ARIMA(1,0,0) and ARIMA(2,0,0) as conditional OLS autoregressions.
+- ML: Ridge, Random Forest, and Gradient Boosting; separate and shared-grade formulations.
+- Selected ML candidate: separate Grade 1/Grade 2 Ridge, log-return target, smallest return-lag feature group.
+- Minimum history 50; seed 42; expanding walk-forward; per-window scaler fitting; no random split.
+
+Final temporal test, 147 forecasts through 2026-08-18:
+
+- Selected Ridge return MAE/RMSE/R²: 0.01820/0.02985/0.1215.
+- Selected Ridge direction accuracy: 52.38%; non-flat accuracy: 58.33%.
+- Selected Ridge price MAE/RMSE/MAPE: 34.00 LKR/kg / 54.73 LKR/kg / 1.815%.
+- Persistence return MAE/RMSE: 0.01858/0.03187; price MAE/RMSE: 34.62/58.12 LKR/kg; direction accuracy 10.20% under deterministic FLAT prediction.
+- Grade 1 price MAE/RMSE: 15.19/20.84 LKR/kg; Grade 2: 53.06/74.77 LKR/kg.
+
+External later-observation reality check, ten forecasts:
+
+- Selected Ridge return MAE/RMSE: 0.02330/0.03259; price MAE/RMSE: 42.83/58.54 LKR/kg; direction accuracy 70%.
+- Persistence return MAE/RMSE: 0.02305/0.03259; price MAE/RMSE: 42.33/58.22 LKR/kg; direction accuracy 10%.
+- Ridge correctly predicted four of five later Grade 1 directions, improving the Phase 4 directional failure, but remained fractionally worse than persistence on external price/return error.
+
+Prediction intervals:
+
+- Grade-specific 90th-percentile absolute validation-return residual intervals were frozen before final evaluation.
+- Final coverage 96.60%, mean width 275.18 LKR/kg.
+- Grade 2 mean width was 456.56 LKR/kg, too broad for strong production confidence claims.
+
+Decision and limitations:
+
+- Persistence comparison: `MIXED` — selected Ridge won validation and final test but not the small external check.
+- Main conclusion: recent return lags contain limited predictive information, especially for direction, but consistent ML superiority is not established.
+- Grade 2 magnitude error, exact-FLAT failure, absent exogenous variables, irregular frequency, and the ten-observation external sample remain important limitations.
+- Phase 6 readiness: `READY WITH LIMITATIONS` for controlled combination research only, not production deployment.
+- Complete prediction CSV reproduced byte-for-byte under deterministic configuration.
+
+Artifacts:
+
+- `docs/research/PHASE5_PRICE_FORECASTING_RESULTS.md`
+- `ml/grading_forecast/price_forecasting/phase5/phase5_config.yaml`
+- `ml/grading_forecast/price_forecasting/phase5/data/phase5_modeling_dataset.csv`
+- `ml/grading_forecast/price_forecasting/phase5/scripts/`
+- `ml/grading_forecast/price_forecasting/phase5/models/selected_model_spec.json`
+- `ml/grading_forecast/price_forecasting/phase5/outputs/`
+
+Gate result: `PHASE 5 COMPLETE — MIXED EVIDENCE BEYOND PERSISTENCE`. Stop for researcher review. Phase 6 was not started.
