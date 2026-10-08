@@ -46,7 +46,7 @@ class AppLocalizationsSi extends AppLocalizations {
   String get homeLeafHealth => 'කොළ සෞඛ්‍යය';
 
   @override
-  String get homeBerryDisease => 'ගම්මිරිස් ගෙඩි රෝග';
+  String get homeBerryDisease => 'ගම්මිරිස් කරල් රෝග';
 
   @override
   String get homeQualityPrice => 'ගුණාත්මකභාවය සහ\nමිල';
@@ -81,7 +81,7 @@ class AppLocalizationsSi extends AppLocalizations {
   String get featurePlantHealth => 'ශාක සෞඛ්‍යය';
 
   @override
-  String get featureBerryCare => 'ගෙඩි රැකවරණය';
+  String get featureBerryCare => 'කරල් රැකවරණය';
 
   @override
   String get featureQualityAndPrice => 'ගුණත්වය සහ මිල';
@@ -90,7 +90,7 @@ class AppLocalizationsSi extends AppLocalizations {
   String get featurePestTitle => 'පළිබෝධ හඳුනාගැනීම';
 
   @override
-  String get featurePestCardDescription => 'කොළ, කඳ සහ ගෙඩි පරීක්ෂා කරන්න';
+  String get featurePestCardDescription => 'කොළ, කඳ සහ කරල් පරීක්ෂා කරන්න';
 
   @override
   String get featurePestDescription =>
@@ -107,25 +107,25 @@ class AppLocalizationsSi extends AppLocalizations {
       'පෙනෙන රෝග ලක්ෂණ සහ ඒවායේ බරපතළකම පරීක්ෂා කිරීමට ගම්මිරිස් කොළයක ඡායාරූපයක් ගන්න.';
 
   @override
-  String get featureBerryDiseaseTitle => 'ගෙඩි රෝග පරීක්ෂාව';
+  String get featureBerryDiseaseTitle => 'කරල් රෝග පරීක්ෂාව';
 
   @override
   String get featureBerryDiseaseCardDescription =>
-      'ගෙඩි පොකුරු හානි පරීක්ෂා කරන්න';
+      'ගම්මිරිස් පොකුරු හානි පරීක්ෂා කරන්න';
 
   @override
   String get featureBerryDiseaseDescription =>
-      'පෙනෙන රෝග හෝ පළිබෝධ හානි සොයා රැකවරණ මඟපෙන්වීමක් ලබාගැනීමට ගම්මිරිස් ගෙඩි පොකුරක ඡායාරූපයක් ගන්න.';
+      'පෙනෙන රෝග හෝ පළිබෝධ හානි සොයා රැකවරණ මඟපෙන්වීමක් ලබාගැනීමට ගම්මිරිස් කරල් පොකුරක ඡායාරූපයක් ගන්න.';
 
   @override
-  String get featureGradingTitle => 'ගෙඩි ගුණත්වය සහ මිල දැක්ම';
+  String get featureGradingTitle => 'ගම්මිරිස් ගුණාත්මකභාවය සහ මිල දැක්ම';
 
   @override
   String get featureGradingCardDescription => 'ශ්‍රේණිය සහ මිල දැක්ම බලන්න';
 
   @override
   String get featureGradingDescription =>
-      'ව්‍යාපෘති ගුණත්ව ශ්‍රේණියක් ලබාගැනීමට පැහැදිලි ගම්මිරිස් නියැදි ඡායාරූපයක් ගන්න. ශ්‍රේණිය පැහැදිලි නම් එයට ගැළපෙන EAC මිල දැක්මද බලන්න පුළුවන්.';
+      'ව්‍යාපෘති ගුණාත්මකභාවය ශ්‍රේණියක් ලබාගැනීමට පැහැදිලි ගම්මිරිස් නියැදි ඡායාරූපයක් ගන්න. ශ්‍රේණිය පැහැදිලි නම් එයට ගැළපෙන EAC මිල දැක්මද බලන්න පුළුවන්.';
 
   @override
   String get startScan => 'ස්කෑන් කිරීම අරඹන්න';
@@ -138,18 +138,18 @@ class AppLocalizationsSi extends AppLocalizations {
       'ආරක්ෂිත ඉතිහාස ගබඩාව එක් කළ පසු අනාගත විශ්ලේෂණ මෙහි පෙන්විය හැක. ව්‍යාජ නියැදි ප්‍රතිඵල නොපෙන්වයි.';
 
   @override
-  String get guideTitle => 'ගෙඩි ගුණත්ව මාර්ගෝපදේශය';
+  String get guideTitle => 'වියළි ගම්මිරිස් ගුණාත්මකතා මාර්ගෝපදේශය';
 
   @override
   String get guideSubtitle =>
-      'වඩා පැහැදිලි ගෙඩි ශ්‍රේණියක් සහ මිල දැක්මක් සඳහා මෙම සරල පියවර අනුගමනය කරන්න.';
+      'වඩා පැහැදිලි ගම්මිරිස් ශ්‍රේණිගතකිරීමක් සහ මිල දැක්මක් සඳහා මෙම සරල පියවර අනුගමනය කරන්න.';
 
   @override
   String get guidePhotoTitle => 'හොඳ නියැදියක් තෝරන්න';
 
   @override
   String get guidePhotoBody =>
-      'නියෝජිත ගම්මිරිස් ගෙඩි නියැදියක් භාවිතා කරන්න. කොළ, අත් සහ වෙනත් දේ ගෙඩි ආවරණය නොකර තබන්න.';
+      'නියෝජිත ගම්මිරිස් ගම්මිරිස් නියැදියක් භාවිතා කරන්න. කොළ, අත් සහ වෙනත් දේ බීජ ආවරණය නොකර තබන්න.';
 
   @override
   String get guideLightingTitle => 'සමාන දිවා ආලෝකය භාවිතා කරන්න';
@@ -184,14 +184,14 @@ class AppLocalizationsSi extends AppLocalizations {
 
   @override
   String get guideRetryBody =>
-      'වඩා හොඳ ආලෝකයක නැවත ඡායාරූපය ගන්න, දුරකථනය ස්ථාවරව තබන්න, ළඟට ගොස් ගම්මිරිස් ගෙඩි පැහැදිලිව පෙනෙන බව තහවුරු කරන්න.';
+      'වඩා හොඳ ආලෝකයක නැවත ඡායාරූපය ගන්න, දුරකථනය ස්ථාවරව තබන්න, ළඟට ගොස් ගම්මිරිස් බීජ පැහැදිලිව පෙනෙන බව තහවුරු කරන්න.';
 
   @override
   String get guideLimitation =>
       'ප්‍රතිඵලය සහායක තොරතුරක් ලෙස භාවිතා කරන්න. වැදගත් ශ්‍රේණිගත සහ විකිණීමේ තීරණ විශ්වාසදායක ගැනුම්කරුවෙකු, ව්‍යාප්ති නිලධාරියෙකු හෝ සුදුසු පුද්ගලයෙකු සමඟ තහවුරු කරන්න.';
 
   @override
-  String get berryLabel => 'ගම්මිරිස් ගෙඩිය';
+  String get berryLabel => 'ගම්මිරිස් කරල්';
 
   @override
   String get leafLabel => 'කොළය';
@@ -315,13 +315,13 @@ class AppLocalizationsSi extends AppLocalizations {
 
   @override
   String get gradingHomeSubtitle =>
-      'ගම්මිරිස් ගෙඩියක ඡායාරූපයක් ගෙන ගුණත්වය ඇස්තමේන්තු කර සරල මිල පුරෝකථනයක් ලබාගන්න.';
+      'ගම්මිරිස් නියැදියක ඡායාරූපයක් ගෙන ගුණාත්මකභාවය ඇස්තමේන්තු කර සරල මිල පුරෝකථනයක් ලබාගන්න.';
 
   @override
-  String get checkBerryQuality => 'ගෙඩියේ ගුණත්වය පරීක්ෂා කරන්න';
+  String get checkBerryQuality => 'ගම්මිරිස් නියැදියේ ගුණාත්මකභාවය පරීක්ෂා කරන්න';
 
   @override
-  String get captureBerryTitle => 'ගම්මිරිස් ගෙඩියේ ඡායාරූපය ගන්න';
+  String get captureBerryTitle => 'ගම්මිරිස් නියැදියක ඡායාරූපය ගන්න';
 
   @override
   String get noImageSelected => 'තවම ඡායාරූපයක් තෝරා නැත.';
@@ -335,28 +335,28 @@ class AppLocalizationsSi extends AppLocalizations {
 
   @override
   String get captureGuideSubtitle =>
-      'හොඳ ඡායාරූපයක් පෙනෙන ගෙඩි ගුණත්වය වඩා විශ්වාසදායකව ඇගයීමට උපකාරී වේ.';
+      'හොඳ ඡායාරූපයක් පෙනෙන ගම්මිරිස් නියැදියේ ගුණාත්මකභාවය වඩා විශ්වාසදායකව ඇගයීමට උපකාරී වේ.';
 
   @override
   String get captureAvoidBlurTitle => 'දුරකථනය ස්ථාවරව තබන්න';
 
   @override
   String get captureAvoidBlurBody =>
-      'ඡායාරූපය ගන්නා විට නොසෙල්වී සිටින්න. ගෙඩි බොඳ නම් විශ්ලේෂණයට පෙර නැවත ගන්න.';
+      'ඡායාරූපය ගන්නා විට නොසෙල්වී සිටින්න. ඡායාරූපයක් බොඳවී ඇත් නම් විශ්ලේෂණයට පෙර නැවත ගන්න.';
 
   @override
   String get gotIt => 'තේරුණා';
 
   @override
   String get captureFarmerPrompt =>
-      'ඔබේ ගම්මිරිස් ගෙඩි නියැදියේ පැහැදිලි ඡායාරූපයක් එක් කරන්න.';
+      'ඔබේ ගම්මිරිස් නියැදියේ පැහැදිලි ඡායාරූපයක් එක් කරන්න.';
 
   @override
   String get captureChooseSource =>
       'කැමරාව භාවිතා කරන්න හෝ ගැලරියෙන් මුල් ඡායාරූපයක් තෝරන්න.';
 
   @override
-  String get analyzeBerrySample => 'ගෙඩි ගුණත්වය පරීක්ෂා කරන්න';
+  String get analyzeBerrySample => 'ගම්මිරිස් නියැදියේ ගුණාත්මකභාවය පරීක්ෂා කරන්න';
 
   @override
   String get couldNotOpenCameraGallery =>
@@ -366,7 +366,7 @@ class AppLocalizationsSi extends AppLocalizations {
   String get processing => 'සකසමින්';
 
   @override
-  String get analyzingBerryQuality => 'ගෙඩියේ ගුණත්වය විශ්ලේෂණය කරමින්...';
+  String get analyzingBerryQuality => 'ගම්මිරිස් නියැදියේ ගුණාත්මකභාවය විශ්ලේෂණය කරමින්...';
 
   @override
   String get analyzeFailed =>
@@ -376,7 +376,7 @@ class AppLocalizationsSi extends AppLocalizations {
   String get backendError => 'සේවාදායක දෝෂයකි. නැවත උත්සාහ කරන්න.';
 
   @override
-  String get processingFarmerTitle => 'ඔබේ ගෙඩි නියැදිය පරීක්ෂා කරමින්';
+  String get processingFarmerTitle => 'ඔබේ ගම්මිරිස් නියැදිය පරීක්ෂා කරමින්';
 
   @override
   String get processingErrorTitle => 'පරීක්ෂාව සම්පූර්ණ කළ නොහැකි විය';
@@ -446,7 +446,7 @@ class AppLocalizationsSi extends AppLocalizations {
   String get phase7ProjectGrade => 'ව්‍යාපෘති ශ්‍රේණිය';
 
   @override
-  String get phase7QualityGate => 'ගුණත්ව පරීක්ෂාව';
+  String get phase7QualityGate => 'ගුණාත්මකභාවය පරීක්ෂාව';
 
   @override
   String get phase7ModelScore => 'ආකෘති ලකුණ';
@@ -661,13 +661,13 @@ class AppLocalizationsSi extends AppLocalizations {
   String get phase7EacReferencePrice => 'EAC ගොවිපළ-දොරටු යොමු මිල';
 
   @override
-  String get farmerBerryGrade1 => 'ගෙඩි ශ්‍රේණිය 1';
+  String get farmerBerryGrade1 => 'ගම්මිරිස් ශ්‍රේණිය 1';
 
   @override
-  String get farmerBerryGrade2 => 'ගෙඩි ශ්‍රේණිය 2';
+  String get farmerBerryGrade2 => 'ගම්මිරිස් ශ්‍රේණිය 2';
 
   @override
-  String get farmerNoPepperTitle => 'ගම්මිරිස් ගෙඩි හමු නොවීය';
+  String get farmerNoPepperTitle => 'ගම්මිරිස් බීජ හමු නොවීය';
 
   @override
   String get farmerPoorImageTitle => 'කරුණාකර වඩා පැහැදිලි ඡායාරූපයක් ගන්න';
@@ -693,7 +693,7 @@ class AppLocalizationsSi extends AppLocalizations {
 
   @override
   String get farmerNoPepperExplanation =>
-      'ශ්‍රේණිගත කිරීමට ප්‍රමාණවත් හඳුනාගත හැකි ගම්මිරිස් ගෙඩි ඡායාරූපයේ නොපෙනුණු නිසා මිල දැක්මක් ලබා නොදුනි.';
+      'ශ්‍රේණිගත කිරීමට ප්‍රමාණවත් හඳුනාගත හැකි ගම්මිරිස් බීජ ඡායාරූපයේ නොපෙනුණු නිසා මිල දැක්මක් ලබා නොදුනි.';
 
   @override
   String get farmerPoorImageExplanation =>
@@ -709,7 +709,7 @@ class AppLocalizationsSi extends AppLocalizations {
 
   @override
   String get farmerRetakeBlur =>
-      'දුරකථනය ස්ථාවරව තබා ගෙඩි තියුණු ලෙස පෙනෙන පරිදි නැවත ඡායාරූපය ගන්න.';
+      'දුරකථනය ස්ථාවරව තබා බීජ තියුණු ලෙස පෙනෙන පරිදි නැවත ඡායාරූපය ගන්න.';
 
   @override
   String get farmerRetakeLighting =>
@@ -717,7 +717,7 @@ class AppLocalizationsSi extends AppLocalizations {
 
   @override
   String get farmerRetakePosition =>
-      'ළඟට ගොස් ගම්මිරිස් ගෙඩි නියැදිය ඡායාරූපයේ මැද පැහැදිලිව තබන්න.';
+      'ළඟට ගොස් ගම්මිරිස් බීජ නියැදිය ඡායාරූපයේ මැද පැහැදිලිව තබන්න.';
 
   @override
   String get farmerRetakeGeneral =>
@@ -773,7 +773,7 @@ class AppLocalizationsSi extends AppLocalizations {
       'මෙම ස්ථාවර EAC ගොවිපළ-දොරටු පර්යේෂණ දැක්ම සජීවී ගැනුම්කරු මිලක්, සහතික කළ මිලක් හෝ මිලදී ගැනීමේ/විකිණීමේ උපදෙසක් නොවේ.';
 
   @override
-  String get berryQualityResult => 'ගෙඩියේ ගුණත්ව ප්‍රතිඵලය';
+  String get berryQualityResult => 'නියැදියේ ගුණත්ව ප්‍රතිඵලය';
 
   @override
   String get predictedGrade => 'පුරෝකථිත ශ්‍රේණිය';
