@@ -1,6 +1,6 @@
 # Phase 7 — ONNX/TFLite + Backend/Mobile Results
 
-**Status:** `COMPLETE WITH LIMITATIONS; FINAL ACCEPTANCE BLOCKED BY MOBILE RETEST`
+**Status:** `COMPLETE WITH LIMITATIONS`
 **Experiment:** `PHASE7-ONNX-BACKEND-MOBILE-001`  
 **Date:** 2026-10-07
 
@@ -88,7 +88,9 @@ Flutter now defaults to the API path and parses the Phase 6 schema. It presents 
 
 Focused Flutter analysis reported no issues and two response-parser tests passed. Eight focused backend/API tests passed. The original automated run did not complete an Android emulator execution.
 
-On 2026-10-08, a researcher-operated emulator run exercised the five controlled files. Grade 1, Grade 2, and non-pepper behavior were correct, but the poor-image file became `NO_PEPPER` with a passed quality gate and the uncertainty file became an accepted Grade 2 with price output. Investigation found that the Flutter picker was resizing images to at most `1280x1280` and recompressing them at quality 75 before upload. That changed the pixels presented to the frozen quality, detection, and class-margin gates. The picker preprocessing was removed so the selected file bytes are passed through without application-requested resizing or recompression. Final acceptance remains pending a complete five-case emulator rerun.
+On 2026-10-08, a researcher-operated emulator run exercised the five controlled files. The first run passed Grade 1, Grade 2, and non-pepper behavior, but the poor-image file became `NO_PEPPER` with a passed quality gate and the uncertainty file became an accepted Grade 2 with price output. Investigation found that the Flutter picker was resizing images to at most `1280x1280` and recompressing them at quality 75 before upload. That changed the pixels presented to the frozen quality, detection, and class-margin gates. The picker preprocessing was removed so the selected file bytes are passed through without application-requested resizing or recompression.
+
+The researcher then rebuilt the client and reran all five cases. The corrected emulator path passed 5/5: Grade 1 and Grade 2 used their exact grade-specific price records, non-pepper and poor-image cases were rejected without pricing, and the uncertain case returned `UNCERTAIN_GRADE` without pricing. This closes the Phase 7 mobile preprocessing acceptance gate.
 
 ## 15. End-to-end verification
 
@@ -114,7 +116,19 @@ The first manual emulator pass, performed before removal of picker preprocessing
 | Poor quality | `NO_PEPPER`, quality gate passed | FAIL: expected `POOR_IMAGE` |
 | Uncertain | accepted `GRADE_2` with market output | FAIL: expected `UNCERTAIN_GRADE` |
 
-`UNCERTAIN_GRADE` is a grading stop state and is not equivalent to `HIGH_UNCERTAINTY_OUTLOOK`, which is a price-outlook category after an accepted grade. The corrected client must pass all five cases before Phase 7 final acceptance.
+`UNCERTAIN_GRADE` is a grading stop state and is not equivalent to `HIGH_UNCERTAINTY_OUTLOOK`, which is a price-outlook category after an accepted grade. Passing all five cases was the condition for Phase 7 final mobile acceptance; the corrected rerun below satisfied it.
+
+The corrected researcher-operated emulator rerun produced:
+
+| Role | Corrected emulator result | Market behavior | Acceptance |
+|---|---|---|---|
+| Grade 1 | `GRADE_1`, score `0.9238`, quality passed | Grade 1 evidence only | PASS |
+| Grade 2 | `GRADE_2`, score `0.9046`, quality passed | Grade 2 evidence only | PASS |
+| Non-pepper | `NO_PEPPER`, score `0.0000`, quality passed | no market output | PASS |
+| Poor quality | `POOR_IMAGE`, score `0.0000`, quality failed, `blur_variance_below_minimum` | no market output | PASS |
+| Uncertain | `UNCERTAIN_GRADE`, score `0.7011`, quality passed, `grade_margin_below_minimum` | no market output | PASS |
+
+The corrected emulator result is 5/5 and agrees with the frozen decision-level expectations. Scores displayed by the client remain model scores, not calibrated probabilities.
 
 ## 16. Integrity checks
 
@@ -129,7 +143,7 @@ Phase 7 integrity passed 22/22 checks. It verified frozen Phase 3, Phase 4, Phas
 - Grade 2 price performance is weaker and its intervals are much wider.
 - Validation-derived intervals are uncertainty diagnostics, not guaranteed probability ranges.
 - The runtime exposes frozen historical forecast records, not live prices or newly generated forecasts.
-- The initial emulator run exposed client-side image mutation and passed only 3/5 controlled cases; the corrected client still requires a complete five-case rerun.
+- The initial emulator run exposed client-side image mutation and passed only 3/5 controlled cases; the corrected full rerun passed 5/5.
 - No physical-device test, independent end-to-end field dataset, user-usefulness study, or hosted deployment was completed.
 
 ## 18. What Phase 7 proves
@@ -142,4 +156,4 @@ Successful integration does not imply field robustness, production-grade accurac
 
 ## 20. Phase 8 readiness
 
-Phase 8 is `NOT YET AUTHORIZED`: final Phase 7 acceptance is blocked until the corrected mobile client passes the complete five-case emulator rerun. Phase 8 was not started and no new field or internet-image validation claim was made.
+Phase 8 is `READY WITH LIMITATIONS` for separately authorized prospective field/domain-shift evaluation using the existing protocol. The Phase 7 mobile gate is closed by the corrected 5/5 emulator rerun. Phase 8 was not started and no field or internet-image validation claim was made.

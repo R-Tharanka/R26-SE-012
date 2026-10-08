@@ -189,6 +189,10 @@ The Phase 7 picker deliberately requests neither resizing nor JPEG quality
 conversion; changing those options changes the frozen quality and uncertainty
 decisions. Rerun all five cases after any picker or image-transport change.
 
+The corrected researcher-operated emulator verification on 2026-10-08 passed
+all five controlled cases: Grade 1, Grade 2, non-pepper, poor-image, and
+uncertain-grade. Preserve this pass-through behavior in future mobile changes.
+
 ## 7. Run and test on a physical Android device
 
 Enable Developer options and USB debugging on the device, then connect it by

@@ -1159,3 +1159,17 @@ Date: 2026-10-08.
 - Correction: removed application-requested resizing and recompression from the Phase 7 image picker. No grading model, ONNX artifact, backend threshold, price evidence, or Phase 6 decision rule changed.
 - Acceptance status: pending a complete researcher-operated rerun of Grade 1, Grade 2, non-pepper, poor-image, and uncertain cases. `UNCERTAIN_GRADE` must stop before pricing and is not equivalent to `HIGH_UNCERTAINTY_OUTLOOK`.
 - Gate: Phase 8 must not start until the corrected mobile path passes all five controlled cases and the result is recorded.
+
+### PHASE7-MOBILE-CORRECTED-VERIFICATION-001
+
+Date: 2026-10-08.
+
+- Method: researcher-operated Android emulator rerun after rebuilding the Flutter client with application-requested picker resize/recompression removed. The same five controlled files were selected from emulator storage.
+- Grade 1: `GRADE_1`, V3 Grade 1, quality passed, score `0.9238`; Grade 1 frozen EAC evidence only; final category `HIGH_UNCERTAINTY_OUTLOOK`.
+- Grade 2: `GRADE_2`, V3 Grade 2, quality passed, score `0.9046`; Grade 2 frozen EAC evidence only; final category `HIGH_UNCERTAINTY_OUTLOOK`.
+- Non-pepper: `NO_PEPPER`, quality passed, score `0.0000`, reason `no_detection_above_threshold`; `REJECT` with no market output.
+- Poor image: `POOR_IMAGE`, quality failed, score `0.0000`, reason `blur_variance_below_minimum`; `REJECT` with no market output.
+- Uncertain: `UNCERTAIN_GRADE`, quality passed, score `0.7011`, reason `grade_margin_below_minimum`; no market output.
+- Result: 5/5 controlled emulator cases matched the frozen decision-level expectations. `UNCERTAIN_GRADE` correctly stopped before pricing; it was not conflated with `HIGH_UNCERTAINTY_OUTLOOK`.
+- Decision: Phase 7 mobile acceptance gate closed. Overall Phase 7 status is `COMPLETE WITH LIMITATIONS`; this adds deployment/integration evidence, not new predictive accuracy or field robustness.
+- Next phase: Phase 8 is ready with limitations for separately authorized prospective field/domain-shift validation. It was not started.
