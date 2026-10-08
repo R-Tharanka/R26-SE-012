@@ -342,6 +342,23 @@ personal images or sensitive details.
 | First Flutter run takes a long time | The initial Android build resolves/compiles Gradle, Kotlin, Flutter, and plugin artifacts. Let it continue while Gradle/Java uses CPU; later runs use caches. |
 | Port 8000 already in use | Reuse the existing project backend or stop it cleanly with `Ctrl+C`. Inspect with `Get-NetTCPConnection -LocalPort 8000 -State Listen`. |
 
+### API validation and error semantics
+
+| HTTP status | Meaning | Client action |
+|---|---|---|
+| `400` | Empty, unreadable, or invalid image | Select a valid image and retry. |
+| `413` | Upload exceeds 10 MB or decoded dimensions exceed the safe limit | Choose a smaller original image; do not modify frozen thresholds. |
+| `415` | Unsupported or animated image | Use a single-frame JPEG, PNG, or WEBP. |
+| `422` | Malformed multipart request | Confirm the multipart field is named `image`. |
+| `429` | Hosted service rate/resource limit | Wait before retrying. |
+| `500` | Invalid/unexpected integrated response was withheld | Record the analysis time and inspect backend logs; do not fabricate a result. |
+| `503` | ONNX, frozen forecast evidence, or grade-price routing is unavailable | Check `/ready`; retry only after it returns HTTP 200 and `ready`. |
+| `502` / `504` | Hosting proxy could not complete the upstream request | Verify Railway deployment, target port, health, and runtime logs. |
+
+The local and hosted `/ready` endpoint is stricter than `/health`. `/health`
+proves that the process can answer HTTP; `/ready` verifies the frozen ONNX and
+forecast source. A non-ready response is HTTP 503 and must block testing.
+
 ## 11. Evidence boundary
 
 A successful browser, emulator, or USB-device run proves local integration of

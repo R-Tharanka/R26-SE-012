@@ -94,6 +94,22 @@ The researcher then rebuilt the client and reran all five cases. The corrected e
 
 During the first Railway Linux deployment on 2026-10-08, rejected inputs worked but accepted grades returned HTTP 500 before pricing. The frozen Phase 5 CSV had been hash-pinned as Windows CRLF bytes; Git materialized the same tracked text with LF endings on Linux. Deployment now records and verifies a canonical LF-normalized text hash in addition to retaining the original raw frozen hash. This accepts only the same text across platform line-ending representations and still rejects content changes. Startup and `/ready` now validate both the ONNX runtime and frozen forecast source. Hosted accepted-grade verification remains required after redeployment; this correction does not alter forecast values or decision rules.
 
+### Phase 7 validation and error-handling hardening
+
+The active API and Flutter boundary were hardened after hosted deployment testing:
+
+- uploads are read in bounded chunks and rejected above 10 MB before inference;
+- decoded images are restricted to one non-animated JPEG, PNG, or WEBP frame, at most 50 million pixels and 12,000 pixels on either axis;
+- empty, unreadable, unsupported, animated, oversized, and malformed uploads return explicit 4xx responses without fallback predictions;
+- grading-runtime, frozen-forecast, and invalid grade-price-route failures return explicit HTTP 503 responses and fail closed;
+- `/ready` now returns HTTP 503 with `not_ready` if either ONNX initialization or frozen forecast integrity fails;
+- response schemas constrain grading states, decisions, confidence ranges, interval bounds, and Phase 6 categories;
+- response validation withholds any rejected/uncertain result that contains market output and any invalid Grade 1/Grade 2 price route;
+- logs contain an analysis UUID, stage, error type, and final category, but not image bytes, filenames, or personal data;
+- Flutter rejects empty and over-10-MB selections locally, validates the Phase 6 schema and rejection-first invariants, and maps malformed, timeout, connectivity, size, format, rate-limit, and hosted-service failures to explicit user messages.
+
+Focused backend verification passed 15/15 tests. This includes bounded upload rejection before inference, safe forecast/grading failures, response-invariant enforcement, truthful readiness status, CRLF/LF frozen-text equivalence with content mutation rejection, startup, Phase 6 response behavior, and the real Grade 1 API path. Direct Dart static analysis of the changed Flutter feature and focused tests reported no issues. Four focused Flutter API tests and two additional parser/invariant tests were added; their execution was not claimed in this run because the local Flutter test runner remained occupied/stalled without output. Existing earlier Phase 7 Flutter parser evidence remains separate.
+
 ## 15. End-to-end verification
 
 The backend-controlled five-case set produced:
@@ -146,7 +162,9 @@ Phase 7 integrity passed 22/22 checks. It verified frozen Phase 3, Phase 4, Phas
 - Validation-derived intervals are uncertainty diagnostics, not guaranteed probability ranges.
 - The runtime exposes frozen historical forecast records, not live prices or newly generated forecasts.
 - The initial emulator run exposed client-side image mutation and passed only 3/5 controlled cases; the corrected full rerun passed 5/5.
-- No physical-device test, independent end-to-end field dataset, user-usefulness study, or hosted deployment was completed.
+- Researcher-operated emulator, physical-device, and hosted-backend smoke tests were completed, but no independently instrumented device study, end-to-end field dataset, user-usefulness study, or production-readiness assessment was completed.
+- The public research endpoint has no user authentication or distributed rate limiter; Railway resource limits and controlled URL distribution remain operational safeguards, not production security controls.
+- The upload limits reduce accidental/resource-abuse risk but do not establish production security or adversarial robustness.
 
 ## 18. What Phase 7 proves
 

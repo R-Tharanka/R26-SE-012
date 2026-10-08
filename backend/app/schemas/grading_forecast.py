@@ -1,18 +1,52 @@
 from __future__ import annotations
 
 from enum import Enum
+from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
+
+
+class Phase7GradingStatus(str, Enum):
+    accepted = "ACCEPTED"
+    rejected = "REJECTED"
+    uncertain = "UNCERTAIN"
+
+
+class Phase7GradingDecision(str, Enum):
+    grade_1 = "GRADE_1"
+    grade_2 = "GRADE_2"
+    no_pepper = "NO_PEPPER"
+    poor_image = "POOR_IMAGE"
+    uncertain_grade = "UNCERTAIN_GRADE"
+    conflicting_sample_views = "CONFLICTING_SAMPLE_VIEWS"
+
+
+class Phase7QualityStatus(str, Enum):
+    passed = "PASSED"
+    failed = "FAILED"
+    not_applicable = "NOT_APPLICABLE"
+
+
+class Phase7DecisionCategory(str, Enum):
+    reject = "REJECT"
+    uncertain_grade = "UNCERTAIN_GRADE"
+    conflicting_sample_views = "CONFLICTING_SAMPLE_VIEWS"
+    price_data_unavailable = "PRICE_DATA_UNAVAILABLE"
+    forecast_unavailable = "FORECAST_UNAVAILABLE"
+    upward_price_outlook = "UPWARD_PRICE_OUTLOOK"
+    downward_price_outlook = "DOWNWARD_PRICE_OUTLOOK"
+    flat_price_outlook = "FLAT_PRICE_OUTLOOK"
+    high_uncertainty_outlook = "HIGH_UNCERTAINTY_OUTLOOK"
 
 
 class Phase7GradingResult(BaseModel):
-    status: str
-    decision: str
+    status: Phase7GradingStatus
+    decision: Phase7GradingDecision
     grade: str | None = None
-    model_confidence: float | None = None
-    detection_confidence: float | None = None
-    class_margin: float | None = None
-    quality_status: str
+    model_confidence: float | None = Field(default=None, ge=0.0, le=1.0, allow_inf_nan=False)
+    detection_confidence: float | None = Field(default=None, ge=0.0, le=1.0, allow_inf_nan=False)
+    class_margin: float | None = Field(default=None, ge=0.0, le=1.0, allow_inf_nan=False)
+    quality_status: Phase7QualityStatus
     rejection_reason: str | None = None
     physical_sample_id: str | None = None
     confidence_interpretation: str
@@ -21,10 +55,18 @@ class Phase7GradingResult(BaseModel):
 
 
 class Phase7ForecastInterval(BaseModel):
-    lower: float
-    upper: float
+    lower: float = Field(ge=0.0, allow_inf_nan=False)
+    upper: float = Field(ge=0.0, allow_inf_nan=False)
     label: str
     probability_claim: bool
+
+    @model_validator(mode="after")
+    def validate_bounds(self) -> "Phase7ForecastInterval":
+        if self.lower > self.upper:
+            raise ValueError("Forecast interval lower bound exceeds upper bound")
+        if self.probability_claim:
+            raise ValueError("Phase 7 intervals must not claim calibrated probability")
+        return self
 
 
 class Phase7MarketResult(BaseModel):
@@ -36,24 +78,24 @@ class Phase7MarketResult(BaseModel):
     price_grade: str | None = None
     model_scope: str | None = None
     latest_reference_date: str | None = None
-    latest_reference_price: float | None = None
+    latest_reference_price: float | None = Field(default=None, ge=0.0, allow_inf_nan=False)
     latest_price_interpretation: str | None = None
-    previous_reference_price: float | None = None
-    latest_observed_return: float | None = None
+    previous_reference_price: float | None = Field(default=None, ge=0.0, allow_inf_nan=False)
+    latest_observed_return: float | None = Field(default=None, allow_inf_nan=False)
     forecast_target_date: str | None = None
-    forecast_log_return: float | None = None
-    forecast_return: float | None = None
-    forecast_price: float | None = None
+    forecast_log_return: float | None = Field(default=None, allow_inf_nan=False)
+    forecast_return: float | None = Field(default=None, allow_inf_nan=False)
+    forecast_price: float | None = Field(default=None, ge=0.0, allow_inf_nan=False)
     forecast_direction: str | None = None
     forecast_interval: Phase7ForecastInterval | None = None
-    persistence_price: float | None = None
+    persistence_price: float | None = Field(default=None, ge=0.0, allow_inf_nan=False)
     model_vs_persistence: str | None = None
     forecast_signal: str | None = None
     evidence_partition: str | None = None
 
 
 class Phase7DecisionSupport(BaseModel):
-    category: str
+    category: Phase7DecisionCategory
     summary: str
     limitations: list[str]
 
@@ -66,12 +108,50 @@ class Phase7Runtime(BaseModel):
 
 
 class Phase7AnalyzeResponse(BaseModel):
-    schema_version: str
+    schema_version: Literal["phase6_decision_support_v1"]
     grading: Phase7GradingResult
     market: Phase7MarketResult
     decision_support: Phase7DecisionSupport
     trace: dict
     runtime: Phase7Runtime
+
+    @model_validator(mode="after")
+    def validate_rejection_first_contract(self) -> "Phase7AnalyzeResponse":
+        category = self.decision_support.category
+        unavailable_values = (
+            self.market.price_grade,
+            self.market.latest_reference_price,
+            self.market.forecast_price,
+            self.market.forecast_direction,
+            self.market.forecast_interval,
+        )
+        if self.grading.status in {
+            Phase7GradingStatus.rejected,
+            Phase7GradingStatus.uncertain,
+        }:
+            if self.market.status == "AVAILABLE" or any(value is not None for value in unavailable_values):
+                raise ValueError("Rejected or uncertain grading cannot include market output")
+
+        if category == Phase7DecisionCategory.reject and self.grading.status != Phase7GradingStatus.rejected:
+            raise ValueError("REJECT requires rejected grading status")
+        if category in {
+            Phase7DecisionCategory.uncertain_grade,
+            Phase7DecisionCategory.conflicting_sample_views,
+        } and self.grading.status != Phase7GradingStatus.uncertain:
+            raise ValueError("Uncertainty category requires uncertain grading status")
+
+        if self.market.status == "AVAILABLE":
+            if self.grading.status != Phase7GradingStatus.accepted:
+                raise ValueError("Market output requires accepted grading")
+            expected_route = {
+                "V3 Grade 1": "Grade 1",
+                "V3 Grade 2": "Grade 2",
+            }.get(self.grading.grade)
+            if expected_route is None or self.market.price_grade != expected_route:
+                raise ValueError("Invalid grade-specific price route")
+            if self.market.latest_reference_price is None or self.market.forecast_price is None:
+                raise ValueError("Available market output requires reference and forecast prices")
+        return self
 
 
 class GradeEnum(str, Enum):

@@ -80,4 +80,47 @@ void main() {
     expect(result.market.isAvailable, isFalse);
     expect(result.market.forecastPrice, isNull);
   });
+
+  test('rejects uncertainty response that leaks market output', () {
+    expect(
+      () => GradingForecastResult.fromJson({
+        'schema_version': 'phase6_decision_support_v1',
+        'grading': {
+          'status': 'UNCERTAIN',
+          'decision': 'UNCERTAIN_GRADE',
+          'quality_status': 'PASSED',
+          'confidence_interpretation':
+              'model score; not a calibrated probability',
+        },
+        'market': {
+          'status': 'AVAILABLE',
+          'price_grade': 'Grade 2',
+          'latest_reference_price': 1940.0,
+          'forecast_price': 1931.13,
+        },
+        'decision_support': {
+          'category': 'UNCERTAIN_GRADE',
+          'summary': 'No reliable grade.',
+          'limitations': <String>[],
+        },
+        'trace': <String, dynamic>{},
+        'runtime': {
+          'grading': 'ONNX_RUNTIME_CPU',
+          'price': 'FROZEN_PHASE5_FORECAST_RECORD',
+          'mobile': 'BACKEND_API',
+          'tflite': 'NOT_IMPLEMENTED_OR_CLAIMED',
+        },
+      }),
+      throwsFormatException,
+    );
+  });
+
+  test('rejects unsupported response schema', () {
+    expect(
+      () => GradingForecastResult.fromJson({
+        'schema_version': 'unknown',
+      }),
+      throwsFormatException,
+    );
+  });
 }

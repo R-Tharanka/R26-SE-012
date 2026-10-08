@@ -20,9 +20,12 @@ def _result(decision: str = "NO_PEPPER", category: str = "REJECT") -> dict:
             "quality_status": "NOT_APPLICABLE", "rejection_reason": "no_detection_above_threshold" if rejected else None,
             "physical_sample_id": None, "confidence_interpretation": "model score; not a calibrated probability"},
         "market": {"status": "NOT_AVAILABLE_REJECTED_INPUT" if rejected else "AVAILABLE", "source": None if rejected else "EAC farm-gate reference price",
-            "price_grade": None if rejected else "Grade 1", "latest_reference_date": None, "latest_reference_price": None,
+            "price_grade": None if rejected else "Grade 1", "latest_reference_date": None,
+            "latest_reference_price": None if rejected else 1987.5,
             "previous_reference_price": None, "latest_observed_return": None, "forecast_target_date": None,
-            "forecast_log_return": None, "forecast_return": None, "forecast_price": None, "forecast_direction": None,
+            "forecast_log_return": None, "forecast_return": None,
+            "forecast_price": None if rejected else 1990.6,
+            "forecast_direction": None if rejected else "UP",
             "forecast_interval": None, "persistence_price": None, "model_vs_persistence": None, "forecast_signal": None},
         "decision_support": {"category": category, "summary": "research result", "limitations": ["research only"]},
         "trace": {"grading_model_sha256": "hash", "final_decision_support_category": category},
@@ -70,6 +73,74 @@ def test_inference_failure_returns_503(monkeypatch) -> None:
     monkeypatch.setattr(routes, "analyze_phase7", lambda *_: (_ for _ in ()).throw(routes.GradingRuntimeError("failed")))
     response = client.post("/api/v1/grading-forecast/analyze", files={"image": ("x.png", TINY_PNG, "image/png")})
     assert response.status_code == 503
+
+
+def test_forecast_integrity_failure_returns_specific_503(monkeypatch) -> None:
+    from app.api.routes import grading_forecast as routes
+    monkeypatch.setattr(
+        routes,
+        "analyze_phase7",
+        lambda *_: (_ for _ in ()).throw(routes.ForecastRecordError("changed")),
+    )
+    response = client.post(
+        "/api/v1/grading-forecast/analyze",
+        files={"image": ("x.png", TINY_PNG, "image/png")},
+    )
+    assert response.status_code == 503
+    assert "forecast evidence" in response.json()["detail"]
+
+
+def test_oversized_upload_is_rejected_before_inference(monkeypatch) -> None:
+    from app.api.routes import grading_forecast as routes
+    called = False
+
+    def should_not_run(*_):
+        nonlocal called
+        called = True
+        return _result()
+
+    monkeypatch.setattr(routes, "analyze_phase7", should_not_run)
+    response = client.post(
+        "/api/v1/grading-forecast/analyze",
+        files={
+            "image": (
+                "large.jpg",
+                b"x" * (routes.MAX_IMAGE_UPLOAD_BYTES + 1),
+                "image/jpeg",
+            )
+        },
+    )
+    assert response.status_code == 413
+    assert called is False
+
+
+def test_rejected_response_with_market_data_is_withheld(monkeypatch) -> None:
+    from app.api.routes import grading_forecast as routes
+    payload = _result()
+    payload["market"]["status"] = "AVAILABLE"
+    payload["market"]["price_grade"] = "Grade 1"
+    payload["market"]["forecast_price"] = 1900.0
+    monkeypatch.setattr(routes, "analyze_phase7", lambda *_: payload)
+    response = client.post(
+        "/api/v1/grading-forecast/analyze",
+        files={"image": ("x.png", TINY_PNG, "image/png")},
+    )
+    assert response.status_code == 500
+    assert response.json()["detail"] == (
+        "Integrated analysis produced an invalid response and was withheld."
+    )
+
+
+def test_ready_returns_503_when_runtime_is_not_ready(monkeypatch) -> None:
+    from app.api.routes import grading_forecast as routes
+    monkeypatch.setattr(
+        routes,
+        "initialize_phase7_runtime",
+        lambda: (_ for _ in ()).throw(routes.ForecastRecordError("missing")),
+    )
+    response = client.get("/api/v1/grading-forecast/ready")
+    assert response.status_code == 503
+    assert response.json()["status"] == "not_ready"
 
 
 def test_legacy_trading_endpoint_is_retired() -> None:
