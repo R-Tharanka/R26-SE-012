@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
 import '../../core/services/yolo_detector.dart';
+import '../../core/theme/app_theme.dart';
 import '../../l10n/app_localizations.dart';
 import '../class_labels.dart';
 import '../models/detection.dart';
@@ -193,31 +194,32 @@ class _LowConfidenceNotice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final status = AppStatusColors.of(context);
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFF39C12).withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(10),
+        color: status.warningContainer,
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: const Color(0xFFF39C12).withValues(alpha: 0.5),
+          color: status.warning.withValues(alpha: 0.45),
         ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(
+          Icon(
             Icons.warning_amber_rounded,
-            color: Color(0xFFF39C12),
-            size: 20,
+            color: status.warning,
+            size: 22,
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(
               AppLocalizations.of(context).lowConfidenceNotice,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface,
-                fontSize: 12,
-                height: 1.4,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: status.onWarningContainer,
+                height: 1.45,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),

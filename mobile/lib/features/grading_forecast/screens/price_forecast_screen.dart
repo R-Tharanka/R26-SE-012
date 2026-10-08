@@ -15,12 +15,15 @@ class PriceForecastScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final status = AppStatusColors.of(context);
     final market = result.market;
     final direction = market.forecastDirection;
     final directionColor = switch (direction) {
-      'UP' => const Color(0xFF1F7A45),
-      'DOWN' => const Color(0xFFB5473C),
-      _ => const Color(0xFF52625A),
+      'UP' => status.success,
+      'DOWN' => status.danger,
+      _ => status.info,
     };
     final directionIcon = switch (direction) {
       'UP' => Icons.trending_up_rounded,
@@ -42,13 +45,13 @@ class PriceForecastScreen extends StatelessWidget {
       body: SafeArea(
         top: false,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
           children: [
             FadeSlideIn(
               child: Container(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(26),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary,
+                  color: scheme.primary,
                   borderRadius: BorderRadius.circular(kCardRadius),
                 ),
                 child: Column(
@@ -56,44 +59,48 @@ class PriceForecastScreen extends StatelessWidget {
                     Text(
                       t.farmerEstimatedPrice,
                       textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.85),
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: scheme.onPrimary.withValues(alpha: 0.86),
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 14),
                     FittedBox(
                       fit: BoxFit.scaleDown,
                       child: Text(
                         _price(t, market.forecastPrice),
-                        style: Theme.of(context).textTheme.displaySmall
-                            ?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: -1,
-                            ),
+                        style: theme.textTheme.displaySmall?.copyWith(
+                          color: scheme.onPrimary,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: -1,
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 18),
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 14,
                         vertical: 9,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.14),
+                        color: scheme.onPrimary.withValues(alpha: 0.13),
                         borderRadius: BorderRadius.circular(22),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(directionIcon, color: Colors.white, size: 21),
+                          Icon(
+                            directionIcon,
+                            color: scheme.onPrimary,
+                            size: 23,
+                          ),
                           const SizedBox(width: 8),
                           Flexible(
                             child: Text(
                               farmerDirectionLabel(t, direction),
-                              style: const TextStyle(
-                                color: Colors.white,
+                              style: TextStyle(
+                                color: scheme.onPrimary,
+                                fontSize: 16,
                                 fontWeight: FontWeight.w800,
                               ),
                             ),
@@ -105,7 +112,7 @@ class PriceForecastScreen extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 18),
             FadeSlideIn(
               delayMs: 70,
               child: FarmerNoticeCard(
@@ -114,23 +121,24 @@ class PriceForecastScreen extends StatelessWidget {
                     : Icons.info_outline_rounded,
                 message: farmerPriceConfidenceMessage(t, market.forecastSignal),
                 color: market.forecastSignal == 'HIGH_UNCERTAINTY'
-                    ? kWarmAccent
+                    ? status.warning
                     : directionColor,
               ),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 18),
             FadeSlideIn(
               delayMs: 140,
               child: Card(
                 child: Padding(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(22),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         t.farmerPriceDetails,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w800),
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
                       const SizedBox(height: 14),
                       _DetailRow(
@@ -154,6 +162,7 @@ class PriceForecastScreen extends StatelessWidget {
                         label: t.farmerReferenceDate,
                         value:
                             market.latestReferenceDate ?? t.phase7NotAvailable,
+                        secondary: true,
                         showDivider: false,
                       ),
                     ],
@@ -161,13 +170,13 @@ class PriceForecastScreen extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 18),
             FarmerNoticeCard(
               icon: Icons.eco_outlined,
               message: t.farmerForecastNotice,
-              color: Theme.of(context).colorScheme.primary,
+              color: scheme.primary,
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 22),
             FilledButton.icon(
               onPressed: () => popToHome(context),
               icon: const Icon(Icons.home_outlined),
@@ -190,12 +199,14 @@ class _DetailRow extends StatelessWidget {
     required this.label,
     required this.value,
     this.showDivider = true,
+    this.secondary = false,
   });
 
   final IconData icon;
   final String label;
   final String value;
   final bool showDivider;
+  final bool secondary;
 
   @override
   Widget build(BuildContext context) {
@@ -203,16 +214,25 @@ class _DetailRow extends StatelessWidget {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10),
+          padding: const EdgeInsets.symmetric(vertical: 12),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(icon, color: theme.colorScheme.primary, size: 21),
-              const SizedBox(width: 12),
+              Icon(
+                icon,
+                color: secondary
+                    ? theme.colorScheme.outline
+                    : theme.colorScheme.primary,
+                size: secondary ? 20 : 22,
+              ),
+              const SizedBox(width: 14),
               Expanded(
                 child: Text(
                   label,
-                  style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+                  style: (secondary
+                          ? theme.textTheme.bodySmall
+                          : theme.textTheme.bodyMedium)
+                      ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                 ),
               ),
               const SizedBox(width: 12),
@@ -220,7 +240,15 @@ class _DetailRow extends StatelessWidget {
                 child: Text(
                   value,
                   textAlign: TextAlign.end,
-                  style: const TextStyle(fontWeight: FontWeight.w700),
+                  style: (secondary
+                          ? theme.textTheme.bodySmall
+                          : theme.textTheme.bodyMedium)
+                      ?.copyWith(
+                        color: secondary
+                            ? theme.colorScheme.onSurfaceVariant
+                            : theme.colorScheme.onSurface,
+                        fontWeight: FontWeight.w700,
+                      ),
                 ),
               ),
             ],

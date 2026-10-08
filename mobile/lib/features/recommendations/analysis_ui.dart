@@ -6,29 +6,29 @@ import 'package:iconly/iconly.dart';
 
 import '../../core/theme/app_theme.dart';
 import '../../l10n/app_localizations.dart';
-export '../../core/theme/app_theme.dart' show kBrand;
+export '../../core/theme/app_theme.dart' show kBrand, AppStatusColors;
 
 /// Shared, animated building blocks for the three AI analysis screens (leaf,
 /// berry, pest). Colors are theme-aware getters so the screens follow the
 /// global light/dark toggle. [kBrand] is re-exported from app_theme.
 
 // ---- theme-aware palette (follows the global light/dark toggle) ----
-Color get kBg => isDarkMode ? const Color(0xFF121212) : const Color(0xFFF7F8FA);
-Color get kCard => isDarkMode ? const Color(0xFF1E1E1E) : Colors.white;
+Color get kBg => isDarkMode ? const Color(0xFF0F1713) : const Color(0xFFF6F8F5);
+Color get kCard => isDarkMode ? const Color(0xFF15201A) : Colors.white;
 Color get kBorder =>
-    isDarkMode ? const Color(0xFF2C2C2E) : const Color(0xFFEDEFF2);
+    isDarkMode ? const Color(0xFF3F4D45) : const Color(0xFFC7D2CA);
 Color get kText =>
-    isDarkMode ? const Color(0xFFF2F2F2) : const Color(0xFF1A1F24);
+    isDarkMode ? const Color(0xFFE5EEE8) : const Color(0xFF17201B);
 Color get kTextSub =>
-    isDarkMode ? const Color(0xFF9AA0A6) : const Color(0xFF6B7280);
+    isDarkMode ? const Color(0xFFC3CEC6) : const Color(0xFF45524A);
 
 const _heroTag = 'analysis-hero-photo';
 
-Color bandColor(String band) => switch (band) {
-  'severe' => const Color(0xFFE53935),
-  'moderate' => const Color(0xFFFB8C00),
-  'mild' => const Color(0xFFF9A825),
-  _ => kBrand,
+Color bandColor(BuildContext context, String band) => switch (band) {
+  'severe' => AppStatusColors.of(context).danger,
+  'moderate' => AppStatusColors.of(context).warning,
+  'mild' => AppStatusColors.of(context).warning,
+  _ => AppStatusColors.of(context).success,
 };
 
 // ---- collapsing scaffold with a Hero photo header ----
@@ -56,7 +56,7 @@ class AnalysisScaffold extends StatelessWidget {
             expandedHeight: 300,
             pinned: true,
             stretch: true,
-            backgroundColor: kBrand,
+            backgroundColor: Theme.of(context).colorScheme.primary,
             foregroundColor: Colors.white,
             leading: Padding(
               padding: const EdgeInsets.all(8),
@@ -86,7 +86,7 @@ class AnalysisScaffold extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontWeight: FontWeight.w600,
-                        fontSize: 16,
+                        fontSize: 18,
                       ),
                     ),
                   ),
@@ -118,10 +118,10 @@ class AnalysisScaffold extends StatelessWidget {
           SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsets.fromLTRB(
-                16,
                 20,
-                16,
-                32 + MediaQuery.of(context).padding.bottom,
+                24,
+                20,
+                36 + MediaQuery.of(context).padding.bottom,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -232,7 +232,7 @@ class AnimatedBar extends StatelessWidget {
         builder: (_, v, _) => LinearProgressIndicator(
           value: v,
           minHeight: 10,
-          backgroundColor: const Color(0xFFEEF1F4),
+          backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
           valueColor: AlwaysStoppedAnimation(color),
         ),
       ),
@@ -259,22 +259,34 @@ class StatTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: _cardDecoration(),
+      padding: const EdgeInsets.all(18),
+      decoration: _cardDecoration(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, size: 16, color: color),
-              const SizedBox(width: 6),
-              Text(label, style: TextStyle(color: kTextSub, fontSize: 12)),
+              Icon(icon, size: 19, color: color),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  label,
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    color: kTextSub,
+                  ),
+                ),
+              ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           value,
           const SizedBox(height: 2),
-          Text(sub, style: TextStyle(color: kTextSub, fontSize: 12)),
+          Text(
+            sub,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: kTextSub,
+            ),
+          ),
         ],
       ),
     );
@@ -295,27 +307,28 @@ class SectionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(top: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: _cardDecoration(),
+      margin: const EdgeInsets.only(top: 18),
+      padding: const EdgeInsets.all(18),
+      decoration: _cardDecoration(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, size: 18, color: kText),
-              const SizedBox(width: 8),
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: kText,
+              Icon(icon, size: 21, color: Theme.of(context).colorScheme.primary),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: kText,
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 16),
           child,
         ],
       ),
@@ -337,24 +350,25 @@ class InfoCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(top: 16),
-      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.only(top: 18),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: color.withValues(alpha: 0.25)),
+        color: color.withValues(alpha: isDarkMode ? 0.17 : 0.08),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: color.withValues(alpha: isDarkMode ? 0.40 : 0.25),
+        ),
       ),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: color),
-          const SizedBox(width: 10),
+          Icon(icon, size: 21, color: color),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(
               text,
-              style: TextStyle(
-                fontSize: 12.5,
-                height: 1.4,
-                color: kText.withValues(alpha: 0.8),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                height: 1.48,
+                color: kText,
               ),
             ),
           ),
@@ -388,19 +402,25 @@ class OptionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final banned = !allowed;
+    final status = AppStatusColors.of(context);
+    final scheme = Theme.of(context).colorScheme;
     final leadColor = banned
-        ? const Color(0xFFE53935)
-        : (isChemical ? const Color(0xFFFB8C00) : kBrand);
+        ? status.danger
+        : (isChemical ? status.warning : status.success);
     final leadIcon = banned
         ? IconlyBold.close_square
         : (isChemical ? IconlyBold.danger : IconlyBold.shield_done);
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: banned ? const Color(0xFFFFF3F3) : const Color(0xFFF7F9FB),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: banned ? const Color(0xFFF3C7C7) : kBorder),
+        color: banned
+            ? status.dangerContainer
+            : scheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: banned ? status.danger.withValues(alpha: 0.55) : kBorder,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -408,31 +428,33 @@ class OptionTile extends StatelessWidget {
           Row(
             children: [
               Icon(leadIcon, size: 18, color: leadColor),
-              const SizedBox(width: 8),
+              const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   name + (mix != null ? '  ·  $mix' : ''),
                   style: TextStyle(
                     fontWeight: FontWeight.w700,
-                    color: banned ? kTextSub : kText,
+                    color: banned ? status.onDangerContainer : kText,
                     decoration: banned ? TextDecoration.lineThrough : null,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           Text(
             method,
-            style: TextStyle(fontSize: 13, height: 1.35, color: kTextSub),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              height: 1.45,
+              color: banned ? status.onDangerContainer : kTextSub,
+            ),
           ),
           if (banned && restriction != null) ...[
             const SizedBox(height: 6),
             Text(
               restriction!,
-              style: const TextStyle(
-                fontSize: 12,
-                color: Color(0xFFE53935),
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: status.onDangerContainer,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -441,7 +463,9 @@ class OptionTile extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               phiNote!,
-              style: const TextStyle(fontSize: 12, color: Color(0xFFB26A00)),
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: status.warning,
+              ),
             ),
           ],
         ],
@@ -457,18 +481,26 @@ class MarketRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(top: 16),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-      decoration: _cardDecoration(),
+      margin: const EdgeInsets.only(top: 18),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: _cardDecoration(context),
       child: Row(
         children: [
-          Icon(IconlyLight.location, size: 18, color: kText),
-          const SizedBox(width: 10),
-          Text(
-            AppLocalizations.of(context).exportMarket,
-            style: TextStyle(color: kText, fontWeight: FontWeight.w600),
+          Icon(
+            IconlyLight.location,
+            size: 21,
+            color: Theme.of(context).colorScheme.primary,
           ),
-          const Spacer(),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              AppLocalizations.of(context).exportMarket,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: kText,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
           dropdown,
         ],
       ),
@@ -492,8 +524,14 @@ class LoadingView extends StatelessWidget {
             height: 34,
             child: CircularProgressIndicator(strokeWidth: 3, color: kBrand),
           ),
-          const SizedBox(height: 18),
-          Text(message, style: TextStyle(color: kTextSub)),
+          const SizedBox(height: 20),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: kTextSub,
+            ),
+          ),
         ],
       ),
     );
@@ -510,12 +548,18 @@ class ErrorView extends StatelessWidget {
     return Column(
       children: [
         const SizedBox(height: 20),
-        const Icon(IconlyBold.danger, color: Color(0xFFE53935), size: 46),
+        Icon(
+          IconlyBold.danger,
+          color: AppStatusColors.of(context).danger,
+          size: 48,
+        ),
         const SizedBox(height: 12),
         Text(
           message,
           textAlign: TextAlign.center,
-          style: TextStyle(color: kTextSub),
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: kTextSub,
+          ),
         ),
         const SizedBox(height: 20),
         FilledButton.icon(
@@ -544,13 +588,16 @@ class RetakeView extends StatelessWidget {
     return Column(
       children: [
         const SizedBox(height: 12),
-        const Icon(IconlyBold.hide, color: Color(0xFFFB8C00), size: 46),
+        Icon(
+          IconlyBold.hide,
+          color: AppStatusColors.of(context).warning,
+          size: 48,
+        ),
         const SizedBox(height: 14),
         Text(
           title,
           textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 18,
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.w700,
             color: kText,
           ),
@@ -559,7 +606,10 @@ class RetakeView extends StatelessWidget {
         Text(
           message,
           textAlign: TextAlign.center,
-          style: TextStyle(color: kTextSub, height: 1.4),
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: kTextSub,
+            height: 1.48,
+          ),
         ),
         const SizedBox(height: 20),
         FilledButton.icon(
@@ -573,13 +623,19 @@ class RetakeView extends StatelessWidget {
 }
 
 // ---- helpers ----
-BoxDecoration _cardDecoration() => BoxDecoration(
+BoxDecoration _cardDecoration(BuildContext context) => BoxDecoration(
   color: kCard,
-  borderRadius: BorderRadius.circular(16),
+  borderRadius: BorderRadius.circular(18),
   border: Border.all(color: kBorder),
-  boxShadow: const [
-    BoxShadow(color: Color(0x0A000000), blurRadius: 12, offset: Offset(0, 4)),
-  ],
+  boxShadow: Theme.of(context).brightness == Brightness.dark
+      ? const []
+      : const [
+          BoxShadow(
+            color: Color(0x0A000000),
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          ),
+        ],
 );
 
 class _CircleButton extends StatelessWidget {

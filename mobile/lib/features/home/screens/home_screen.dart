@@ -117,11 +117,13 @@ class _Dashboard extends StatelessWidget {
   Widget build(BuildContext context) {
     final state = context.findAncestorStateOfType<_HomeScreenState>()!;
     final t = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final status = AppStatusColors.of(context);
+    final dark = theme.brightness == Brightness.dark;
     final features = [
       _FeatureItem(
         icon: Icons.bug_report_outlined,
-        accent: const Color(0xFFC85C3C),
-        softColor: const Color(0xFFFBE9E3),
+        accent: dark ? const Color(0xFFFFA184) : const Color(0xFFA64128),
         eyebrow: t.featurePlantHealth,
         title: t.featurePestTitle,
         cardTitle: t.homePests,
@@ -132,8 +134,7 @@ class _Dashboard extends StatelessWidget {
       ),
       _FeatureItem(
         icon: Icons.health_and_safety_outlined,
-        accent: const Color(0xFF27864A),
-        softColor: const Color(0xFFE1F3E5),
+        accent: status.success,
         eyebrow: t.featurePlantHealth,
         title: t.featureLeafTitle,
         cardTitle: t.homeLeafHealth,
@@ -144,8 +145,7 @@ class _Dashboard extends StatelessWidget {
       ),
       _FeatureItem(
         icon: Icons.grain_rounded,
-        accent: const Color(0xFFA43F6B),
-        softColor: const Color(0xFFF8E5EE),
+        accent: dark ? const Color(0xFFF28AB6) : const Color(0xFF91345F),
         eyebrow: t.featureBerryCare,
         title: t.featureBerryDiseaseTitle,
         cardTitle: t.homeBerryDisease,
@@ -156,8 +156,7 @@ class _Dashboard extends StatelessWidget {
       ),
       _FeatureItem(
         icon: Icons.workspace_premium_outlined,
-        accent: kWarmAccent,
-        softColor: const Color(0xFFFFEFD6),
+        accent: status.warning,
         eyebrow: t.featureQualityAndPrice,
         title: t.featureGradingTitle,
         cardTitle: t.homeQualityPrice,
@@ -171,17 +170,20 @@ class _Dashboard extends StatelessWidget {
     return SafeArea(
       top: false,
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(kPagePadding, 12, kPagePadding, 32),
+        padding: const EdgeInsets.fromLTRB(kPagePadding, 12, kPagePadding, 24),
         children: [
           FarmerSectionHeader(
             title: t.homeWelcomeTitle,
             subtitle: t.homeWelcomeSubtitle,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
           LayoutBuilder(
             builder: (context, constraints) {
-              final columns = constraints.maxWidth < 340 ? 1 : 2;
-              final ratio = columns == 1 ? 2.15 : 0.92;
+              final textScale = MediaQuery.textScalerOf(context).scale(1);
+              final columns = constraints.maxWidth < 350 || textScale > 1.25
+                  ? 1
+                  : 2;
+              final ratio = columns == 1 ? 1.9 : 0.85;
               return GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -199,7 +201,7 @@ class _Dashboard extends StatelessWidget {
               );
             },
           ),
-          const SizedBox(height: 22),
+          const SizedBox(height: 20),
           FarmerNoticeCard(
             icon: Icons.tips_and_updates_outlined,
             message: t.homeChooseTaskHint,
@@ -224,7 +226,7 @@ class _FeatureCard extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(18),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -234,7 +236,9 @@ class _FeatureCard extends StatelessWidget {
                     width: 46,
                     height: 46,
                     decoration: BoxDecoration(
-                      color: item.softColor,
+                      color: item.accent.withValues(
+                        alpha: theme.brightness == Brightness.dark ? 0.20 : 0.12,
+                      ),
                       borderRadius: BorderRadius.circular(15),
                     ),
                     child: Icon(item.icon, color: item.accent, size: 25),
@@ -257,14 +261,14 @@ class _FeatureCard extends StatelessWidget {
                   height: 1.15,
                 ),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 8),
               Text(
                 item.cardDescription,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
-                  height: 1.3,
+                  height: 1.4,
                 ),
               ),
             ],
@@ -342,7 +346,7 @@ class _FarmerGuidePage extends StatelessWidget {
           FarmerNoticeCard(
             icon: Icons.info_outline_rounded,
             message: t.guideLimitation,
-            color: kWarmAccent,
+            color: AppStatusColors.of(context).warning,
           ),
         ],
       ),
@@ -354,7 +358,6 @@ class _FeatureItem {
   const _FeatureItem({
     required this.icon,
     required this.accent,
-    required this.softColor,
     required this.eyebrow,
     required this.title,
     required this.cardTitle,
@@ -366,7 +369,6 @@ class _FeatureItem {
 
   final IconData icon;
   final Color accent;
-  final Color softColor;
   final String eyebrow;
   final String title;
   final String cardTitle;

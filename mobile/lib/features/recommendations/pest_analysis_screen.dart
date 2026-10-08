@@ -99,7 +99,9 @@ class _PestAnalysisScreenState extends State<PestAnalysisScreen> {
     }
 
     final plan = PestTreatmentEngine.forAnalysis(r, _market);
-    final accent = r.healthy ? kBrand : bandColor(r.severityBand);
+    final accent = r.healthy
+        ? Theme.of(context).colorScheme.primary
+        : bandColor(context, r.severityBand);
 
     return [
       Row(
@@ -107,9 +109,9 @@ class _PestAnalysisScreenState extends State<PestAnalysisScreen> {
           Icon(
             r.healthy ? IconlyBold.shield_done : IconlyBold.danger,
             color: accent,
-            size: 30,
+            size: 32,
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -118,8 +120,7 @@ class _PestAnalysisScreenState extends State<PestAnalysisScreen> {
                   r.healthy
                       ? t.noPestsFound
                       : localizedClassName(r.pestType, t),
-                  style: TextStyle(
-                    fontSize: 22,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w800,
                     color: kText,
                   ),
@@ -129,7 +130,10 @@ class _PestAnalysisScreenState extends State<PestAnalysisScreen> {
                     padding: const EdgeInsets.only(top: 4),
                     child: Text(
                       r.summary,
-                      style: TextStyle(color: kTextSub, height: 1.35),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: kTextSub,
+                        height: 1.4,
+                      ),
                     ),
                   ),
               ],
@@ -138,25 +142,25 @@ class _PestAnalysisScreenState extends State<PestAnalysisScreen> {
         ],
       ),
 
-      const SizedBox(height: 18),
+      const SizedBox(height: 20),
       StatTile(
         icon: IconlyBold.chart,
         label: t.severity,
         color: accent,
         value: r.healthy
-            ? const Text(
+            ? Text(
                 '—',
                 style: TextStyle(
-                  fontSize: 26,
+                  fontSize: 28,
                   fontWeight: FontWeight.w800,
-                  color: kBrand,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
               )
             : CountUp(
                 r.severityPercentage,
                 suffix: '%',
                 style: TextStyle(
-                  fontSize: 26,
+                  fontSize: 28,
                   fontWeight: FontWeight.w800,
                   color: accent,
                 ),
@@ -177,13 +181,13 @@ class _PestAnalysisScreenState extends State<PestAnalysisScreen> {
           children: [
             Text(
               plan.action,
-              style: TextStyle(
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                 fontWeight: FontWeight.w700,
                 color: kText,
-                height: 1.35,
+                height: 1.4,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
             for (final o in plan.options)
               OptionTile(
                 name: o.name,
@@ -202,24 +206,24 @@ class _PestAnalysisScreenState extends State<PestAnalysisScreen> {
       if (plan.note.isNotEmpty)
         InfoCard(
           icon: IconlyBold.bag,
-          color: const Color(0xFF3B82F6),
+          color: AppStatusColors.of(context).info,
           text: plan.note,
         ),
 
       InfoCard(
         icon: IconlyBold.info_circle,
-        color: const Color(0xFF64748B),
+        color: Theme.of(context).colorScheme.outline,
         text: t.pestDisclaimer,
       ),
 
-      const SizedBox(height: 18),
+      const SizedBox(height: 20),
       FilledButton.icon(
         onPressed: () => Navigator.of(context).pop(),
         style: FilledButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 14),
+          padding: const EdgeInsets.symmetric(vertical: 16),
           shape: const StadiumBorder(),
         ),
-        icon: const Icon(IconlyLight.camera, size: 18),
+        icon: const Icon(IconlyLight.camera, size: 20),
         label: Text(t.takeAnotherPhoto),
       ),
     ];
@@ -227,27 +231,37 @@ class _PestAnalysisScreenState extends State<PestAnalysisScreen> {
 
   Widget _thresholdBadge(bool above) {
     final t = AppLocalizations.of(context);
-    final color = above ? const Color(0xFFFB8C00) : kBrand;
+    final status = AppStatusColors.of(context);
+    final color = above ? status.warning : Theme.of(context).colorScheme.primary;
     return Container(
-      margin: const EdgeInsets.only(top: 16),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      margin: const EdgeInsets.only(top: 18),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: color.withValues(alpha: 0.35)),
+        color: color.withValues(
+          alpha: Theme.of(context).brightness == Brightness.dark ? 0.18 : 0.10,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: color.withValues(
+            alpha: Theme.of(context).brightness == Brightness.dark ? 0.45 : 0.35,
+          ),
+        ),
       ),
       child: Row(
         children: [
           Icon(
             above ? IconlyBold.danger : IconlyBold.show,
-            size: 20,
+            size: 22,
             color: color,
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(
               above ? t.aboveTreatmentThreshold : t.belowThreshold,
-              style: TextStyle(fontWeight: FontWeight.w700, color: kText),
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: kText,
+              ),
             ),
           ),
         ],
@@ -259,8 +273,12 @@ class _PestAnalysisScreenState extends State<PestAnalysisScreen> {
     value: _market,
     underline: const SizedBox.shrink(),
     borderRadius: BorderRadius.circular(12),
-    style: TextStyle(color: kText, fontWeight: FontWeight.w600),
-    icon: Icon(IconlyLight.arrow_down, size: 16, color: kText),
+    dropdownColor: Theme.of(context).colorScheme.surfaceContainerHigh,
+    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+      color: kText,
+      fontWeight: FontWeight.w700,
+    ),
+    icon: Icon(IconlyLight.arrow_down, size: 18, color: kText),
     onChanged: (m) => setState(() => _market = m ?? _market),
     items: [
       for (final m in Market.values)
@@ -268,24 +286,27 @@ class _PestAnalysisScreenState extends State<PestAnalysisScreen> {
     ],
   );
 
-  Widget _warning(String w) => Padding(
-    padding: const EdgeInsets.only(top: 6),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Icon(IconlyBold.danger, size: 15, color: Color(0xFFB26A00)),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            w,
-            style: const TextStyle(
-              fontSize: 12,
-              color: Color(0xFFB26A00),
-              height: 1.35,
+  Widget _warning(String w) {
+    final warningColor = AppStatusColors.of(context).warning;
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(IconlyBold.danger, size: 16, color: warningColor),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              w,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: warningColor,
+                height: 1.4,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
-        ),
-      ],
-    ),
-  );
+        ],
+      ),
+    );
+  }
 }

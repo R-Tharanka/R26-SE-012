@@ -85,7 +85,7 @@ class _BerryCaptureScreenState extends State<BerryCaptureScreen> {
       useSafeArea: true,
       builder: (context) => SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -94,7 +94,7 @@ class _BerryCaptureScreenState extends State<BerryCaptureScreen> {
                 title: t.captureGuideTitle,
                 subtitle: t.captureGuideSubtitle,
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 20),
               GuideStepCard(
                 number: 1,
                 icon: Icons.light_mode_outlined,
@@ -146,7 +146,7 @@ class _BerryCaptureScreenState extends State<BerryCaptureScreen> {
       body: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 22),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -157,7 +157,7 @@ class _BerryCaptureScreenState extends State<BerryCaptureScreen> {
                   height: 1.4,
                 ),
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 16),
               Expanded(
                 child: Card(
                   clipBehavior: Clip.antiAlias,
@@ -177,11 +177,11 @@ class _BerryCaptureScreenState extends State<BerryCaptureScreen> {
                                   ),
                                   child: Icon(
                                     Icons.add_photo_alternate_outlined,
-                                    color: theme.colorScheme.primary,
+                                    color: theme.colorScheme.onPrimaryContainer,
                                     size: 34,
                                   ),
                                 ),
-                                const SizedBox(height: 16),
+                                const SizedBox(height: 18),
                                 Text(
                                   t.noImageSelected,
                                   textAlign: TextAlign.center,
@@ -189,7 +189,7 @@ class _BerryCaptureScreenState extends State<BerryCaptureScreen> {
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
-                                const SizedBox(height: 6),
+                                const SizedBox(height: 8),
                                 Text(
                                   t.captureChooseSource,
                                   textAlign: TextAlign.center,
@@ -211,7 +211,7 @@ class _BerryCaptureScreenState extends State<BerryCaptureScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 16),
               Row(
                 children: [
                   Expanded(
@@ -231,12 +231,12 @@ class _BerryCaptureScreenState extends State<BerryCaptureScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
               FilledButton(
                 onPressed: canAnalyze ? _analyze : null,
                 child: Text(t.analyzeBerrySample),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
               Text(
                 t.captureTip,
                 textAlign: TextAlign.center,

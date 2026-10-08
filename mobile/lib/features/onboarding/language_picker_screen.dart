@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../core/locale/app_locale.dart';
-import '../../core/theme/app_theme.dart';
 import '../home/screens/home_screen.dart';
 
 /// Starter screen shown on first launch to pick a language, and reused from the
@@ -37,26 +36,26 @@ class LanguagePickerScreen extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Icon(Icons.eco, size: 72, color: kBrand),
+                  Icon(Icons.eco, size: 72, color: cs.primary),
                   const SizedBox(height: 12),
                   Text(
                     'Pepper Care',
                     textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: cs.onSurface,
                     ),
                   ),
                   const SizedBox(height: 28),
                   Text(
                     'Choose your language\nභාෂාව තෝරන්න\nமொழியைத் தேர்ந்தெடுக்கவும்',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: cs.onSurfaceVariant,
                       height: 1.6,
-                      fontSize: 15,
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 28),
                   for (final locale in kSupportedLocales)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 12),
@@ -94,18 +93,18 @@ class _LanguageTile extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     return Material(
       color: selected
-          ? kBrand.withValues(alpha: 0.15)
+          ? cs.primaryContainer
           : cs.surfaceContainerHighest,
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(16),
       child: InkWell(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         onTap: onTap,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: selected ? kBrand : cs.outlineVariant,
+              color: selected ? cs.primary : cs.outlineVariant,
               width: selected ? 2 : 1,
             ),
           ),
@@ -114,14 +113,13 @@ class _LanguageTile extends StatelessWidget {
               Expanded(
                 child: Text(
                   label,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: cs.onSurface,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: selected ? cs.onPrimaryContainer : cs.onSurface,
                   ),
                 ),
               ),
-              if (selected) const Icon(Icons.check_circle, color: kBrand),
+              if (selected) Icon(Icons.check_circle, color: cs.primary),
             ],
           ),
         ),

@@ -23,13 +23,15 @@ class BerryQualityResultScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final status = AppStatusColors.of(context);
     final accepted = result.grading.status == 'ACCEPTED';
     final rejected = result.grading.status == 'REJECTED';
     final accent = accepted
-        ? Theme.of(context).colorScheme.primary
+        ? status.success
         : rejected
-        ? Theme.of(context).colorScheme.error
-        : kWarmAccent;
+        ? status.danger
+        : status.warning;
     final icon = accepted
         ? Icons.workspace_premium_rounded
         : rejected
@@ -50,7 +52,7 @@ class BerryQualityResultScreen extends StatelessWidget {
       body: SafeArea(
         top: false,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
           children: [
             FadeSlideIn(
               child: ClipRRect(
@@ -61,40 +63,43 @@ class BerryQualityResultScreen extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             FadeSlideIn(
               delayMs: 70,
               child: Card(
                 child: Padding(
-                  padding: const EdgeInsets.all(22),
+                  padding: const EdgeInsets.all(24),
                   child: Column(
                     children: [
                       Container(
                         width: 68,
                         height: 68,
                         decoration: BoxDecoration(
-                          color: accent.withValues(alpha: 0.12),
+                          color: accent.withValues(
+                            alpha: theme.brightness == Brightness.dark
+                                ? 0.20
+                                : 0.12,
+                          ),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(icon, color: accent, size: 34),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 18),
                       Text(
                         farmerResultTitle(t, result),
                         textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.headlineSmall
-                            ?.copyWith(
-                              color: accent,
-                              fontWeight: FontWeight.w900,
-                              height: 1.15,
-                            ),
+                        style: theme.textTheme.headlineMedium?.copyWith(
+                          color: accent,
+                          fontWeight: FontWeight.w900,
+                          height: 1.15,
+                        ),
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 12),
                       Text(
                         farmerResultExplanation(t, result),
                         textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
                           height: 1.45,
                         ),
                       ),
@@ -103,7 +108,7 @@ class BerryQualityResultScreen extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 18),
             if (!accepted)
               FadeSlideIn(
                 delayMs: 140,
@@ -121,7 +126,7 @@ class BerryQualityResultScreen extends StatelessWidget {
                   message: t.farmerGradeNotice,
                 ),
               ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 22),
             if (result.market.isAvailable)
               FilledButton.icon(
                 onPressed: () => Navigator.of(context).push(

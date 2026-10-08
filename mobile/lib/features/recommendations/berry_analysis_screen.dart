@@ -98,7 +98,9 @@ class _BerryAnalysisScreenState extends State<BerryAnalysisScreen> {
     }
 
     final rem = RemediationEngine.forAnalysis(r, _market);
-    final accent = r.healthy ? kBrand : bandColor(r.severityBand);
+    final accent = r.healthy
+        ? Theme.of(context).colorScheme.primary
+        : bandColor(context, r.severityBand);
 
     return [
       Row(
@@ -106,9 +108,9 @@ class _BerryAnalysisScreenState extends State<BerryAnalysisScreen> {
           Icon(
             r.healthy ? IconlyBold.shield_done : IconlyBold.danger,
             color: accent,
-            size: 30,
+            size: 32,
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -117,8 +119,7 @@ class _BerryAnalysisScreenState extends State<BerryAnalysisScreen> {
                   r.healthy
                       ? t.exportCleanCluster
                       : localizedClassName(r.problemType, t),
-                  style: TextStyle(
-                    fontSize: 22,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w800,
                     color: kText,
                   ),
@@ -128,7 +129,10 @@ class _BerryAnalysisScreenState extends State<BerryAnalysisScreen> {
                     padding: const EdgeInsets.only(top: 4),
                     child: Text(
                       r.summary,
-                      style: TextStyle(color: kTextSub, height: 1.35),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: kTextSub,
+                        height: 1.4,
+                      ),
                     ),
                   ),
               ],
@@ -137,25 +141,25 @@ class _BerryAnalysisScreenState extends State<BerryAnalysisScreen> {
         ],
       ),
 
-      const SizedBox(height: 18),
+      const SizedBox(height: 20),
       StatTile(
         icon: IconlyBold.chart,
         label: t.severity,
         color: accent,
         value: r.healthy
-            ? const Text(
+            ? Text(
                 '—',
                 style: TextStyle(
-                  fontSize: 26,
+                  fontSize: 28,
                   fontWeight: FontWeight.w800,
-                  color: kBrand,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
               )
             : CountUp(
                 r.severityPercentage,
                 suffix: '%',
                 style: TextStyle(
-                  fontSize: 26,
+                  fontSize: 28,
                   fontWeight: FontWeight.w800,
                   color: accent,
                 ),
@@ -173,13 +177,13 @@ class _BerryAnalysisScreenState extends State<BerryAnalysisScreen> {
           children: [
             Text(
               rem.action,
-              style: TextStyle(
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                 fontWeight: FontWeight.w700,
                 color: kText,
-                height: 1.35,
+                height: 1.4,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
             for (final o in rem.options)
               OptionTile(
                 name: o.name,
@@ -198,24 +202,24 @@ class _BerryAnalysisScreenState extends State<BerryAnalysisScreen> {
       if (rem.exportNote.isNotEmpty)
         InfoCard(
           icon: IconlyBold.bag,
-          color: const Color(0xFF3B82F6),
+          color: AppStatusColors.of(context).info,
           text: rem.exportNote,
         ),
 
       InfoCard(
         icon: IconlyBold.info_circle,
-        color: const Color(0xFF64748B),
+        color: Theme.of(context).colorScheme.outline,
         text: t.berryDisclaimer,
       ),
 
-      const SizedBox(height: 18),
+      const SizedBox(height: 20),
       FilledButton.icon(
         onPressed: () => Navigator.of(context).pop(),
         style: FilledButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 14),
+          padding: const EdgeInsets.symmetric(vertical: 16),
           shape: const StadiumBorder(),
         ),
-        icon: const Icon(IconlyLight.camera, size: 18),
+        icon: const Icon(IconlyLight.camera, size: 20),
         label: Text(t.takeAnotherPhoto),
       ),
     ];
@@ -225,8 +229,12 @@ class _BerryAnalysisScreenState extends State<BerryAnalysisScreen> {
     value: _market,
     underline: const SizedBox.shrink(),
     borderRadius: BorderRadius.circular(12),
-    style: TextStyle(color: kText, fontWeight: FontWeight.w600),
-    icon: Icon(IconlyLight.arrow_down, size: 16, color: kText),
+    dropdownColor: Theme.of(context).colorScheme.surfaceContainerHigh,
+    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+      color: kText,
+      fontWeight: FontWeight.w700,
+    ),
+    icon: Icon(IconlyLight.arrow_down, size: 18, color: kText),
     onChanged: (m) => setState(() => _market = m ?? _market),
     items: [
       for (final m in Market.values)
@@ -234,24 +242,27 @@ class _BerryAnalysisScreenState extends State<BerryAnalysisScreen> {
     ],
   );
 
-  Widget _warning(String w) => Padding(
-    padding: const EdgeInsets.only(top: 6),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Icon(IconlyBold.danger, size: 15, color: Color(0xFFB26A00)),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            w,
-            style: const TextStyle(
-              fontSize: 12,
-              color: Color(0xFFB26A00),
-              height: 1.35,
+  Widget _warning(String w) {
+    final warningColor = AppStatusColors.of(context).warning;
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(IconlyBold.danger, size: 16, color: warningColor),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              w,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: warningColor,
+                height: 1.4,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
-        ),
-      ],
-    ),
-  );
+        ],
+      ),
+    );
+  }
 }

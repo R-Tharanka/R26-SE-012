@@ -33,7 +33,7 @@ class FarmerSectionHeader extends StatelessWidget {
                 ),
               ),
               if (subtitle != null) ...[
-                const SizedBox(height: 6),
+                const SizedBox(height: 8),
                 Text(
                   subtitle!,
                   style: theme.textTheme.bodyMedium?.copyWith(
@@ -68,20 +68,30 @@ class FarmerNoticeCard extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final accent = color ?? scheme.primary;
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: accent.withValues(alpha: 0.09),
-        borderRadius: BorderRadius.circular(16),
+        color: accent.withValues(
+          alpha: Theme.of(context).brightness == Brightness.dark ? 0.17 : 0.09,
+        ),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: accent.withValues(
+            alpha: Theme.of(context).brightness == Brightness.dark ? 0.38 : 0.22,
+          ),
+        ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: accent, size: 22),
-          const SizedBox(width: 12),
+          Icon(icon, color: accent, size: 24),
+          const SizedBox(width: 14),
           Expanded(
             child: Text(
               message,
-              style: TextStyle(color: scheme.onSurface, height: 1.4),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: scheme.onSurface,
+                height: 1.5,
+              ),
             ),
           ),
         ],
@@ -126,7 +136,7 @@ class FarmerEmptyState extends StatelessWidget {
                   color: theme.colorScheme.onPrimaryContainer,
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 22),
               Text(
                 title,
                 textAlign: TextAlign.center,
@@ -134,7 +144,7 @@ class FarmerEmptyState extends StatelessWidget {
                   fontWeight: FontWeight.w800,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 10),
               Text(
                 message,
                 textAlign: TextAlign.center,
@@ -178,9 +188,9 @@ class FeatureIntroSheet extends StatelessWidget {
       child: SingleChildScrollView(
         padding: EdgeInsets.fromLTRB(
           kPagePadding,
-          4,
+          8,
           kPagePadding,
-          kPagePadding + MediaQuery.viewInsetsOf(context).bottom,
+          28 + MediaQuery.viewInsetsOf(context).bottom,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -189,16 +199,16 @@ class FeatureIntroSheet extends StatelessWidget {
             Align(
               alignment: AlignmentDirectional.centerStart,
               child: Container(
-                width: 52,
-                height: 52,
+                width: 56,
+                height: 56,
                 decoration: BoxDecoration(
                   color: accent.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Icon(icon, color: accent, size: 28),
+                child: Icon(icon, color: accent, size: 30),
               ),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 20),
             Text(
               eyebrow.toUpperCase(),
               style: theme.textTheme.labelMedium?.copyWith(
@@ -207,7 +217,7 @@ class FeatureIntroSheet extends StatelessWidget {
                 letterSpacing: 0.8,
               ),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
             Text(
               title,
               style: theme.textTheme.headlineSmall?.copyWith(
@@ -215,7 +225,7 @@ class FeatureIntroSheet extends StatelessWidget {
                 height: 1.15,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
             Text(
               description,
               style: theme.textTheme.bodyLarge?.copyWith(
@@ -223,7 +233,7 @@ class FeatureIntroSheet extends StatelessWidget {
                 height: 1.45,
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 28),
             FilledButton.icon(
               onPressed: onStart,
               icon: const Icon(Icons.arrow_forward_rounded),
@@ -254,8 +264,9 @@ class GuideStepCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Card(
+      margin: const EdgeInsets.only(bottom: 14),
       child: Padding(
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.all(20),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -269,7 +280,10 @@ class GuideStepCard extends StatelessWidget {
                     color: theme.colorScheme.primaryContainer,
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  child: Icon(icon, color: theme.colorScheme.primary),
+                  child: Icon(
+                    icon,
+                    color: theme.colorScheme.onPrimaryContainer,
+                  ),
                 ),
                 PositionedDirectional(
                   end: -5,
@@ -279,9 +293,9 @@ class GuideStepCard extends StatelessWidget {
                     backgroundColor: theme.colorScheme.primary,
                     child: Text(
                       '$number',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 11,
+                      style: TextStyle(
+                        color: theme.colorScheme.onPrimary,
+                        fontSize: 12,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
@@ -289,7 +303,7 @@ class GuideStepCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 18),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -300,7 +314,7 @@ class GuideStepCard extends StatelessWidget {
                       fontWeight: FontWeight.w800,
                     ),
                   ),
-                  const SizedBox(height: 5),
+                  const SizedBox(height: 7),
                   Text(
                     body,
                     style: theme.textTheme.bodyMedium?.copyWith(

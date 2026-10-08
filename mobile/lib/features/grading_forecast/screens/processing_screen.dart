@@ -87,12 +87,12 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
         top: false,
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(22),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 520),
               child: Card(
                 child: Padding(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(26),
                   child: _isRunning
                       ? Column(
                           mainAxisSize: MainAxisSize.min,
@@ -108,24 +108,24 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
                                 padding: const EdgeInsets.all(20),
                                 child: CircularProgressIndicator(
                                   strokeWidth: 3,
-                                  color: scheme.primary,
+                                color: scheme.onPrimaryContainer,
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 20),
+                            const SizedBox(height: 22),
                             Text(
                               t.processingFarmerTitle,
                               textAlign: TextAlign.center,
                               style: Theme.of(context).textTheme.titleLarge
                                   ?.copyWith(fontWeight: FontWeight.w800),
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 10),
                             Text(
                               t.phase7ProcessingMessage,
                               textAlign: TextAlign.center,
-                              style: TextStyle(
+                              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                                 color: scheme.onSurfaceVariant,
-                                height: 1.4,
+                                height: 1.5,
                               ),
                             ),
                           ],
@@ -138,23 +138,23 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
                               size: 48,
                               color: scheme.error,
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 14),
                             Text(
                               t.processingErrorTitle,
                               textAlign: TextAlign.center,
                               style: Theme.of(context).textTheme.titleLarge
                                   ?.copyWith(fontWeight: FontWeight.w800),
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 10),
                             Text(
                               _errorMessage ?? t.backendError,
                               textAlign: TextAlign.center,
-                              style: TextStyle(
+                              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                                 color: scheme.onSurfaceVariant,
-                                height: 1.4,
+                                height: 1.5,
                               ),
                             ),
-                            const SizedBox(height: 20),
+                            const SizedBox(height: 22),
                             SizedBox(
                               width: double.infinity,
                               child: FilledButton(

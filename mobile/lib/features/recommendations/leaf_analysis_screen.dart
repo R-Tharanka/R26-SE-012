@@ -100,8 +100,11 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
       ];
     }
 
-    final accent = r.healthy ? kBrand : bandColor(r.severityBand);
+    final accent = r.healthy
+        ? Theme.of(context).colorScheme.primary
+        : bandColor(context, r.severityBand);
     final sev = r.severityPercentage ?? 0;
+    final infoColor = AppStatusColors.of(context).info;
 
     return [
       // headline
@@ -110,9 +113,9 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
           Icon(
             r.healthy ? IconlyBold.shield_done : IconlyBold.danger,
             color: accent,
-            size: 30,
+            size: 32,
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -121,8 +124,7 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
                   r.healthy
                       ? t.healthyLeaf
                       : localizedClassName(r.diseaseType, t),
-                  style: TextStyle(
-                    fontSize: 22,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w800,
                     color: kText,
                   ),
@@ -132,7 +134,10 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
                     padding: const EdgeInsets.only(top: 4),
                     child: Text(
                       r.summary,
-                      style: TextStyle(color: kTextSub, height: 1.35),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: kTextSub,
+                        height: 1.4,
+                      ),
                     ),
                   ),
               ],
@@ -141,7 +146,7 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
         ],
       ),
 
-      const SizedBox(height: 18),
+      const SizedBox(height: 20),
       Row(
         children: [
           Expanded(
@@ -150,12 +155,12 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
               label: t.severity,
               color: accent,
               value: r.healthy
-                  ? const Text(
+                  ? Text(
                       '—',
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.w800,
-                        color: kBrand,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                     )
                   : CountUp(
@@ -170,19 +175,19 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
               sub: r.severityBand.toUpperCase(),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 14),
           Expanded(
             child: StatTile(
               icon: IconlyBold.activity,
               label: t.confidence,
-              color: const Color(0xFF3B82F6),
+              color: infoColor,
               value: CountUp(
                 r.confidence * 100,
                 suffix: '%',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.w800,
-                  color: Color(0xFF3B82F6),
+                  color: infoColor,
                 ),
               ),
               sub: _conf(r.confidence, t),
@@ -192,7 +197,7 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
       ),
 
       if (!r.healthy && sev > 0) ...[
-        const SizedBox(height: 16),
+        const SizedBox(height: 18),
         AnimatedBar(fraction: sev / 100, color: accent),
       ],
 
@@ -202,7 +207,10 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
           title: t.whatWeSee,
           child: Text(
             r.affectedRegions,
-            style: TextStyle(color: kTextSub, height: 1.45),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: kTextSub,
+              height: 1.48,
+            ),
           ),
         ),
 
@@ -215,32 +223,39 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
             children: [
               for (int i = 0; i < r.treatments.length; i++)
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.only(bottom: 14),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Container(
-                        width: 24,
-                        height: 24,
+                        width: 26,
+                        height: 26,
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
-                          color: accent.withValues(alpha: 0.15),
+                          color: accent.withValues(
+                            alpha: Theme.of(context).brightness == Brightness.dark
+                                ? 0.25
+                                : 0.15,
+                          ),
                           shape: BoxShape.circle,
                         ),
                         child: Text(
                           '${i + 1}',
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: 13,
                             color: accent,
                             fontWeight: FontWeight.w800,
                           ),
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 14),
                       Expanded(
                         child: Text(
                           r.treatments[i],
-                          style: TextStyle(height: 1.4, color: kText),
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            height: 1.45,
+                            color: kText,
+                          ),
                         ),
                       ),
                     ],
@@ -252,18 +267,18 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
 
       InfoCard(
         icon: IconlyBold.info_circle,
-        color: const Color(0xFF64748B),
+        color: Theme.of(context).colorScheme.outline,
         text: t.leafDisclaimer,
       ),
 
-      const SizedBox(height: 18),
+      const SizedBox(height: 20),
       FilledButton.icon(
         onPressed: () => Navigator.of(context).pop(),
         style: FilledButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 14),
+          padding: const EdgeInsets.symmetric(vertical: 16),
           shape: const StadiumBorder(),
         ),
-        icon: const Icon(IconlyLight.camera, size: 18),
+        icon: const Icon(IconlyLight.camera, size: 20),
         label: Text(t.takeAnotherPhoto),
       ),
     ];
