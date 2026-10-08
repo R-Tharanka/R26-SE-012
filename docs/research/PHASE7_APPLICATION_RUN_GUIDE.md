@@ -429,7 +429,34 @@ The local and hosted `/ready` endpoint is stricter than `/health`. `/health`
 proves that the process can answer HTTP; `/ready` verifies the frozen ONNX and
 forecast source. A non-ready response is HTTP 503 and must block testing.
 
-## 11. Evidence boundary
+## 11. Farmer UI/UX acceptance checklist
+
+After installing a newly built APK, verify the presentation layer separately
+from the already frozen inference/decision behavior:
+
+- The dashboard shows one Pepper Care identity and exactly four feature cards.
+- No static Farm Status, mock recent results, standalone Take Photo, or Capture
+  navigation item is present.
+- Every feature card opens an explanatory bottom sheet before its task screen.
+- Berry quality opens capture directly after the sheet; no legacy intermediate
+  grading page appears.
+- Home, History, and Guide work. History shows an honest empty state and Guide
+  contains photo, grade, price, retry, and limitation guidance.
+- Repeat the flow in English, Sinhala, and Tamil and check for clipped text on a
+  small phone screen and with increased system font size.
+- Accepted grading leads with Berry Grade 1 or Berry Grade 2. Uncertain and
+  rejected cases show retry guidance and never show a price action.
+- The Price Outlook page gives one estimated price visual priority, separates
+  price uncertainty from grade uncertainty, and provides obvious Back/Home
+  navigation.
+- Research trace, Ridge/persistence fields, raw forecast intervals, model paths,
+  and runtime errors are absent from the normal UI but remain available through
+  the API response.
+
+The detailed implementation and automated results are recorded in
+`docs/research/MOBILE_UI_UX_REFINEMENT_RESULTS.md`.
+
+## 12. Evidence boundary
 
 A successful browser, emulator, or USB-device run proves local integration of
 the current backend/client path. It does not prove field/device/domain-shift

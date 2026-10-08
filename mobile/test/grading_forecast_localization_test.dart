@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pepper_care/features/grading_forecast/grading_forecast_localizations.dart';
 import 'package:pepper_care/features/grading_forecast/models/grading_forecast_result.dart';
-import 'package:pepper_care/features/grading_forecast/screens/grading_forecast_home_screen.dart';
+import 'package:pepper_care/features/grading_forecast/screens/berry_capture_screen.dart';
+import 'package:pepper_care/features/home/screens/home_screen.dart';
 import 'package:pepper_care/features/grading_forecast/services/grading_forecast_api_service.dart';
 import 'package:pepper_care/l10n/app_localizations.dart';
 
@@ -10,7 +11,7 @@ Widget _localizedApp(Locale locale) => MaterialApp(
   locale: locale,
   localizationsDelegates: AppLocalizations.localizationsDelegates,
   supportedLocales: AppLocalizations.supportedLocales,
-  home: const GradingForecastHomeScreen(),
+  home: const HomeScreen(),
 );
 
 GradingForecastResult _acceptedResult() => GradingForecastResult.fromJson({
@@ -51,32 +52,52 @@ GradingForecastResult _acceptedResult() => GradingForecastResult.fromJson({
 });
 
 void main() {
-  testWidgets('grading home renders Sinhala Phase 7 presentation text', (
+  testWidgets('grading sheet and capture route render in Sinhala', (
     tester,
   ) async {
+    await tester.binding.setSurfaceSize(const Size(800, 1000));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
     await tester.pumpWidget(_localizedApp(const Locale('si')));
     await tester.pumpAndSettle();
 
-    expect(
-      find.text('ගම්මිරිස් ශ්‍රේණිගත කිරීම සහ අපනයන මිල පුරෝකථනය'),
-      findsOneWidget,
+    final card = find.ancestor(
+      of: find.text('ගුණාත්මකභාවය සහ\nමිල'),
+      matching: find.byType(InkWell),
     );
-    expect(find.textContaining('ව්‍යාපෘතියට විශේෂිත'), findsOneWidget);
-    expect(find.text('Check Berry Quality'), findsNothing);
+    await tester.ensureVisible(card);
+    await tester.tap(card);
+    await tester.pumpAndSettle();
+
+    expect(find.text('ගෙඩි ගුණත්වය සහ මිල දැක්ම'), findsOneWidget);
+    await tester.tap(find.text('ගෙඩියේ ගුණත්වය පරීක්ෂා කරන්න'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(BerryCaptureScreen), findsOneWidget);
+    expect(find.text('Check berry quality'), findsNothing);
   });
 
-  testWidgets('grading home renders Tamil Phase 7 presentation text', (
+  testWidgets('grading sheet and capture route render in Tamil', (
     tester,
   ) async {
+    await tester.binding.setSurfaceSize(const Size(800, 1000));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
     await tester.pumpWidget(_localizedApp(const Locale('ta')));
     await tester.pumpAndSettle();
 
-    expect(
-      find.text('மிளகு தரப்படுத்தல் மற்றும் ஏற்றுமதி விலை முன்னறிவிப்பு'),
-      findsOneWidget,
+    final card = find.ancestor(
+      of: find.text('தரம் மற்றும்\nவிலை'),
+      matching: find.byType(InkWell),
     );
-    expect(find.textContaining('திட்டத்திற்குரிய'), findsOneWidget);
-    expect(find.text('Check Berry Quality'), findsNothing);
+    await tester.ensureVisible(card);
+    await tester.tap(card);
+    await tester.pumpAndSettle();
+
+    expect(find.text('கொட்டைத் தரம் மற்றும் விலை நோக்கு'), findsOneWidget);
+    await tester.tap(find.text('கொட்டையின் தரத்தைச் சரிபார்க்கவும்'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(BerryCaptureScreen), findsOneWidget);
+    expect(find.text('Check berry quality'), findsNothing);
   });
 
   test('localized mappings preserve internal Phase 6 values', () {

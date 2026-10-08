@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pepper_care/features/berry_disease/berry_scanner_screen.dart';
-import 'package:pepper_care/features/grading_forecast/screens/grading_forecast_home_screen.dart';
+import 'package:pepper_care/features/grading_forecast/screens/berry_capture_screen.dart';
 import 'package:pepper_care/features/home/screens/home_screen.dart';
 import 'package:pepper_care/features/plant_health/screens/plant_health_scanner_screen.dart';
 import 'package:pepper_care/l10n/app_localizations.dart';
@@ -13,9 +13,15 @@ Widget _app() => const MaterialApp(
 );
 
 void main() {
+  Future<void> usePhoneViewport(WidgetTester tester) async {
+    await tester.binding.setSurfaceSize(const Size(800, 1000));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+  }
+
   testWidgets('current shell retains all four component entries', (
     tester,
   ) async {
+    await usePhoneViewport(tester);
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
 
@@ -29,53 +35,72 @@ void main() {
     }
   });
 
-  testWidgets('grading entry retains the current Phase 7 route', (
-    tester,
-  ) async {
-    await tester.pumpWidget(_app());
-    await tester.pumpAndSettle();
+  testWidgets(
+    'grading entry uses the shared sheet then current capture route',
+    (tester) async {
+      await usePhoneViewport(tester);
+      await tester.pumpWidget(_app());
+      await tester.pumpAndSettle();
 
-    final card = find.ancestor(
-      of: find.text('Quality &\nPrice'),
-      matching: find.byType(InkWell),
-    );
-    await tester.ensureVisible(card);
-    await tester.tap(card);
-    await tester.pumpAndSettle();
+      final card = find.ancestor(
+        of: find.text('Quality &\nPrice'),
+        matching: find.byType(InkWell),
+      );
+      await tester.ensureVisible(card);
+      await tester.tap(card);
+      await tester.pumpAndSettle();
 
-    expect(find.byType(GradingForecastHomeScreen), findsOneWidget);
-    expect(
-      find.text('Berry Grading and Export Price Forecasting'),
-      findsOneWidget,
-    );
-    expect(find.textContaining('Grade 3'), findsNothing);
-  });
+      expect(find.text('Berry Quality and Price Outlook'), findsOneWidget);
+      await tester.tap(find.text('Check Berry Quality'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(BerryCaptureScreen), findsOneWidget);
+      expect(find.textContaining('Grade 3'), findsNothing);
+    },
+  );
 
   testWidgets('pest and leaf entries retain the combined plant-health route', (
     tester,
   ) async {
+    await usePhoneViewport(tester);
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Pests'));
+    final pests = find.ancestor(
+      of: find.text('Pests'),
+      matching: find.byType(InkWell),
+    );
+    await tester.ensureVisible(pests);
+    await tester.tap(pests);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Start Crop Scan'));
-    await tester.pump();
+    await tester.tap(find.text('Start scan'));
+    // Scanner camera/progress widgets may keep scheduling frames; pump only
+    // through the route transition instead of waiting for global quiescence.
+    await tester.pump(const Duration(milliseconds: 500));
 
-    expect(find.byType(PlantHealthScannerScreen), findsOneWidget);
+    expect(
+      find.byType(PlantHealthScannerScreen, skipOffstage: false),
+      findsOneWidget,
+    );
   });
 
   testWidgets('berry-disease entry reaches the imported berry scanner', (
     tester,
   ) async {
+    await usePhoneViewport(tester);
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Berry Disease'));
+    final berries = find.ancestor(
+      of: find.text('Berry Disease'),
+      matching: find.byType(InkWell),
+    );
+    await tester.ensureVisible(berries);
+    await tester.tap(berries);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Start Crop Scan'));
-    await tester.pump();
+    await tester.tap(find.text('Start scan'));
+    await tester.pump(const Duration(milliseconds: 500));
 
-    expect(find.byType(BerryScannerScreen), findsOneWidget);
+    expect(find.byType(BerryScannerScreen, skipOffstage: false), findsOneWidget);
   });
 }

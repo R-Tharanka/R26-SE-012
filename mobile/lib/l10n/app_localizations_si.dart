@@ -58,6 +58,139 @@ class AppLocalizationsSi extends AppLocalizations {
   String get darkMode => 'අඳුරු ප්‍රකාරය';
 
   @override
+  String get navHome => 'මුල් පිටුව';
+
+  @override
+  String get navHistory => 'ඉතිහාසය';
+
+  @override
+  String get navGuide => 'මාර්ගෝපදේශය';
+
+  @override
+  String get homeWelcomeTitle => 'අද ඔබේ වගාවට අපට උදව් කළ හැක්කේ කෙසේද?';
+
+  @override
+  String get homeWelcomeSubtitle =>
+      'ඔබට අවශ්‍ය කාර්යය තෝරන්න. ඡායාරූපය සහ ප්‍රතිඵල සඳහා අපි මඟ පෙන්වන්නෙමු.';
+
+  @override
+  String get homeChooseTaskHint =>
+      'නිවැරදි වගා පරීක්ෂාව භාවිතා කිරීමට, ඡායාරූපයක් ගැනීමට පෙර කාර්යයක් තෝරන්න.';
+
+  @override
+  String get featurePlantHealth => 'ශාක සෞඛ්‍යය';
+
+  @override
+  String get featureBerryCare => 'ගෙඩි රැකවරණය';
+
+  @override
+  String get featureQualityAndPrice => 'ගුණත්වය සහ මිල';
+
+  @override
+  String get featurePestTitle => 'පළිබෝධ හඳුනාගැනීම';
+
+  @override
+  String get featurePestCardDescription => 'කොළ, කඳ සහ ගෙඩි පරීක්ෂා කරන්න';
+
+  @override
+  String get featurePestDescription =>
+      'සාමාන්‍ය ගම්මිරිස් පළිබෝධ සොයා ප්‍රායෝගික ප්‍රතිකාර මඟපෙන්වීමක් ලබාගැනීමට පැහැදිලි ඡායාරූපයක් ගන්න.';
+
+  @override
+  String get featureLeafTitle => 'කොළ සෞඛ්‍ය පරීක්ෂාව';
+
+  @override
+  String get featureLeafCardDescription => 'කොළ රෝග ලක්ෂණ සොයන්න';
+
+  @override
+  String get featureLeafDescription =>
+      'පෙනෙන රෝග ලක්ෂණ සහ ඒවායේ බරපතළකම පරීක්ෂා කිරීමට ගම්මිරිස් කොළයක ඡායාරූපයක් ගන්න.';
+
+  @override
+  String get featureBerryDiseaseTitle => 'ගෙඩි රෝග පරීක්ෂාව';
+
+  @override
+  String get featureBerryDiseaseCardDescription =>
+      'ගෙඩි පොකුරු හානි පරීක්ෂා කරන්න';
+
+  @override
+  String get featureBerryDiseaseDescription =>
+      'පෙනෙන රෝග හෝ පළිබෝධ හානි සොයා රැකවරණ මඟපෙන්වීමක් ලබාගැනීමට ගම්මිරිස් ගෙඩි පොකුරක ඡායාරූපයක් ගන්න.';
+
+  @override
+  String get featureGradingTitle => 'ගෙඩි ගුණත්වය සහ මිල දැක්ම';
+
+  @override
+  String get featureGradingCardDescription => 'ශ්‍රේණිය සහ මිල දැක්ම බලන්න';
+
+  @override
+  String get featureGradingDescription =>
+      'ව්‍යාපෘති ගුණත්ව ශ්‍රේණියක් ලබාගැනීමට පැහැදිලි ගම්මිරිස් නියැදි ඡායාරූපයක් ගන්න. ශ්‍රේණිය පැහැදිලි නම් එයට ගැළපෙන EAC මිල දැක්මද බලන්න පුළුවන්.';
+
+  @override
+  String get startScan => 'ස්කෑන් කිරීම අරඹන්න';
+
+  @override
+  String get historyEmptyTitle => 'තවම විශ්ලේෂණ ඉතිහාසයක් නොමැත';
+
+  @override
+  String get historyEmptyMessage =>
+      'ආරක්ෂිත ඉතිහාස ගබඩාව එක් කළ පසු අනාගත විශ්ලේෂණ මෙහි පෙන්විය හැක. ව්‍යාජ නියැදි ප්‍රතිඵල නොපෙන්වයි.';
+
+  @override
+  String get guideTitle => 'ගෙඩි ගුණත්ව මාර්ගෝපදේශය';
+
+  @override
+  String get guideSubtitle =>
+      'වඩා පැහැදිලි ගෙඩි ශ්‍රේණියක් සහ මිල දැක්මක් සඳහා මෙම සරල පියවර අනුගමනය කරන්න.';
+
+  @override
+  String get guidePhotoTitle => 'හොඳ නියැදියක් තෝරන්න';
+
+  @override
+  String get guidePhotoBody =>
+      'නියෝජිත ගම්මිරිස් ගෙඩි නියැදියක් භාවිතා කරන්න. කොළ, අත් සහ වෙනත් දේ ගෙඩි ආවරණය නොකර තබන්න.';
+
+  @override
+  String get guideLightingTitle => 'සමාන දිවා ආලෝකය භාවිතා කරන්න';
+
+  @override
+  String get guideLightingBody =>
+      'දීප්තිමත්, සමාන ආලෝකයක ඡායාරූපය ගන්න. තද සෙවණැලි, දිලිසීම සහ සෘජු ෆ්ලෑෂ් වළක්වන්න.';
+
+  @override
+  String get guidePositionTitle => 'රාමුව පුරවන්න';
+
+  @override
+  String get guidePositionBody =>
+      'සම්පූර්ණ නියැදිය පැහැදිලිව පෙනෙන ලෙසත්, වැදගත් කොටස් කපා නොයන ලෙසත් ප්‍රමාණවත් තරම් ළඟින් තබන්න.';
+
+  @override
+  String get guideGradesTitle => 'ශ්‍රේණි තේරුම් ගන්න';
+
+  @override
+  String get guideGradesBody =>
+      'ශ්‍රේණිය 1 සහ ශ්‍රේණිය 2 යනු පෙනෙන ලක්ෂණ මත පදනම් වූ ව්‍යාපෘති ගුණත්ව කාණ්ඩ වේ. ඒවා නිල SLS, ගැනුම්කරු, රසායනාගාර හෝ අපනයන සහතික ශ්‍රේණි නොවේ.';
+
+  @override
+  String get guidePriceTitle => 'මිල දැක්ම තේරුම් ගන්න';
+
+  @override
+  String get guidePriceBody =>
+      'පෙන්වන මිල EAC ගොවිපළ-දොරටු යොමු දත්ත මත පදනම් වූ ශ්‍රේණි-ගැළපෙන පර්යේෂණ ඇස්තමේන්තුවකි. එය සජීවී ගැනුම්කරු මිලක් හෝ සහතික කළ විකිණුම් මිලක් නොවේ.';
+
+  @override
+  String get guideRetryTitle => 'ඇගයීමට නොහැකි නම්';
+
+  @override
+  String get guideRetryBody =>
+      'වඩා හොඳ ආලෝකයක නැවත ඡායාරූපය ගන්න, දුරකථනය ස්ථාවරව තබන්න, ළඟට ගොස් ගම්මිරිස් ගෙඩි පැහැදිලිව පෙනෙන බව තහවුරු කරන්න.';
+
+  @override
+  String get guideLimitation =>
+      'ප්‍රතිඵලය සහායක තොරතුරක් ලෙස භාවිතා කරන්න. වැදගත් ශ්‍රේණිගත සහ විකිණීමේ තීරණ විශ්වාසදායක ගැනුම්කරුවෙකු, ව්‍යාප්ති නිලධාරියෙකු හෝ සුදුසු පුද්ගලයෙකු සමඟ තහවුරු කරන්න.';
+
+  @override
   String get berryLabel => 'ගම්මිරිස් ගෙඩිය';
 
   @override
@@ -174,6 +307,9 @@ class AppLocalizationsSi extends AppLocalizations {
   String get analyze => 'විශ්ලේෂණය කරන්න';
 
   @override
+  String get captureAndScan => 'ඡායාරූපය ගෙන ස්කෑන් කරන්න';
+
+  @override
   String get gradingHomeTitle =>
       'ගම්මිරිස් ශ්‍රේණිගත කිරීම සහ අපනයන මිල පුරෝකථනය';
 
@@ -195,6 +331,34 @@ class AppLocalizationsSi extends AppLocalizations {
       'ඉඟිය: පැහැදිලි, හොඳින් ආලෝකමත් ඡායාරූපයක් භාවිතා කර බොඳ වීම වළක්වන්න.';
 
   @override
+  String get captureGuideTitle => 'පැහැදිලි නියැදි ඡායාරූපයක් ගන්න';
+
+  @override
+  String get captureGuideSubtitle =>
+      'හොඳ ඡායාරූපයක් පෙනෙන ගෙඩි ගුණත්වය වඩා විශ්වාසදායකව ඇගයීමට උපකාරී වේ.';
+
+  @override
+  String get captureAvoidBlurTitle => 'දුරකථනය ස්ථාවරව තබන්න';
+
+  @override
+  String get captureAvoidBlurBody =>
+      'ඡායාරූපය ගන්නා විට නොසෙල්වී සිටින්න. ගෙඩි බොඳ නම් විශ්ලේෂණයට පෙර නැවත ගන්න.';
+
+  @override
+  String get gotIt => 'තේරුණා';
+
+  @override
+  String get captureFarmerPrompt =>
+      'ඔබේ ගම්මිරිස් ගෙඩි නියැදියේ පැහැදිලි ඡායාරූපයක් එක් කරන්න.';
+
+  @override
+  String get captureChooseSource =>
+      'කැමරාව භාවිතා කරන්න හෝ ගැලරියෙන් මුල් ඡායාරූපයක් තෝරන්න.';
+
+  @override
+  String get analyzeBerrySample => 'ගෙඩි ගුණත්වය පරීක්ෂා කරන්න';
+
+  @override
   String get couldNotOpenCameraGallery =>
       'කැමරාව/ගැලරිය විවෘත කළ නොහැකි විය. නැවත උත්සාහ කරන්න.';
 
@@ -210,6 +374,15 @@ class AppLocalizationsSi extends AppLocalizations {
 
   @override
   String get backendError => 'සේවාදායක දෝෂයකි. නැවත උත්සාහ කරන්න.';
+
+  @override
+  String get processingFarmerTitle => 'ඔබේ ගෙඩි නියැදිය පරීක්ෂා කරමින්';
+
+  @override
+  String get processingErrorTitle => 'පරීක්ෂාව සම්පූර්ණ කළ නොහැකි විය';
+
+  @override
+  String get backToHome => 'මුල් පිටුවට';
 
   @override
   String get phase7GradingHomeSubtitle =>
@@ -486,6 +659,118 @@ class AppLocalizationsSi extends AppLocalizations {
 
   @override
   String get phase7EacReferencePrice => 'EAC ගොවිපළ-දොරටු යොමු මිල';
+
+  @override
+  String get farmerBerryGrade1 => 'ගෙඩි ශ්‍රේණිය 1';
+
+  @override
+  String get farmerBerryGrade2 => 'ගෙඩි ශ්‍රේණිය 2';
+
+  @override
+  String get farmerNoPepperTitle => 'ගම්මිරිස් ගෙඩි හමු නොවීය';
+
+  @override
+  String get farmerPoorImageTitle => 'කරුණාකර වඩා පැහැදිලි ඡායාරූපයක් ගන්න';
+
+  @override
+  String get farmerUncertainTitle =>
+      'මෙම නියැදිය විශ්වාසයෙන් ඇගයීමට නොහැකි විය';
+
+  @override
+  String get farmerConflictingViewsTitle => 'නියැදි ඡායාරූප එකිනෙකට නොගැළපේ';
+
+  @override
+  String get farmerGrade1Explanation =>
+      'මෙම නියැදියේ පෙනෙන ලක්ෂණ ව්‍යාපෘතියේ ශ්‍රේණිය 1 ගුණත්ව කාණ්ඩයට ගැළපේ.';
+
+  @override
+  String get farmerGrade2Explanation =>
+      'මෙම නියැදියේ පෙනෙන ලක්ෂණ ව්‍යාපෘතියේ ශ්‍රේණිය 2 ගුණත්ව කාණ්ඩයට ගැළපේ.';
+
+  @override
+  String get farmerAcceptedExplanation =>
+      'මෙම නියැදිය සඳහා පැහැදිලි ව්‍යාපෘති ගුණත්ව ශ්‍රේණියක් හමු විය.';
+
+  @override
+  String get farmerNoPepperExplanation =>
+      'ශ්‍රේණිගත කිරීමට ප්‍රමාණවත් හඳුනාගත හැකි ගම්මිරිස් ගෙඩි ඡායාරූපයේ නොපෙනුණු නිසා මිල දැක්මක් ලබා නොදුනි.';
+
+  @override
+  String get farmerPoorImageExplanation =>
+      'විශ්වාසදායක ශ්‍රේණියක් සඳහා ඡායාරූප ගුණත්වය ප්‍රමාණවත් නොවූ නිසා මිල දැක්මක් ලබා නොදුනි.';
+
+  @override
+  String get farmerUncertainExplanation =>
+      'විශ්වාසදායක තේරීමක් කිරීමට පෙනෙන ශ්‍රේණි ලක්ෂණ ඉතා සමීප වූ නිසා මිලක් පෙන්වීමට පෙර යෙදුම නතර විය.';
+
+  @override
+  String get farmerConflictingViewsExplanation =>
+      'වෙනස් නියැදි ඡායාරූප වෙනස් ශ්‍රේණි දක්වන නිසා මිලක් පෙන්වීමට පෙර යෙදුම නතර විය.';
+
+  @override
+  String get farmerRetakeBlur =>
+      'දුරකථනය ස්ථාවරව තබා ගෙඩි තියුණු ලෙස පෙනෙන පරිදි නැවත ඡායාරූපය ගන්න.';
+
+  @override
+  String get farmerRetakeLighting =>
+      'දිලිසීම හෝ තද සෙවණැලි නොමැති දීප්තිමත්, සමාන ආලෝකයක නැවත ඡායාරූපය ගන්න.';
+
+  @override
+  String get farmerRetakePosition =>
+      'ළඟට ගොස් ගම්මිරිස් ගෙඩි නියැදිය ඡායාරූපයේ මැද පැහැදිලිව තබන්න.';
+
+  @override
+  String get farmerRetakeGeneral =>
+      'හොඳ ආලෝකයක නැවත ගන්න, දුරකථනය ස්ථාවරව තබා සම්පූර්ණ ගම්මිරිස් නියැදිය පෙනෙන ලෙස තබන්න.';
+
+  @override
+  String get farmerGradeNotice =>
+      'මෙය AI සහාය ඇති ව්‍යාපෘති ඇස්තමේන්තුවක් මිස නිල ගුණත්ව හෝ අපනයන සහතිකයක් නොවේ.';
+
+  @override
+  String get farmerViewPriceOutlook => 'මිල දැක්ම බලන්න';
+
+  @override
+  String get farmerAnalyzeAnother => 'වෙනත් නියැදියක් පරීක්ෂා කරන්න';
+
+  @override
+  String get farmerPriceOutlookTitle => 'මිල දැක්ම';
+
+  @override
+  String get farmerEstimatedPrice => 'ඇස්තමේන්තු කළ මිල දැක්ම';
+
+  @override
+  String get farmerExpectedRise => 'ඉහළ යාමට අපේක්ෂිතයි';
+
+  @override
+  String get farmerExpectedFall => 'පහළ යාමට අපේක්ෂිතයි';
+
+  @override
+  String get farmerExpectedSimilar => 'සමානව පැවතීමට අපේක්ෂිතයි';
+
+  @override
+  String get farmerPriceHighUncertainty =>
+      'මෙම මිල දැක්මේ අනිශ්චිතතාව ඉහළය. සැබෑ මිල සැලකිය යුතු ලෙස ඉහළ හෝ පහළ විය හැක.';
+
+  @override
+  String get farmerPriceLimitedSignal =>
+      'මෙය සීමිත පර්යේෂණ දැක්මකි. ස්ථිර මිල අපේක්ෂාවක් ලෙස නොව සහායක තොරතුරක් ලෙස භාවිතා කරන්න.';
+
+  @override
+  String get farmerPriceDetails => 'දැක්මේ විස්තර';
+
+  @override
+  String get farmerOutlookDate => 'දැක්මේ දිනය';
+
+  @override
+  String get farmerReferencePrice => 'නවතම යොමු මිල';
+
+  @override
+  String get farmerReferenceDate => 'යොමු දිනය';
+
+  @override
+  String get farmerForecastNotice =>
+      'මෙම ස්ථාවර EAC ගොවිපළ-දොරටු පර්යේෂණ දැක්ම සජීවී ගැනුම්කරු මිලක්, සහතික කළ මිලක් හෝ මිලදී ගැනීමේ/විකිණීමේ උපදෙසක් නොවේ.';
 
   @override
   String get berryQualityResult => 'ගෙඩියේ ගුණත්ව ප්‍රතිඵලය';

@@ -380,7 +380,7 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
       return _message(
         icon: Icons.no_photography_outlined,
         title: t.cameraUnavailable,
-        detail: _cameraError!,
+        detail: t.errGeneric,
       );
     }
 
@@ -388,9 +388,7 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
       return _message(
         icon: Icons.download_for_offline_outlined,
         title: t.modelLoadFailed(_localizedLabel(t)),
-        detail:
-            '${widget.modelConfig.assetPath}\n\n$_modelError\n\n'
-            '${t.otherScanTypesUnaffected}',
+        detail: t.otherScanTypesUnaffected,
       );
     }
 
@@ -477,7 +475,10 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
                     onPressed: ready ? _pickFromGallery : null,
                   ),
                   const SizedBox(width: 32),
-                  _ShutterButton(onPressed: ready ? _capture : null),
+                  _ShutterButton(
+                    semanticLabel: t.captureAndScan,
+                    onPressed: ready ? _capture : null,
+                  ),
                   const SizedBox(width: 32),
                   // Invisible twin keeps the shutter optically centered.
                   const Opacity(
@@ -659,16 +660,17 @@ class _CircleAction extends StatelessWidget {
 }
 
 class _ShutterButton extends StatelessWidget {
+  final String semanticLabel;
   final VoidCallback? onPressed;
 
-  const _ShutterButton({required this.onPressed});
+  const _ShutterButton({required this.semanticLabel, required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
     final enabled = onPressed != null;
     return Semantics(
       button: true,
-      label: 'Capture and scan',
+      label: semanticLabel,
       child: GestureDetector(
         onTap: onPressed,
         child: AnimatedOpacity(

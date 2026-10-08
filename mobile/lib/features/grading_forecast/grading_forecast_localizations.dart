@@ -127,3 +127,64 @@ String localizedMarketSource(AppLocalizations t, String? source) =>
     : source == 'EAC farm-gate reference price'
     ? t.phase7EacReferencePrice
     : source;
+
+String farmerGradeLabel(AppLocalizations t, String? grade) => switch (grade) {
+  'V3 Grade 1' => t.farmerBerryGrade1,
+  'V3 Grade 2' => t.farmerBerryGrade2,
+  _ => t.phase7NotAvailable,
+};
+
+String farmerResultTitle(AppLocalizations t, GradingForecastResult result) {
+  if (result.grading.status == 'ACCEPTED') {
+    return farmerGradeLabel(t, result.grading.grade);
+  }
+  return switch (result.grading.decision) {
+    'NO_PEPPER' => t.farmerNoPepperTitle,
+    'POOR_IMAGE' => t.farmerPoorImageTitle,
+    'CONFLICTING_SAMPLE_VIEWS' => t.farmerConflictingViewsTitle,
+    _ => t.farmerUncertainTitle,
+  };
+}
+
+String farmerResultExplanation(
+  AppLocalizations t,
+  GradingForecastResult result,
+) {
+  if (result.grading.status == 'ACCEPTED') {
+    return switch (result.grading.grade) {
+      'V3 Grade 1' => t.farmerGrade1Explanation,
+      'V3 Grade 2' => t.farmerGrade2Explanation,
+      _ => t.farmerAcceptedExplanation,
+    };
+  }
+  return switch (result.grading.decision) {
+    'NO_PEPPER' => t.farmerNoPepperExplanation,
+    'POOR_IMAGE' => t.farmerPoorImageExplanation,
+    'CONFLICTING_SAMPLE_VIEWS' => t.farmerConflictingViewsExplanation,
+    _ => t.farmerUncertainExplanation,
+  };
+}
+
+String farmerRetakeGuidance(AppLocalizations t, GradingForecastResult result) =>
+    switch (result.grading.rejectionReason) {
+      'blur_variance_below_minimum' => t.farmerRetakeBlur,
+      'brightness_below_minimum' ||
+      'brightness_above_maximum' => t.farmerRetakeLighting,
+      'detected_area_below_minimum' ||
+      'no_detection_above_threshold' => t.farmerRetakePosition,
+      _ => t.farmerRetakeGeneral,
+    };
+
+String farmerDirectionLabel(AppLocalizations t, String? direction) =>
+    switch (direction) {
+      'UP' => t.farmerExpectedRise,
+      'DOWN' => t.farmerExpectedFall,
+      'FLAT' => t.farmerExpectedSimilar,
+      _ => t.phase7NotAvailable,
+    };
+
+String farmerPriceConfidenceMessage(AppLocalizations t, String? signal) =>
+    switch (signal) {
+      'HIGH_UNCERTAINTY' => t.farmerPriceHighUncertainty,
+      _ => t.farmerPriceLimitedSignal,
+    };

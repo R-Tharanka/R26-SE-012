@@ -58,8 +58,6 @@ class ScanResultView extends StatelessWidget {
         ),
         _Summary(
           detections: detections,
-          modelLabel: modelLabel,
-          inferenceMs: result.inferenceMs,
           lowConfidence: result.lowConfidence,
           onRetake: onRetake,
           onShowRecommendations: onShowRecommendations,
@@ -71,16 +69,12 @@ class ScanResultView extends StatelessWidget {
 
 class _Summary extends StatelessWidget {
   final List<Detection> detections;
-  final String modelLabel;
-  final int inferenceMs;
   final bool lowConfidence;
   final VoidCallback onRetake;
   final VoidCallback? onShowRecommendations;
 
   const _Summary({
     required this.detections,
-    required this.modelLabel,
-    required this.inferenceMs,
     required this.lowConfidence,
     required this.onRetake,
     required this.onShowRecommendations,
@@ -105,25 +99,15 @@ class _Summary extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    detections.isEmpty
-                        ? t.nothingDetected
-                        : t.findingsCount(detections.length),
-                    style: TextStyle(
-                      color: cs.onSurface,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-                Text(
-                  '$modelLabel · ${inferenceMs}ms',
-                  style: TextStyle(color: cs.onSurfaceVariant, fontSize: 12),
-                ),
-              ],
+            Text(
+              detections.isEmpty
+                  ? t.nothingDetected
+                  : t.findingsCount(detections.length),
+              style: TextStyle(
+                color: cs.onSurface,
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+              ),
             ),
             if (lowConfidence) ...[
               const SizedBox(height: 12),
@@ -150,7 +134,7 @@ class _Summary extends StatelessWidget {
               FilledButton.icon(
                 onPressed: onShowRecommendations,
                 style: FilledButton.styleFrom(
-                  backgroundColor: const Color(0xFF2ECC71),
+                  backgroundColor: cs.primary,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
@@ -174,17 +158,13 @@ class _Summary extends StatelessWidget {
                   padding: const EdgeInsets.only(bottom: 12),
                   child: Row(
                     children: [
-                      const Icon(
-                        Icons.check_circle,
-                        color: Color(0xFF2ECC71),
-                        size: 20,
-                      ),
+                      Icon(Icons.check_circle, color: cs.primary, size: 20),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           t.looksHealthy,
-                          style: const TextStyle(
-                            color: Color(0xFF2ECC71),
+                          style: TextStyle(
+                            color: cs.primary,
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
                           ),
@@ -234,8 +214,8 @@ class _LowConfidenceNotice extends StatelessWidget {
           Expanded(
             child: Text(
               AppLocalizations.of(context).lowConfidenceNotice,
-              style: const TextStyle(
-                color: Color(0xFFF5C97B),
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
                 fontSize: 12,
                 height: 1.4,
               ),

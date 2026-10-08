@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pepper_care/l10n/app_localizations.dart';
 
+import '../../../shared/widgets/farmer_ui.dart';
 import 'processing_screen.dart';
 
 class BerryCaptureScreen extends StatefulWidget {
@@ -76,73 +77,175 @@ class _BerryCaptureScreenState extends State<BerryCaptureScreen> {
     );
   }
 
+  void _showPhotoGuide() {
+    final t = AppLocalizations.of(context);
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (context) => SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              FarmerSectionHeader(
+                title: t.captureGuideTitle,
+                subtitle: t.captureGuideSubtitle,
+              ),
+              const SizedBox(height: 18),
+              GuideStepCard(
+                number: 1,
+                icon: Icons.light_mode_outlined,
+                title: t.guideLightingTitle,
+                body: t.guideLightingBody,
+              ),
+              GuideStepCard(
+                number: 2,
+                icon: Icons.center_focus_strong,
+                title: t.guidePositionTitle,
+                body: t.guidePositionBody,
+              ),
+              GuideStepCard(
+                number: 3,
+                icon: Icons.motion_photos_off_outlined,
+                title: t.captureAvoidBlurTitle,
+                body: t.captureAvoidBlurBody,
+              ),
+              const SizedBox(height: 8),
+              FilledButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(t.gotIt),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
     final imageBytes = _selectedBytes;
     final canAnalyze = imageBytes != null && imageBytes.isNotEmpty;
 
+    final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(t.captureBerryTitle)),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              child: Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: imageBytes == null
-                      ? Center(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.image_outlined, size: 48),
-                              const SizedBox(height: 8),
-                              Text(t.noImageSelected),
-                            ],
-                          ),
-                        )
-                      : ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.memory(
-                            imageBytes,
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                          ),
-                        ),
+      appBar: AppBar(
+        title: Text(t.captureBerryTitle),
+        actions: [
+          IconButton(
+            tooltip: t.howToScan,
+            onPressed: _showPhotoGuide,
+            icon: const Icon(Icons.help_outline_rounded),
+          ),
+        ],
+      ),
+      body: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                t.captureFarmerPrompt,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  height: 1.4,
                 ),
               ),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => _pick(ImageSource.camera),
-                    icon: const Icon(Icons.photo_camera),
-                    label: Text(t.camera),
+              const SizedBox(height: 14),
+              Expanded(
+                child: Card(
+                  clipBehavior: Clip.antiAlias,
+                  child: Padding(
+                    padding: EdgeInsets.all(imageBytes == null ? 24 : 0),
+                    child: imageBytes == null
+                        ? Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 72,
+                                  height: 72,
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.primaryContainer,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    Icons.add_photo_alternate_outlined,
+                                    color: theme.colorScheme.primary,
+                                    size: 34,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  t.noImageSelected,
+                                  textAlign: TextAlign.center,
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  t.captureChooseSource,
+                                  textAlign: TextAlign.center,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.memory(
+                              imageBytes,
+                              fit: BoxFit.contain,
+                              width: double.infinity,
+                            ),
+                          ),
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => _pick(ImageSource.gallery),
-                    icon: const Icon(Icons.photo_library_outlined),
-                    label: Text(t.gallery),
+              ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => _pick(ImageSource.camera),
+                      icon: const Icon(Icons.photo_camera),
+                      label: Text(t.camera),
+                    ),
                   ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => _pick(ImageSource.gallery),
+                      icon: const Icon(Icons.photo_library_outlined),
+                      label: Text(t.gallery),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              FilledButton(
+                onPressed: canAnalyze ? _analyze : null,
+                child: Text(t.analyzeBerrySample),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                t.captureTip,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            FilledButton(
-              onPressed: canAnalyze ? _analyze : null,
-              child: Text(t.analyze),
-            ),
-            const SizedBox(height: 8),
-            Text(t.captureTip, textAlign: TextAlign.center),
-          ],
+              ),
+            ],
+          ),
         ),
       ),
     );

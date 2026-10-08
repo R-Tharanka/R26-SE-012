@@ -58,6 +58,141 @@ class AppLocalizationsTa extends AppLocalizations {
   String get darkMode => 'இருள் பயன்முறை';
 
   @override
+  String get navHome => 'முகப்பு';
+
+  @override
+  String get navHistory => 'வரலாறு';
+
+  @override
+  String get navGuide => 'வழிகாட்டி';
+
+  @override
+  String get homeWelcomeTitle => 'இன்று உங்கள் பயிருக்கு எவ்வாறு உதவலாம்?';
+
+  @override
+  String get homeWelcomeSubtitle =>
+      'தேவையான பணியைத் தேர்ந்தெடுக்கவும். படம் மற்றும் முடிவுகளுக்கான வழிகாட்டலை நாங்கள் வழங்குவோம்.';
+
+  @override
+  String get homeChooseTaskHint =>
+      'சரியான பயிர் சோதனையைப் பயன்படுத்த, படம் எடுப்பதற்கு முன் பணியைத் தேர்ந்தெடுக்கவும்.';
+
+  @override
+  String get featurePlantHealth => 'தாவர ஆரோக்கியம்';
+
+  @override
+  String get featureBerryCare => 'கொட்டை பராமரிப்பு';
+
+  @override
+  String get featureQualityAndPrice => 'தரம் மற்றும் விலை';
+
+  @override
+  String get featurePestTitle => 'பூச்சி கண்டறிதல்';
+
+  @override
+  String get featurePestCardDescription =>
+      'இலை, தண்டு, கொட்டைகளைச் சோதிக்கவும்';
+
+  @override
+  String get featurePestDescription =>
+      'பொதுவான மிளகுப் பூச்சிகளைத் தேடி நடைமுறை சிகிச்சை வழிகாட்டலைப் பெற தெளிவான படத்தை எடுக்கவும்.';
+
+  @override
+  String get featureLeafTitle => 'இலை ஆரோக்கியச் சோதனை';
+
+  @override
+  String get featureLeafCardDescription => 'இலை நோய் அறிகுறிகளைப் பாருங்கள்';
+
+  @override
+  String get featureLeafDescription =>
+      'காணக்கூடிய நோய் அறிகுறிகளையும் அவற்றின் தீவிரத்தையும் சோதிக்க மிளகு இலையின் படத்தை எடுக்கவும்.';
+
+  @override
+  String get featureBerryDiseaseTitle => 'கொட்டை நோய்ச் சோதனை';
+
+  @override
+  String get featureBerryDiseaseCardDescription =>
+      'கொத்துகளில் சேதத்தைச் சோதிக்கவும்';
+
+  @override
+  String get featureBerryDiseaseDescription =>
+      'காணக்கூடிய நோய் அல்லது பூச்சி சேதத்தைப் பார்த்து பராமரிப்பு வழிகாட்டலைப் பெற மிளகுக் கொத்தின் படத்தை எடுக்கவும்.';
+
+  @override
+  String get featureGradingTitle => 'கொட்டைத் தரம் மற்றும் விலை நோக்கு';
+
+  @override
+  String get featureGradingCardDescription =>
+      'தரம் மற்றும் விலை நோக்கைப் பாருங்கள்';
+
+  @override
+  String get featureGradingDescription =>
+      'திட்டத் தரத்தைப் பெற தெளிவான மிளகு மாதிரிப் படத்தை எடுக்கவும். தரம் தெளிவாக இருந்தால் அதற்குப் பொருந்தும் EAC விலை நோக்கையும் பார்க்கலாம்.';
+
+  @override
+  String get startScan => 'ஸ்கேன் தொடங்கு';
+
+  @override
+  String get historyEmptyTitle => 'இன்னும் பகுப்பாய்வு வரலாறு இல்லை';
+
+  @override
+  String get historyEmptyMessage =>
+      'பாதுகாப்பான வரலாற்றுச் சேமிப்பு சேர்க்கப்பட்ட பிறகு எதிர்கால பகுப்பாய்வுகள் இங்கே தோன்றலாம். போலி மாதிரி முடிவுகள் காட்டப்படாது.';
+
+  @override
+  String get guideTitle => 'கொட்டைத் தர வழிகாட்டி';
+
+  @override
+  String get guideSubtitle =>
+      'தெளிவான கொட்டைத் தரமும் விலை நோக்கும் பெற இந்த எளிய படிகளைப் பின்பற்றவும்.';
+
+  @override
+  String get guidePhotoTitle => 'நல்ல மாதிரியைத் தேர்ந்தெடுக்கவும்';
+
+  @override
+  String get guidePhotoBody =>
+      'பிரதிநிதித்துவமான மிளகுக் கொட்டை மாதிரியைப் பயன்படுத்தவும். இலைகள், கைகள் மற்றும் பிற பொருட்கள் கொட்டைகளை மறைக்காமல் பார்த்துக்கொள்ளவும்.';
+
+  @override
+  String get guideLightingTitle => 'சீரான பகலொளியைப் பயன்படுத்தவும்';
+
+  @override
+  String get guideLightingBody =>
+      'பிரகாசமான, சீரான ஒளியில் படம் எடுக்கவும். ஆழ்ந்த நிழல், ஒளிப்பிரதிபலிப்பு மற்றும் நேரடி ஃபிளாஷைத் தவிர்க்கவும்.';
+
+  @override
+  String get guidePositionTitle => 'சட்டகத்தை நிரப்பவும்';
+
+  @override
+  String get guidePositionBody =>
+      'முழு மாதிரியும் தெளிவாகத் தெரியவும் முக்கிய பகுதிகள் வெட்டப்படாமல் இருக்கவும் போதுமான அளவு அருகில் வைக்கவும்.';
+
+  @override
+  String get guideGradesTitle => 'தரங்களைப் புரிந்துகொள்ளவும்';
+
+  @override
+  String get guideGradesBody =>
+      'தரம் 1 மற்றும் தரம் 2 ஆகியவை காணக்கூடிய அம்சங்களின் அடிப்படையிலான திட்டத் தரக் குழுக்கள். அவை அதிகாரப்பூர்வ SLS, வாங்குநர், ஆய்வகம் அல்லது ஏற்றுமதிச் சான்றிதழ் தரங்கள் அல்ல.';
+
+  @override
+  String get guidePriceTitle => 'விலை நோக்கைப் புரிந்துகொள்ளவும்';
+
+  @override
+  String get guidePriceBody =>
+      'காட்டப்படும் விலை EAC பண்ணைவாயில் குறிப்புத் தரவின் அடிப்படையிலான தரத்திற்குப் பொருந்தும் ஆராய்ச்சி மதிப்பீடு. அது நேரடி வாங்குநர் விலையோ உறுதியான விற்பனை விலையோ அல்ல.';
+
+  @override
+  String get guideRetryTitle => 'மதிப்பிட முடியாவிட்டால்';
+
+  @override
+  String get guideRetryBody =>
+      'சிறந்த ஒளியில் மீண்டும் படம் எடுக்கவும், தொலைபேசியை நிலையாகப் பிடிக்கவும், அருகில் சென்று மிளகுக் கொட்டைகள் தெளிவாகத் தெரிவதை உறுதிசெய்யவும்.';
+
+  @override
+  String get guideLimitation =>
+      'முடிவை துணைத் தகவலாகப் பயன்படுத்தவும். முக்கிய தரப்படுத்தல் மற்றும் விற்பனை முடிவுகளை நம்பகமான வாங்குநர், விரிவாக்க அலுவலர் அல்லது தகுதியான ஒருவருடன் உறுதிசெய்யவும்.';
+
+  @override
   String get berryLabel => 'மிளகு கொட்டை';
 
   @override
@@ -176,6 +311,9 @@ class AppLocalizationsTa extends AppLocalizations {
   String get analyze => 'பகுப்பாய்வு';
 
   @override
+  String get captureAndScan => 'படம் எடுத்து ஸ்கேன் செய்யவும்';
+
+  @override
   String get gradingHomeTitle =>
       'மிளகு தரப்படுத்தல் மற்றும் ஏற்றுமதி விலை முன்னறிவிப்பு';
 
@@ -197,6 +335,34 @@ class AppLocalizationsTa extends AppLocalizations {
       'குறிப்பு: தெளிவான, நன்கு வெளிச்சமான படத்தைப் பயன்படுத்தி மங்கலைத் தவிர்க்கவும்.';
 
   @override
+  String get captureGuideTitle => 'தெளிவான மாதிரிப் படத்தை எடுக்கவும்';
+
+  @override
+  String get captureGuideSubtitle =>
+      'நல்ல படம் காணக்கூடிய கொட்டைத் தரத்தை நம்பகமாக மதிப்பிட உதவுகிறது.';
+
+  @override
+  String get captureAvoidBlurTitle => 'தொலைபேசியை நிலையாகப் பிடிக்கவும்';
+
+  @override
+  String get captureAvoidBlurBody =>
+      'படம் எடுக்கும்போது அசையாமல் இருக்கவும். கொட்டைகள் மங்கலாக இருந்தால் பகுப்பாய்வுக்கு முன் மீண்டும் எடுக்கவும்.';
+
+  @override
+  String get gotIt => 'புரிந்தது';
+
+  @override
+  String get captureFarmerPrompt =>
+      'உங்கள் மிளகுக் கொட்டை மாதிரியின் தெளிவான படமொன்றைச் சேர்க்கவும்.';
+
+  @override
+  String get captureChooseSource =>
+      'கேமராவைப் பயன்படுத்தவும் அல்லது கேலரியிலிருந்து அசல் படத்தைத் தேர்ந்தெடுக்கவும்.';
+
+  @override
+  String get analyzeBerrySample => 'கொட்டைத் தரத்தைச் சோதிக்கவும்';
+
+  @override
   String get couldNotOpenCameraGallery =>
       'கேமரா/கேலரியைத் திறக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.';
 
@@ -213,6 +379,15 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get backendError => 'சேவையக பிழை. மீண்டும் முயற்சிக்கவும்.';
+
+  @override
+  String get processingFarmerTitle => 'உங்கள் கொட்டை மாதிரியைச் சோதிக்கிறது';
+
+  @override
+  String get processingErrorTitle => 'சோதனையை முடிக்க முடியவில்லை';
+
+  @override
+  String get backToHome => 'முகப்பிற்குத் திரும்பு';
 
   @override
   String get phase7GradingHomeSubtitle =>
@@ -495,6 +670,120 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get phase7EacReferencePrice => 'EAC பண்ணைவாயில் குறிப்பு விலை';
+
+  @override
+  String get farmerBerryGrade1 => 'கொட்டைத் தரம் 1';
+
+  @override
+  String get farmerBerryGrade2 => 'கொட்டைத் தரம் 2';
+
+  @override
+  String get farmerNoPepperTitle => 'மிளகுக் கொட்டைகள் கண்டறியப்படவில்லை';
+
+  @override
+  String get farmerPoorImageTitle => 'தெளிவான படத்தை மீண்டும் எடுக்கவும்';
+
+  @override
+  String get farmerUncertainTitle =>
+      'இந்த மாதிரியை நம்பிக்கையுடன் மதிப்பிட முடியவில்லை';
+
+  @override
+  String get farmerConflictingViewsTitle =>
+      'மாதிரிப் படங்கள் ஒன்றுக்கொன்று பொருந்தவில்லை';
+
+  @override
+  String get farmerGrade1Explanation =>
+      'இந்த மாதிரியின் காணக்கூடிய அம்சங்கள் திட்டத்தின் தரம் 1 குழுவுடன் பொருந்துகின்றன.';
+
+  @override
+  String get farmerGrade2Explanation =>
+      'இந்த மாதிரியின் காணக்கூடிய அம்சங்கள் திட்டத்தின் தரம் 2 குழுவுடன் பொருந்துகின்றன.';
+
+  @override
+  String get farmerAcceptedExplanation =>
+      'இந்த மாதிரிக்கு தெளிவான திட்டத் தரம் கண்டறியப்பட்டது.';
+
+  @override
+  String get farmerNoPepperExplanation =>
+      'தரப்படுத்துவதற்குப் போதுமான அடையாளம் காணக்கூடிய மிளகுக் கொட்டைகள் படத்தில் இல்லாததால் விலை நோக்கு உருவாக்கப்படவில்லை.';
+
+  @override
+  String get farmerPoorImageExplanation =>
+      'நம்பகமான தரத்திற்கு படத்தின் தரம் போதுமானதாக இல்லாததால் விலை நோக்கு உருவாக்கப்படவில்லை.';
+
+  @override
+  String get farmerUncertainExplanation =>
+      'நம்பகமான தேர்வுக்கு காணக்கூடிய தர அறிகுறிகள் மிகவும் நெருக்கமாக இருந்ததால் விலையைக் காட்டும் முன் செயலி நிறுத்தப்பட்டது.';
+
+  @override
+  String get farmerConflictingViewsExplanation =>
+      'வெவ்வேறு மாதிரிப் படங்கள் வெவ்வேறு தரங்களைச் சுட்டியதால் விலையைக் காட்டும் முன் செயலி நிறுத்தப்பட்டது.';
+
+  @override
+  String get farmerRetakeBlur =>
+      'தொலைபேசியை நிலையாகப் பிடித்து கொட்டைகள் தெளிவாகத் தெரியுமாறு மீண்டும் படம் எடுக்கவும்.';
+
+  @override
+  String get farmerRetakeLighting =>
+      'ஒளிப்பிரதிபலிப்பு அல்லது ஆழ்ந்த நிழல் இல்லாத பிரகாசமான, சீரான ஒளியில் மீண்டும் படம் எடுக்கவும்.';
+
+  @override
+  String get farmerRetakePosition =>
+      'அருகில் சென்று மிளகுக் கொட்டை மாதிரியை படத்தின் நடுவில் தெளிவாக வைக்கவும்.';
+
+  @override
+  String get farmerRetakeGeneral =>
+      'நல்ல ஒளியில் மீண்டும் படம் எடுத்து, தொலைபேசியை நிலையாகப் பிடித்து, முழு மிளகு மாதிரியும் தெரியுமாறு வைக்கவும்.';
+
+  @override
+  String get farmerGradeNotice =>
+      'இது AI ஆதரவுள்ள திட்ட மதிப்பீடு; அதிகாரப்பூர்வ தர அல்லது ஏற்றுமதிச் சான்றிதழ் அல்ல.';
+
+  @override
+  String get farmerViewPriceOutlook => 'விலை நோக்கைப் பார்க்கவும்';
+
+  @override
+  String get farmerAnalyzeAnother => 'வேறொரு மாதிரியைச் சோதிக்கவும்';
+
+  @override
+  String get farmerPriceOutlookTitle => 'விலை நோக்கு';
+
+  @override
+  String get farmerEstimatedPrice => 'மதிப்பிடப்பட்ட விலை நோக்கு';
+
+  @override
+  String get farmerExpectedRise => 'உயரும் என எதிர்பார்க்கப்படுகிறது';
+
+  @override
+  String get farmerExpectedFall => 'குறையும் என எதிர்பார்க்கப்படுகிறது';
+
+  @override
+  String get farmerExpectedSimilar =>
+      'ஒத்த நிலையில் இருக்கும் என எதிர்பார்க்கப்படுகிறது';
+
+  @override
+  String get farmerPriceHighUncertainty =>
+      'இந்த விலை நோக்கில் அதிக நிச்சயமின்மை உள்ளது. உண்மையான விலை குறிப்பிடத்தக்க அளவு அதிகமாகவோ குறைவாகவோ இருக்கலாம்.';
+
+  @override
+  String get farmerPriceLimitedSignal =>
+      'இது வரையறுக்கப்பட்ட ஆராய்ச்சி நோக்கு. உறுதியான விலை எதிர்பார்ப்பாக அல்லாமல் துணைத் தகவலாகப் பயன்படுத்தவும்.';
+
+  @override
+  String get farmerPriceDetails => 'நோக்கு விவரங்கள்';
+
+  @override
+  String get farmerOutlookDate => 'நோக்கு தேதி';
+
+  @override
+  String get farmerReferencePrice => 'சமீபத்திய குறிப்பு விலை';
+
+  @override
+  String get farmerReferenceDate => 'குறிப்பு தேதி';
+
+  @override
+  String get farmerForecastNotice =>
+      'இந்த உறையவைக்கப்பட்ட EAC பண்ணைவாயில் ஆராய்ச்சி நோக்கு நேரடி வாங்குநர் விலை, உறுதியான விலை அல்லது வாங்க/விற்க அறிவுரை அல்ல.';
 
   @override
   String get berryQualityResult => 'கொட்டை தர முடிவு';

@@ -3,8 +3,9 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:pepper_care/l10n/app_localizations.dart';
 
-import '../services/grading_forecast_analysis_service.dart';
+import '../../../shared/widgets/farmer_ui.dart';
 import '../grading_forecast_localizations.dart';
+import '../services/grading_forecast_analysis_service.dart';
 import '../services/grading_forecast_api_service.dart'
     show GradingForecastApiException;
 import 'berry_quality_result_screen.dart';
@@ -55,11 +56,11 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
           ),
         ),
       );
-    } on GradingForecastApiException catch (e) {
+    } on GradingForecastApiException catch (error) {
       if (!mounted) return;
       setState(() {
         _isRunning = false;
-        _errorMessage = e.localizedMessage(AppLocalizations.of(context));
+        _errorMessage = error.localizedMessage(AppLocalizations.of(context));
       });
     } catch (_) {
       if (!mounted) return;
@@ -79,38 +80,95 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(title: Text(t.processing)),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 520),
-            child: Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: _isRunning
-                    ? Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const CircularProgressIndicator(),
-                          const SizedBox(height: 16),
-                          Text(t.phase7ProcessingMessage),
-                        ],
-                      )
-                    : Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.error_outline, size: 40),
-                          const SizedBox(height: 8),
-                          Text(
-                            _errorMessage ?? t.backendError,
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 16),
-                          FilledButton(onPressed: _start, child: Text(t.retry)),
-                        ],
-                      ),
+      body: SafeArea(
+        top: false,
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 520),
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: _isRunning
+                      ? Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 76,
+                              height: 76,
+                              decoration: BoxDecoration(
+                                color: scheme.primaryContainer,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(20),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 3,
+                                  color: scheme.primary,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            Text(
+                              t.processingFarmerTitle,
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context).textTheme.titleLarge
+                                  ?.copyWith(fontWeight: FontWeight.w800),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              t.phase7ProcessingMessage,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: scheme.onSurfaceVariant,
+                                height: 1.4,
+                              ),
+                            ),
+                          ],
+                        )
+                      : Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.cloud_off_outlined,
+                              size: 48,
+                              color: scheme.error,
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              t.processingErrorTitle,
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context).textTheme.titleLarge
+                                  ?.copyWith(fontWeight: FontWeight.w800),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              _errorMessage ?? t.backendError,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: scheme.onSurfaceVariant,
+                                height: 1.4,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            SizedBox(
+                              width: double.infinity,
+                              child: FilledButton(
+                                onPressed: _start,
+                                child: Text(t.retry),
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () => popToHome(context),
+                              child: Text(t.backToHome),
+                            ),
+                          ],
+                        ),
+                ),
               ),
             ),
           ),

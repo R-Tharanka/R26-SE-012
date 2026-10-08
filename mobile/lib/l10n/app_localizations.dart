@@ -196,6 +196,240 @@ abstract class AppLocalizations {
   /// **'Dark mode'**
   String get darkMode;
 
+  /// No description provided for @navHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get navHome;
+
+  /// No description provided for @navHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get navHistory;
+
+  /// No description provided for @navGuide.
+  ///
+  /// In en, this message translates to:
+  /// **'Guide'**
+  String get navGuide;
+
+  /// No description provided for @homeWelcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How can we help your crop today?'**
+  String get homeWelcomeTitle;
+
+  /// No description provided for @homeWelcomeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the task you need. We will guide you through the photo and results.'**
+  String get homeWelcomeSubtitle;
+
+  /// No description provided for @homeChooseTaskHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a task before taking a photo so the app can use the right crop check.'**
+  String get homeChooseTaskHint;
+
+  /// No description provided for @featurePlantHealth.
+  ///
+  /// In en, this message translates to:
+  /// **'Plant health'**
+  String get featurePlantHealth;
+
+  /// No description provided for @featureBerryCare.
+  ///
+  /// In en, this message translates to:
+  /// **'Berry care'**
+  String get featureBerryCare;
+
+  /// No description provided for @featureQualityAndPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Quality and price'**
+  String get featureQualityAndPrice;
+
+  /// No description provided for @featurePestTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pest Detection'**
+  String get featurePestTitle;
+
+  /// No description provided for @featurePestCardDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Check leaves, stems and berries'**
+  String get featurePestCardDescription;
+
+  /// No description provided for @featurePestDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a clear photo to look for common pepper pests and receive practical treatment guidance.'**
+  String get featurePestDescription;
+
+  /// No description provided for @featureLeafTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Leaf Health Check'**
+  String get featureLeafTitle;
+
+  /// No description provided for @featureLeafCardDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Look for leaf disease signs'**
+  String get featureLeafCardDescription;
+
+  /// No description provided for @featureLeafDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Photograph a pepper leaf to check for visible disease signs and understand how serious they may be.'**
+  String get featureLeafDescription;
+
+  /// No description provided for @featureBerryDiseaseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Berry Disease Check'**
+  String get featureBerryDiseaseTitle;
+
+  /// No description provided for @featureBerryDiseaseCardDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Inspect berry clusters for damage'**
+  String get featureBerryDiseaseCardDescription;
+
+  /// No description provided for @featureBerryDiseaseDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Photograph a pepper berry cluster to check for visible disease or pest damage and receive care guidance.'**
+  String get featureBerryDiseaseDescription;
+
+  /// No description provided for @featureGradingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Berry Quality and Price Outlook'**
+  String get featureGradingTitle;
+
+  /// No description provided for @featureGradingCardDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Check grade and price outlook'**
+  String get featureGradingCardDescription;
+
+  /// No description provided for @featureGradingDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a clear pepper sample photo to receive a project quality grade. When a grade is clear, you can also view a grade-matched EAC price outlook.'**
+  String get featureGradingDescription;
+
+  /// No description provided for @startScan.
+  ///
+  /// In en, this message translates to:
+  /// **'Start scan'**
+  String get startScan;
+
+  /// No description provided for @historyEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No analysis history yet'**
+  String get historyEmptyTitle;
+
+  /// No description provided for @historyEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Future analyses can appear here after secure history storage is added. No sample results are shown.'**
+  String get historyEmptyMessage;
+
+  /// No description provided for @guideTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Berry quality guide'**
+  String get guideTitle;
+
+  /// No description provided for @guideSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow these simple steps for a clearer berry grade and price outlook.'**
+  String get guideSubtitle;
+
+  /// No description provided for @guidePhotoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a good sample'**
+  String get guidePhotoTitle;
+
+  /// No description provided for @guidePhotoBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a representative pepper berry sample. Keep leaves, hands and other objects from covering the berries.'**
+  String get guidePhotoBody;
+
+  /// No description provided for @guideLightingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Use even daylight'**
+  String get guideLightingTitle;
+
+  /// No description provided for @guideLightingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Photograph in bright, even light. Avoid deep shadows, glare and direct flash on the berries.'**
+  String get guideLightingBody;
+
+  /// No description provided for @guidePositionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill the frame'**
+  String get guidePositionTitle;
+
+  /// No description provided for @guidePositionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the full sample clearly visible and close enough to see the berries without cutting off important parts.'**
+  String get guidePositionBody;
+
+  /// No description provided for @guideGradesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Understand the grades'**
+  String get guideGradesTitle;
+
+  /// No description provided for @guideGradesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Grade 1 and Grade 2 are project quality groups based on visible features. They are not official SLS, buyer, laboratory or export-certification grades.'**
+  String get guideGradesBody;
+
+  /// No description provided for @guidePriceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Understand the price outlook'**
+  String get guidePriceTitle;
+
+  /// No description provided for @guidePriceBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The shown price is a grade-matched research estimate based on EAC farm-gate reference data. It is not a live buyer offer or guaranteed selling price.'**
+  String get guidePriceBody;
+
+  /// No description provided for @guideRetryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'If we cannot assess it'**
+  String get guideRetryTitle;
+
+  /// No description provided for @guideRetryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Retake the photo in better light, hold the phone steady, move closer and make sure pepper berries are clearly visible.'**
+  String get guideRetryBody;
+
+  /// No description provided for @guideLimitation.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the result as supporting information. Confirm important grading and selling decisions with a trusted buyer, extension officer or other qualified person.'**
+  String get guideLimitation;
+
   /// No description provided for @berryLabel.
   ///
   /// In en, this message translates to:
@@ -394,6 +628,12 @@ abstract class AppLocalizations {
   /// **'Analyze'**
   String get analyze;
 
+  /// No description provided for @captureAndScan.
+  ///
+  /// In en, this message translates to:
+  /// **'Capture and scan'**
+  String get captureAndScan;
+
   /// No description provided for @gradingHomeTitle.
   ///
   /// In en, this message translates to:
@@ -430,6 +670,54 @@ abstract class AppLocalizations {
   /// **'Tip: use a clear, well-lit photo and avoid blur.'**
   String get captureTip;
 
+  /// No description provided for @captureGuideTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a clear sample photo'**
+  String get captureGuideTitle;
+
+  /// No description provided for @captureGuideSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A good photo helps the app assess the visible berry quality more reliably.'**
+  String get captureGuideSubtitle;
+
+  /// No description provided for @captureAvoidBlurTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the phone steady'**
+  String get captureAvoidBlurTitle;
+
+  /// No description provided for @captureAvoidBlurBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold still while taking the photo. If the berries look blurred, retake it before analysis.'**
+  String get captureAvoidBlurBody;
+
+  /// No description provided for @gotIt.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get gotIt;
+
+  /// No description provided for @captureFarmerPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Add one clear photo of your pepper berry sample.'**
+  String get captureFarmerPrompt;
+
+  /// No description provided for @captureChooseSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the camera or choose an original photo from your gallery.'**
+  String get captureChooseSource;
+
+  /// No description provided for @analyzeBerrySample.
+  ///
+  /// In en, this message translates to:
+  /// **'Check berry quality'**
+  String get analyzeBerrySample;
+
   /// No description provided for @couldNotOpenCameraGallery.
   ///
   /// In en, this message translates to:
@@ -459,6 +747,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Backend error. Please try again.'**
   String get backendError;
+
+  /// No description provided for @processingFarmerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking your berry sample'**
+  String get processingFarmerTitle;
+
+  /// No description provided for @processingErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'We could not complete the check'**
+  String get processingErrorTitle;
+
+  /// No description provided for @backToHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to home'**
+  String get backToHome;
 
   /// No description provided for @phase7GradingHomeSubtitle.
   ///
@@ -956,6 +1262,198 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'EAC farm-gate reference price'**
   String get phase7EacReferencePrice;
+
+  /// No description provided for @farmerBerryGrade1.
+  ///
+  /// In en, this message translates to:
+  /// **'Berry Grade 1'**
+  String get farmerBerryGrade1;
+
+  /// No description provided for @farmerBerryGrade2.
+  ///
+  /// In en, this message translates to:
+  /// **'Berry Grade 2'**
+  String get farmerBerryGrade2;
+
+  /// No description provided for @farmerNoPepperTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pepper berries were not found'**
+  String get farmerNoPepperTitle;
+
+  /// No description provided for @farmerPoorImageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Please take a clearer photo'**
+  String get farmerPoorImageTitle;
+
+  /// No description provided for @farmerUncertainTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'We could not confidently assess this sample'**
+  String get farmerUncertainTitle;
+
+  /// No description provided for @farmerConflictingViewsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The sample photos do not agree'**
+  String get farmerConflictingViewsTitle;
+
+  /// No description provided for @farmerGrade1Explanation.
+  ///
+  /// In en, this message translates to:
+  /// **'The visible features of this sample match the project\'s Grade 1 quality group.'**
+  String get farmerGrade1Explanation;
+
+  /// No description provided for @farmerGrade2Explanation.
+  ///
+  /// In en, this message translates to:
+  /// **'The visible features of this sample match the project\'s Grade 2 quality group.'**
+  String get farmerGrade2Explanation;
+
+  /// No description provided for @farmerAcceptedExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'A clear project quality grade was found for this sample.'**
+  String get farmerAcceptedExplanation;
+
+  /// No description provided for @farmerNoPepperExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'The photo did not show enough recognizable pepper berries for grading, so no price outlook was produced.'**
+  String get farmerNoPepperExplanation;
+
+  /// No description provided for @farmerPoorImageExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'The image quality was not good enough for a reliable grade, so no price outlook was produced.'**
+  String get farmerPoorImageExplanation;
+
+  /// No description provided for @farmerUncertainExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'The visible grade signs were too close to make a reliable choice, so the app stopped before showing a price.'**
+  String get farmerUncertainExplanation;
+
+  /// No description provided for @farmerConflictingViewsExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Different sample photos suggested different grades, so the app stopped before showing a price.'**
+  String get farmerConflictingViewsExplanation;
+
+  /// No description provided for @farmerRetakeBlur.
+  ///
+  /// In en, this message translates to:
+  /// **'Retake the photo while holding the phone steady and make sure the berries are sharp.'**
+  String get farmerRetakeBlur;
+
+  /// No description provided for @farmerRetakeLighting.
+  ///
+  /// In en, this message translates to:
+  /// **'Retake the photo in bright, even light without glare or deep shadows.'**
+  String get farmerRetakeLighting;
+
+  /// No description provided for @farmerRetakePosition.
+  ///
+  /// In en, this message translates to:
+  /// **'Move closer and place the pepper berry sample clearly in the center of the photo.'**
+  String get farmerRetakePosition;
+
+  /// No description provided for @farmerRetakeGeneral.
+  ///
+  /// In en, this message translates to:
+  /// **'Retake the photo in good light, hold the phone steady and keep the full pepper sample visible.'**
+  String get farmerRetakeGeneral;
+
+  /// No description provided for @farmerGradeNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'This is an AI-supported project estimate, not an official quality or export certificate.'**
+  String get farmerGradeNotice;
+
+  /// No description provided for @farmerViewPriceOutlook.
+  ///
+  /// In en, this message translates to:
+  /// **'View price outlook'**
+  String get farmerViewPriceOutlook;
+
+  /// No description provided for @farmerAnalyzeAnother.
+  ///
+  /// In en, this message translates to:
+  /// **'Check another sample'**
+  String get farmerAnalyzeAnother;
+
+  /// No description provided for @farmerPriceOutlookTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Price Outlook'**
+  String get farmerPriceOutlookTitle;
+
+  /// No description provided for @farmerEstimatedPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated price outlook'**
+  String get farmerEstimatedPrice;
+
+  /// No description provided for @farmerExpectedRise.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected to rise'**
+  String get farmerExpectedRise;
+
+  /// No description provided for @farmerExpectedFall.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected to fall'**
+  String get farmerExpectedFall;
+
+  /// No description provided for @farmerExpectedSimilar.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected to remain similar'**
+  String get farmerExpectedSimilar;
+
+  /// No description provided for @farmerPriceHighUncertainty.
+  ///
+  /// In en, this message translates to:
+  /// **'This price outlook has high uncertainty. The actual price may be meaningfully higher or lower.'**
+  String get farmerPriceHighUncertainty;
+
+  /// No description provided for @farmerPriceLimitedSignal.
+  ///
+  /// In en, this message translates to:
+  /// **'This is a limited research outlook. Use it as supporting information rather than a firm price expectation.'**
+  String get farmerPriceLimitedSignal;
+
+  /// No description provided for @farmerPriceDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Outlook details'**
+  String get farmerPriceDetails;
+
+  /// No description provided for @farmerOutlookDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Outlook date'**
+  String get farmerOutlookDate;
+
+  /// No description provided for @farmerReferencePrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest reference price'**
+  String get farmerReferencePrice;
+
+  /// No description provided for @farmerReferenceDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference date'**
+  String get farmerReferenceDate;
+
+  /// No description provided for @farmerForecastNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'This frozen EAC farm-gate research outlook is not a live buyer offer, guaranteed price or instruction to buy or sell.'**
+  String get farmerForecastNotice;
 
   /// No description provided for @berryQualityResult.
   ///

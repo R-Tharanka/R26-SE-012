@@ -1223,3 +1223,17 @@ Date: 2026-10-08.
 - Terminology: V3 grades remain project-specific; model scores remain non-probabilistic; EAC prices remain reference prices; frozen forecasts remain research evidence rather than live offers or trading instructions.
 - Verification: Flutter localization generation completed; direct Dart analysis reported no issues; 12/12 focused localization, API-client, and strict Phase 7 contract tests passed.
 - Limitation: independent Sinhala/Tamil linguistic review and emulator/physical-device layout acceptance remain pending. This is deployment/accessibility engineering and adds no predictive or field evidence.
+
+### MOBILE-FARMER-UI-UX-REFINEMENT-001
+
+Date: 2026-10-08.
+
+- Scope: presentation-only Flutter refinement across the integrated pest, leaf-disease, berry-disease, and Berry Grading and Export Price Forecasting experiences. Backend contracts, models, preprocessing, thresholds, Phase 6/7 logic, and price evidence were unchanged.
+- Navigation: replaced the redundant Home/Capture/History bar with Home/History/Guide; History is an honest empty state, capture remains task-specific, and focused result routes provide clear Back/Home exits.
+- Dashboard: retained exactly four feature cards, consolidated the duplicated Pepper Care identity, removed fabricated farm status/mock recent results/standalone Take Photo, and standardized all four entries on one explanatory bottom-sheet pattern.
+- Grading: removed the obsolete intermediate grading landing page from the flow. Accepted results now lead with the farmer-readable grade; rejection and `UNCERTAIN_GRADE` remain fail-closed and provide capture guidance without exposing internal categories as primary UI text.
+- Price: the frozen forecast price is visually dominant, with plain direction/uncertainty and compact grade/date/reference context. Raw interval, Ridge/persistence, internal series, Phase terminology, and trace remain available in the API but are not shown to normal users.
+- Guide and localization: added practical grading/photo/price guidance and localized all new presentation in English, Sinhala, and Tamil. No legacy scientific behavior was introduced.
+- Verification: official `flutter analyze` reported no issues and the complete Flutter suite passed 75/75 tests. A diff boundary check showed no backend, ML, model, or data changes.
+- Build boundary: a hosted-backend debug APK build reached Gradle but produced no completion/error within the bounded run and was stopped. No newly built APK or emulator/device UI acceptance is claimed.
+- Interpretation: deployment/usability engineering only; no new predictive accuracy, field robustness, confidence calibration, price reliability, or farmer-benefit evidence.

@@ -58,6 +58,139 @@ class AppLocalizationsEn extends AppLocalizations {
   String get darkMode => 'Dark mode';
 
   @override
+  String get navHome => 'Home';
+
+  @override
+  String get navHistory => 'History';
+
+  @override
+  String get navGuide => 'Guide';
+
+  @override
+  String get homeWelcomeTitle => 'How can we help your crop today?';
+
+  @override
+  String get homeWelcomeSubtitle =>
+      'Choose the task you need. We will guide you through the photo and results.';
+
+  @override
+  String get homeChooseTaskHint =>
+      'Choose a task before taking a photo so the app can use the right crop check.';
+
+  @override
+  String get featurePlantHealth => 'Plant health';
+
+  @override
+  String get featureBerryCare => 'Berry care';
+
+  @override
+  String get featureQualityAndPrice => 'Quality and price';
+
+  @override
+  String get featurePestTitle => 'Pest Detection';
+
+  @override
+  String get featurePestCardDescription => 'Check leaves, stems and berries';
+
+  @override
+  String get featurePestDescription =>
+      'Take a clear photo to look for common pepper pests and receive practical treatment guidance.';
+
+  @override
+  String get featureLeafTitle => 'Leaf Health Check';
+
+  @override
+  String get featureLeafCardDescription => 'Look for leaf disease signs';
+
+  @override
+  String get featureLeafDescription =>
+      'Photograph a pepper leaf to check for visible disease signs and understand how serious they may be.';
+
+  @override
+  String get featureBerryDiseaseTitle => 'Berry Disease Check';
+
+  @override
+  String get featureBerryDiseaseCardDescription =>
+      'Inspect berry clusters for damage';
+
+  @override
+  String get featureBerryDiseaseDescription =>
+      'Photograph a pepper berry cluster to check for visible disease or pest damage and receive care guidance.';
+
+  @override
+  String get featureGradingTitle => 'Berry Quality and Price Outlook';
+
+  @override
+  String get featureGradingCardDescription => 'Check grade and price outlook';
+
+  @override
+  String get featureGradingDescription =>
+      'Take a clear pepper sample photo to receive a project quality grade. When a grade is clear, you can also view a grade-matched EAC price outlook.';
+
+  @override
+  String get startScan => 'Start scan';
+
+  @override
+  String get historyEmptyTitle => 'No analysis history yet';
+
+  @override
+  String get historyEmptyMessage =>
+      'Future analyses can appear here after secure history storage is added. No sample results are shown.';
+
+  @override
+  String get guideTitle => 'Berry quality guide';
+
+  @override
+  String get guideSubtitle =>
+      'Follow these simple steps for a clearer berry grade and price outlook.';
+
+  @override
+  String get guidePhotoTitle => 'Choose a good sample';
+
+  @override
+  String get guidePhotoBody =>
+      'Use a representative pepper berry sample. Keep leaves, hands and other objects from covering the berries.';
+
+  @override
+  String get guideLightingTitle => 'Use even daylight';
+
+  @override
+  String get guideLightingBody =>
+      'Photograph in bright, even light. Avoid deep shadows, glare and direct flash on the berries.';
+
+  @override
+  String get guidePositionTitle => 'Fill the frame';
+
+  @override
+  String get guidePositionBody =>
+      'Keep the full sample clearly visible and close enough to see the berries without cutting off important parts.';
+
+  @override
+  String get guideGradesTitle => 'Understand the grades';
+
+  @override
+  String get guideGradesBody =>
+      'Grade 1 and Grade 2 are project quality groups based on visible features. They are not official SLS, buyer, laboratory or export-certification grades.';
+
+  @override
+  String get guidePriceTitle => 'Understand the price outlook';
+
+  @override
+  String get guidePriceBody =>
+      'The shown price is a grade-matched research estimate based on EAC farm-gate reference data. It is not a live buyer offer or guaranteed selling price.';
+
+  @override
+  String get guideRetryTitle => 'If we cannot assess it';
+
+  @override
+  String get guideRetryBody =>
+      'Retake the photo in better light, hold the phone steady, move closer and make sure pepper berries are clearly visible.';
+
+  @override
+  String get guideLimitation =>
+      'Use the result as supporting information. Confirm important grading and selling decisions with a trusted buyer, extension officer or other qualified person.';
+
+  @override
   String get berryLabel => 'Berry';
 
   @override
@@ -175,6 +308,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get analyze => 'Analyze';
 
   @override
+  String get captureAndScan => 'Capture and scan';
+
+  @override
   String get gradingHomeTitle => 'Berry Grading and Export Price Forecasting';
 
   @override
@@ -194,6 +330,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get captureTip => 'Tip: use a clear, well-lit photo and avoid blur.';
 
   @override
+  String get captureGuideTitle => 'Take a clear sample photo';
+
+  @override
+  String get captureGuideSubtitle =>
+      'A good photo helps the app assess the visible berry quality more reliably.';
+
+  @override
+  String get captureAvoidBlurTitle => 'Keep the phone steady';
+
+  @override
+  String get captureAvoidBlurBody =>
+      'Hold still while taking the photo. If the berries look blurred, retake it before analysis.';
+
+  @override
+  String get gotIt => 'Got it';
+
+  @override
+  String get captureFarmerPrompt =>
+      'Add one clear photo of your pepper berry sample.';
+
+  @override
+  String get captureChooseSource =>
+      'Use the camera or choose an original photo from your gallery.';
+
+  @override
+  String get analyzeBerrySample => 'Check berry quality';
+
+  @override
   String get couldNotOpenCameraGallery =>
       'Could not open camera/gallery. Please try again.';
 
@@ -208,6 +372,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get backendError => 'Backend error. Please try again.';
+
+  @override
+  String get processingFarmerTitle => 'Checking your berry sample';
+
+  @override
+  String get processingErrorTitle => 'We could not complete the check';
+
+  @override
+  String get backToHome => 'Back to home';
 
   @override
   String get phase7GradingHomeSubtitle =>
@@ -481,6 +654,118 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get phase7EacReferencePrice => 'EAC farm-gate reference price';
+
+  @override
+  String get farmerBerryGrade1 => 'Berry Grade 1';
+
+  @override
+  String get farmerBerryGrade2 => 'Berry Grade 2';
+
+  @override
+  String get farmerNoPepperTitle => 'Pepper berries were not found';
+
+  @override
+  String get farmerPoorImageTitle => 'Please take a clearer photo';
+
+  @override
+  String get farmerUncertainTitle =>
+      'We could not confidently assess this sample';
+
+  @override
+  String get farmerConflictingViewsTitle => 'The sample photos do not agree';
+
+  @override
+  String get farmerGrade1Explanation =>
+      'The visible features of this sample match the project\'s Grade 1 quality group.';
+
+  @override
+  String get farmerGrade2Explanation =>
+      'The visible features of this sample match the project\'s Grade 2 quality group.';
+
+  @override
+  String get farmerAcceptedExplanation =>
+      'A clear project quality grade was found for this sample.';
+
+  @override
+  String get farmerNoPepperExplanation =>
+      'The photo did not show enough recognizable pepper berries for grading, so no price outlook was produced.';
+
+  @override
+  String get farmerPoorImageExplanation =>
+      'The image quality was not good enough for a reliable grade, so no price outlook was produced.';
+
+  @override
+  String get farmerUncertainExplanation =>
+      'The visible grade signs were too close to make a reliable choice, so the app stopped before showing a price.';
+
+  @override
+  String get farmerConflictingViewsExplanation =>
+      'Different sample photos suggested different grades, so the app stopped before showing a price.';
+
+  @override
+  String get farmerRetakeBlur =>
+      'Retake the photo while holding the phone steady and make sure the berries are sharp.';
+
+  @override
+  String get farmerRetakeLighting =>
+      'Retake the photo in bright, even light without glare or deep shadows.';
+
+  @override
+  String get farmerRetakePosition =>
+      'Move closer and place the pepper berry sample clearly in the center of the photo.';
+
+  @override
+  String get farmerRetakeGeneral =>
+      'Retake the photo in good light, hold the phone steady and keep the full pepper sample visible.';
+
+  @override
+  String get farmerGradeNotice =>
+      'This is an AI-supported project estimate, not an official quality or export certificate.';
+
+  @override
+  String get farmerViewPriceOutlook => 'View price outlook';
+
+  @override
+  String get farmerAnalyzeAnother => 'Check another sample';
+
+  @override
+  String get farmerPriceOutlookTitle => 'Price Outlook';
+
+  @override
+  String get farmerEstimatedPrice => 'Estimated price outlook';
+
+  @override
+  String get farmerExpectedRise => 'Expected to rise';
+
+  @override
+  String get farmerExpectedFall => 'Expected to fall';
+
+  @override
+  String get farmerExpectedSimilar => 'Expected to remain similar';
+
+  @override
+  String get farmerPriceHighUncertainty =>
+      'This price outlook has high uncertainty. The actual price may be meaningfully higher or lower.';
+
+  @override
+  String get farmerPriceLimitedSignal =>
+      'This is a limited research outlook. Use it as supporting information rather than a firm price expectation.';
+
+  @override
+  String get farmerPriceDetails => 'Outlook details';
+
+  @override
+  String get farmerOutlookDate => 'Outlook date';
+
+  @override
+  String get farmerReferencePrice => 'Latest reference price';
+
+  @override
+  String get farmerReferenceDate => 'Reference date';
+
+  @override
+  String get farmerForecastNotice =>
+      'This frozen EAC farm-gate research outlook is not a live buyer offer, guaranteed price or instruction to buy or sell.';
 
   @override
   String get berryQualityResult => 'Berry Quality Result';

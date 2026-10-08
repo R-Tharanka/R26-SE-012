@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/models/scanner_model_config.dart';
 import '../../../shared/widgets/scanner_view.dart';
 
@@ -26,9 +27,9 @@ class PestScannerScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const ScannerView(
+    return ScannerView(
       modelConfig: _pestConfig,
-      title: 'Pest Scan',
+      title: AppLocalizations.of(context).homePests,
     );
   }
 }

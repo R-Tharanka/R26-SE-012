@@ -45,11 +45,11 @@ void main() {
       );
 
       expect(find.text('2 findings'), findsOneWidget);
-      expect(find.text('lace_bug_damage'), findsOneWidget);
+      expect(find.text('Lace bug damage'), findsOneWidget);
       expect(find.text('91%'), findsOneWidget);
-      expect(find.text('healthy_berry'), findsOneWidget);
+      expect(find.text('Healthy berry'), findsOneWidget);
       expect(find.text('62%'), findsOneWidget);
-      expect(find.text('Berry · 42ms'), findsOneWidget);
+      expect(find.textContaining('42ms'), findsNothing);
     });
 
     testWidgets('uses the singular for a single finding', (tester) async {

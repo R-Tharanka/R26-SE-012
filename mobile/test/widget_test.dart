@@ -15,12 +15,12 @@ void main() {
     await tester.pumpWidget(const MyApp());
     await tester.pumpAndSettle();
 
-    expect(find.text('Choose your language'), findsOneWidget);
+    expect(find.textContaining('Choose your language'), findsOneWidget);
 
     await tester.tap(find.text('English'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Pepper Care'), findsWidgets);
+    expect(find.text('Pepper Care'), findsOneWidget);
     expect(find.text('Quality &\nPrice'), findsOneWidget);
   });
 }
