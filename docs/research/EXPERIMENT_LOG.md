@@ -1149,3 +1149,13 @@ Date: 2026-10-07.
 - Limitations: no field/domain-shift evidence, uncalibrated grading scores, project-specific V3 taxonomy, mixed Phase 5 signal, weaker Grade 2 price performance, wide intervals, frozen rather than live forecasts, and no independent end-to-end field or user-usefulness evaluation.
 - Decision: `COMPLETE WITH LIMITATIONS`. This phase establishes conversion and integration behavior, not new predictive accuracy or production readiness.
 - Next phase: Phase 8 is ready with limitations for separately authorized prospective field validation. It was not started.
+
+### PHASE7-MOBILE-PREPROCESSING-CORRECTION-001
+
+Date: 2026-10-08.
+
+- Trigger: the first researcher-operated emulator run passed Grade 1, Grade 2, and non-pepper behavior but failed the controlled poor-image and uncertain-grade outcomes (3/5 overall).
+- Diagnosis: `BerryCaptureScreen` requested `imageQuality: 75`, `maxWidth: 1280`, and `maxHeight: 1280`. The resulting resize/recompression changed the image evaluated by the frozen blur and class-margin gates. The poor-image case became `NO_PEPPER` with quality passed; the uncertain case became accepted Grade 2 and proceeded to pricing.
+- Correction: removed application-requested resizing and recompression from the Phase 7 image picker. No grading model, ONNX artifact, backend threshold, price evidence, or Phase 6 decision rule changed.
+- Acceptance status: pending a complete researcher-operated rerun of Grade 1, Grade 2, non-pepper, poor-image, and uncertain cases. `UNCERTAIN_GRADE` must stop before pricing and is not equivalent to `HIGH_UNCERTAINTY_OUTLOOK`.
+- Gate: Phase 8 must not start until the corrected mobile path passes all five controlled cases and the result is recorded.

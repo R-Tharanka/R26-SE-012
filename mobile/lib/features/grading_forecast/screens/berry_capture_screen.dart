@@ -19,12 +19,10 @@ class _BerryCaptureScreenState extends State<BerryCaptureScreen> {
 
   Future<void> _pick(ImageSource source) async {
     try {
-      final picked = await _picker.pickImage(
-        source: source,
-        imageQuality: 75,
-        maxWidth: 1280,
-        maxHeight: 1280,
-      );
+      // Preserve the selected bytes for the frozen Phase 7 backend pipeline.
+      // Resizing or JPEG recompression here changes the blur, detection, and
+      // class-margin inputs used by the frozen rejection/uncertainty gates.
+      final picked = await _picker.pickImage(source: source);
       if (!mounted) return;
       if (picked == null) {
         setState(() {

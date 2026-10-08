@@ -185,6 +185,9 @@ $adb = "$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe"
 
 Use the app's gallery picker and choose the copies under Downloads. Gallery
 selection is preferable to an emulator camera for this controlled verification.
+The Phase 7 picker deliberately requests neither resizing nor JPEG quality
+conversion; changing those options changes the frozen quality and uncertainty
+decisions. Rerun all five cases after any picker or image-transport change.
 
 ## 7. Run and test on a physical Android device
 
@@ -316,6 +319,8 @@ personal images or sensitive details.
 - A Grade 2 image routes only to Grade 2 evidence.
 - A non-pepper and poor-image input return rejection and `market = null`.
 - An uncertain input returns uncertainty and `market = null`.
+- `UNCERTAIN_GRADE` must not be treated as `HIGH_UNCERTAINTY_OUTLOOK`: the
+  former blocks pricing, while the latter follows an accepted grade.
 - Accepted results show frozen reference-price/forecast evidence and a Phase 6
   category, not a live-price or trading claim.
 - The backend terminal records the request outcome without retaining uploaded
