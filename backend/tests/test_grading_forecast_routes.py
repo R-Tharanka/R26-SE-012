@@ -128,8 +128,14 @@ def test_analyze_is_deterministic_for_same_filename_and_bytes(monkeypatch) -> No
         limitation_note="test",
     )
 
+    captured_forecast_grades = []
+
+    def fake_build_price_forecast(**kwargs):
+        captured_forecast_grades.append(kwargs.get("grade"))
+        return forecast
+
     monkeypatch.setattr(route_module, "build_grading_result", lambda **_kwargs: grading)
-    monkeypatch.setattr(route_module, "build_price_forecast", lambda **_kwargs: forecast)
+    monkeypatch.setattr(route_module, "build_price_forecast", fake_build_price_forecast)
     monkeypatch.setattr(route_module, "build_recommendation", lambda **_kwargs: recommendation)
     monkeypatch.setattr(
         route_module,
@@ -150,6 +156,7 @@ def test_analyze_is_deterministic_for_same_filename_and_bytes(monkeypatch) -> No
     assert d1["grading"]["quality_score"] == d2["grading"]["quality_score"]
     assert d1["forecast"]["predicted_price_lkr_per_kg"] == d2["forecast"]["predicted_price_lkr_per_kg"]
     assert d1["recommendation"]["decision"] == d2["recommendation"]["decision"]
+    assert captured_forecast_grades == [GradeEnum.grade_1, GradeEnum.grade_1]
 
 
 def test_recommend_endpoint_validates_payload() -> None:

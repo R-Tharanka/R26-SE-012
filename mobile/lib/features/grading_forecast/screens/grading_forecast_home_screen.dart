@@ -8,9 +8,7 @@ class GradingForecastHomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Pepper Care'),
-      ),
+      appBar: AppBar(title: const Text('Pepper Care')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Center(
@@ -30,7 +28,7 @@ class GradingForecastHomeScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
                     const Text(
-                      'Capture a pepper berry image to estimate berry quality and get a simple price forecast.',
+                      'Capture a pepper sample image for project-specific grading and a limited frozen EAC price outlook.',
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 16),
@@ -54,4 +52,3 @@ class GradingForecastHomeScreen extends StatelessWidget {
     );
   }
 }
-
