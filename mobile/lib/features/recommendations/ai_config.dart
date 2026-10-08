@@ -25,10 +25,14 @@ class AiConfig {
   // higher fine-grained accuracy. If this key is absent the app transparently
   // uses Gemini's own labels, so Claude is a pure accuracy upgrade, never a
   // hard dependency.
-  static const String claudeApiKey =
-      String.fromEnvironment('ANTHROPIC_API_KEY');
+  static const String claudeApiKey = String.fromEnvironment(
+    'ANTHROPIC_API_KEY',
+  );
 
-  static const String claudeModel = 'claude-opus-5';
+  // Haiku, not Opus: this stage only picks one of a few classes per crop, so the
+  // fastest tier is plenty and keeps the second cloud round-trip cheap. Bump to
+  // 'claude-sonnet-5-5' if crop accuracy measurably suffers.
+  static const String claudeModel = 'claude-haiku-4-5';
 
   static bool get hasClaudeKey => claudeApiKey.isNotEmpty;
 }

@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:google_generative_ai/google_generative_ai.dart';
 
+import '../../core/locale/app_locale.dart';
 import 'ai_config.dart';
 import 'leaf_analysis.dart';
 
@@ -33,7 +34,12 @@ class AiLeafService {
     'Uncertain',
   ];
 
-  static const List<String> _severityBands = ['none', 'mild', 'moderate', 'severe'];
+  static const List<String> _severityBands = [
+    'none',
+    'mild',
+    'moderate',
+    'severe',
+  ];
 
   late final GenerativeModel _model = GenerativeModel(
     model: AiConfig.model,
@@ -57,7 +63,11 @@ class AiLeafService {
     try {
       res = await _model.generateContent([
         Content.multi([
-          TextPart(_taskPrompt),
+          TextPart(
+            '$_taskPrompt\n\nWrite summary, affected_regions and every '
+            'treatment step in ${currentPromptLanguage()}. Keep disease_type '
+            'and severity_band exactly as the allowed English values.',
+          ),
           DataPart('image/jpeg', jpegBytes),
         ]),
       ]);
@@ -113,7 +123,8 @@ Rules:
   static final Schema _schema = Schema.object(
     properties: {
       'is_pepper_leaf': Schema.boolean(
-        description: 'True only if the image clearly shows a black pepper leaf.',
+        description:
+            'True only if the image clearly shows a black pepper leaf.',
       ),
       'healthy': Schema.boolean(
         description: 'True if the leaf shows no disease or deficiency.',

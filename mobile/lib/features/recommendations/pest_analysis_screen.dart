@@ -3,6 +3,8 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:iconly/iconly.dart';
 
+import '../../l10n/app_localizations.dart';
+import '../../shared/class_labels.dart';
 import 'analysis_ui.dart';
 import 'ai_errors.dart';
 import 'ai_pest_service.dart';
@@ -57,7 +59,7 @@ class _PestAnalysisScreenState extends State<PestAnalysisScreen> {
       logAiError('pest-analysis', e, st);
       if (!mounted) return;
       setState(() {
-        _error = friendlyAiMessage(e);
+        _error = friendlyAiMessage(e, AppLocalizations.of(context));
         _loading = false;
       });
     }
@@ -67,15 +69,16 @@ class _PestAnalysisScreenState extends State<PestAnalysisScreen> {
   Widget build(BuildContext context) {
     return AnalysisScaffold(
       imageBytes: widget.imageBytes,
-      title: 'Pest analysis',
+      title: AppLocalizations.of(context).pestAnalysisTitle,
       titleIcon: IconlyBold.scan,
       children: _body(),
     );
   }
 
   List<Widget> _body() {
+    final t = AppLocalizations.of(context);
     if (_loading) {
-      return const [LoadingView(message: 'Inspecting for pests with AI…')];
+      return [LoadingView(message: t.analysingPest)];
     }
     if (_error != null) {
       return [ErrorView(message: _error!, onRetry: _run)];
@@ -84,13 +87,12 @@ class _PestAnalysisScreenState extends State<PestAnalysisScreen> {
   }
 
   List<Widget> _resultBody(PestAnalysis r) {
+    final t = AppLocalizations.of(context);
     if (!r.isPepperPlant) {
       return [
         RetakeView(
-          title: "This doesn't look like a pepper plant",
-          message: r.summary.isNotEmpty
-              ? r.summary
-              : 'Get closer to the leaf/stem/berry in good light and retry.',
+          title: t.notPepperPlant,
+          message: r.summary.isNotEmpty ? r.summary : t.pestRetryHint,
           onRetake: () => Navigator.of(context).pop(),
         ),
       ];
@@ -100,41 +102,65 @@ class _PestAnalysisScreenState extends State<PestAnalysisScreen> {
     final accent = r.healthy ? kBrand : bandColor(r.severityBand);
 
     return [
-      Row(children: [
-        Icon(r.healthy ? IconlyBold.shield_done : IconlyBold.danger,
-            color: accent, size: 30),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(r.healthy ? 'No pests found' : r.pestType,
-                  style: TextStyle(
-                      fontSize: 22, fontWeight: FontWeight.w800, color: kText)),
-              if (r.summary.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Text(r.summary,
-                      style: TextStyle(color: kTextSub, height: 1.35)),
-                ),
-            ],
+      Row(
+        children: [
+          Icon(
+            r.healthy ? IconlyBold.shield_done : IconlyBold.danger,
+            color: accent,
+            size: 30,
           ),
-        ),
-      ]),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  r.healthy
+                      ? t.noPestsFound
+                      : localizedClassName(r.pestType, t),
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    color: kText,
+                  ),
+                ),
+                if (r.summary.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      r.summary,
+                      style: TextStyle(color: kTextSub, height: 1.35),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
 
       const SizedBox(height: 18),
       StatTile(
         icon: IconlyBold.chart,
-        label: 'Severity',
+        label: t.severity,
         color: accent,
         value: r.healthy
-            ? const Text('—',
+            ? const Text(
+                '—',
                 style: TextStyle(
-                    fontSize: 26, fontWeight: FontWeight.w800, color: kBrand))
-            : CountUp(r.severityPercentage,
+                  fontSize: 26,
+                  fontWeight: FontWeight.w800,
+                  color: kBrand,
+                ),
+              )
+            : CountUp(
+                r.severityPercentage,
                 suffix: '%',
                 style: TextStyle(
-                    fontSize: 26, fontWeight: FontWeight.w800, color: accent)),
+                  fontSize: 26,
+                  fontWeight: FontWeight.w800,
+                  color: accent,
+                ),
+              ),
         sub: r.severityBand.toUpperCase(),
       ),
 
@@ -145,13 +171,18 @@ class _PestAnalysisScreenState extends State<PestAnalysisScreen> {
 
       SectionCard(
         icon: IconlyBold.shield_done,
-        title: 'Recommended action (IPM)',
+        title: t.recommendedActionIpm,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(plan.action,
-                style: TextStyle(
-                    fontWeight: FontWeight.w700, color: kText, height: 1.35)),
+            Text(
+              plan.action,
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                color: kText,
+                height: 1.35,
+              ),
+            ),
             const SizedBox(height: 12),
             for (final o in plan.options)
               OptionTile(
@@ -175,13 +206,10 @@ class _PestAnalysisScreenState extends State<PestAnalysisScreen> {
           text: plan.note,
         ),
 
-      const InfoCard(
+      InfoCard(
         icon: IconlyBold.info_circle,
-        color: Color(0xFF64748B),
-        text:
-            'AI estimate from one photo. Confirm the pest, economic threshold, '
-            'exact dose, MRL and pre-harvest interval with your local agri '
-            'authority before any chemical use.',
+        color: const Color(0xFF64748B),
+        text: t.pestDisclaimer,
       ),
 
       const SizedBox(height: 18),
@@ -192,12 +220,13 @@ class _PestAnalysisScreenState extends State<PestAnalysisScreen> {
           shape: const StadiumBorder(),
         ),
         icon: const Icon(IconlyLight.camera, size: 18),
-        label: const Text('Take another photo'),
+        label: Text(t.takeAnotherPhoto),
       ),
     ];
   }
 
   Widget _thresholdBadge(bool above) {
+    final t = AppLocalizations.of(context);
     final color = above ? const Color(0xFFFB8C00) : kBrand;
     return Container(
       margin: const EdgeInsets.only(top: 16),
@@ -207,43 +236,56 @@ class _PestAnalysisScreenState extends State<PestAnalysisScreen> {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: color.withValues(alpha: 0.35)),
       ),
-      child: Row(children: [
-        Icon(above ? IconlyBold.danger : IconlyBold.show, size: 20, color: color),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Text(
-            above
-                ? 'Above treatment threshold'
-                : 'Below treatment threshold — monitor only',
-            style: TextStyle(fontWeight: FontWeight.w700, color: kText),
+      child: Row(
+        children: [
+          Icon(
+            above ? IconlyBold.danger : IconlyBold.show,
+            size: 20,
+            color: color,
           ),
-        ),
-      ]),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              above ? t.aboveTreatmentThreshold : t.belowThreshold,
+              style: TextStyle(fontWeight: FontWeight.w700, color: kText),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _marketDropdown() => DropdownButton<Market>(
-        value: _market,
-        underline: const SizedBox.shrink(),
-        borderRadius: BorderRadius.circular(12),
-        style: TextStyle(color: kText, fontWeight: FontWeight.w600),
-        icon: Icon(IconlyLight.arrow_down, size: 16, color: kText),
-        onChanged: (m) => setState(() => _market = m ?? _market),
-        items: [
-          for (final m in Market.values)
-            DropdownMenuItem(value: m, child: Text(m.label)),
-        ],
-      );
+    value: _market,
+    underline: const SizedBox.shrink(),
+    borderRadius: BorderRadius.circular(12),
+    style: TextStyle(color: kText, fontWeight: FontWeight.w600),
+    icon: Icon(IconlyLight.arrow_down, size: 16, color: kText),
+    onChanged: (m) => setState(() => _market = m ?? _market),
+    items: [
+      for (final m in Market.values)
+        DropdownMenuItem(value: m, child: Text(m.label)),
+    ],
+  );
 
   Widget _warning(String w) => Padding(
-        padding: const EdgeInsets.only(top: 6),
-        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Icon(IconlyBold.danger, size: 15, color: Color(0xFFB26A00)),
-          const SizedBox(width: 8),
-          Expanded(
-              child: Text(w,
-                  style: const TextStyle(
-                      fontSize: 12, color: Color(0xFFB26A00), height: 1.35))),
-        ]),
-      );
+    padding: const EdgeInsets.only(top: 6),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Icon(IconlyBold.danger, size: 15, color: Color(0xFFB26A00)),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            w,
+            style: const TextStyle(
+              fontSize: 12,
+              color: Color(0xFFB26A00),
+              height: 1.35,
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
 }

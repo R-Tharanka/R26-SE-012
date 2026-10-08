@@ -3,6 +3,8 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:iconly/iconly.dart';
 
+import '../../l10n/app_localizations.dart';
+import '../../shared/class_labels.dart';
 import 'analysis_ui.dart';
 import 'ai_errors.dart';
 import 'ai_leaf_service.dart';
@@ -47,7 +49,8 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
     });
     try {
       final r = await (_pending ?? _service.analyze(widget.imageBytes));
-      _pending = null; // a retry re-calls the service instead of the dead future
+      _pending =
+          null; // a retry re-calls the service instead of the dead future
       if (!mounted) return;
       if (!mounted) return;
       setState(() {
@@ -58,7 +61,7 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
       logAiError('leaf-analysis', e, st);
       if (!mounted) return;
       setState(() {
-        _error = friendlyAiMessage(e);
+        _error = friendlyAiMessage(e, AppLocalizations.of(context));
         _loading = false;
       });
     }
@@ -68,15 +71,16 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
   Widget build(BuildContext context) {
     return AnalysisScaffold(
       imageBytes: widget.imageBytes,
-      title: 'Leaf analysis',
+      title: AppLocalizations.of(context).leafAnalysisTitle,
       titleIcon: IconlyBold.activity,
       children: _body(),
     );
   }
 
   List<Widget> _body() {
+    final t = AppLocalizations.of(context);
     if (_loading) {
-      return const [LoadingView(message: 'Analysing leaf with AI…')];
+      return [LoadingView(message: t.analysingLeaf)];
     }
     if (_error != null) {
       return [ErrorView(message: _error!, onRetry: _run)];
@@ -85,13 +89,12 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
   }
 
   List<Widget> _resultBody(LeafAnalysis r) {
+    final t = AppLocalizations.of(context);
     if (!r.isPepperLeaf) {
       return [
         RetakeView(
-          title: "This doesn't look like a pepper leaf",
-          message: r.summary.isNotEmpty
-              ? r.summary
-              : 'Fill the frame with a single leaf in good light and try again.',
+          title: t.notPepperLeaf,
+          message: r.summary.isNotEmpty ? r.summary : t.leafRetryHint,
           onRetake: () => Navigator.of(context).pop(),
         ),
       ];
@@ -102,64 +105,91 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
 
     return [
       // headline
-      Row(children: [
-        Icon(r.healthy ? IconlyBold.shield_done : IconlyBold.danger,
-            color: accent, size: 30),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(r.healthy ? 'Healthy leaf' : r.diseaseType,
-                  style: TextStyle(
-                      fontSize: 22, fontWeight: FontWeight.w800, color: kText)),
-              if (r.summary.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Text(r.summary,
-                      style: TextStyle(color: kTextSub, height: 1.35)),
-                ),
-            ],
+      Row(
+        children: [
+          Icon(
+            r.healthy ? IconlyBold.shield_done : IconlyBold.danger,
+            color: accent,
+            size: 30,
           ),
-        ),
-      ]),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  r.healthy
+                      ? t.healthyLeaf
+                      : localizedClassName(r.diseaseType, t),
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    color: kText,
+                  ),
+                ),
+                if (r.summary.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      r.summary,
+                      style: TextStyle(color: kTextSub, height: 1.35),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
 
       const SizedBox(height: 18),
-      Row(children: [
-        Expanded(
-          child: StatTile(
-            icon: IconlyBold.chart,
-            label: 'Severity',
-            color: accent,
-            value: r.healthy
-                ? const Text('—',
-                    style: TextStyle(
-                        fontSize: 28, fontWeight: FontWeight.w800, color: kBrand))
-                : CountUp(sev,
-                    suffix: '%',
-                    style: TextStyle(
+      Row(
+        children: [
+          Expanded(
+            child: StatTile(
+              icon: IconlyBold.chart,
+              label: t.severity,
+              color: accent,
+              value: r.healthy
+                  ? const Text(
+                      '—',
+                      style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.w800,
-                        color: accent)),
-            sub: r.severityBand.toUpperCase(),
+                        color: kBrand,
+                      ),
+                    )
+                  : CountUp(
+                      sev,
+                      suffix: '%',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w800,
+                        color: accent,
+                      ),
+                    ),
+              sub: r.severityBand.toUpperCase(),
+            ),
           ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: StatTile(
-            icon: IconlyBold.activity,
-            label: 'Confidence',
-            color: const Color(0xFF3B82F6),
-            value: CountUp(r.confidence * 100,
+          const SizedBox(width: 12),
+          Expanded(
+            child: StatTile(
+              icon: IconlyBold.activity,
+              label: t.confidence,
+              color: const Color(0xFF3B82F6),
+              value: CountUp(
+                r.confidence * 100,
                 suffix: '%',
                 style: const TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF3B82F6))),
-            sub: _conf(r.confidence),
+                  fontSize: 28,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF3B82F6),
+                ),
+              ),
+              sub: _conf(r.confidence, t),
+            ),
           ),
-        ),
-      ]),
+        ],
+      ),
 
       if (!r.healthy && sev > 0) ...[
         const SizedBox(height: 16),
@@ -169,15 +199,17 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
       if (r.affectedRegions.isNotEmpty)
         SectionCard(
           icon: IconlyBold.show,
-          title: 'What we see',
-          child: Text(r.affectedRegions,
-              style: TextStyle(color: kTextSub, height: 1.45)),
+          title: t.whatWeSee,
+          child: Text(
+            r.affectedRegions,
+            style: TextStyle(color: kTextSub, height: 1.45),
+          ),
         ),
 
       if (r.treatments.isNotEmpty)
         SectionCard(
           icon: IconlyBold.shield_done,
-          title: 'Recommended treatment',
+          title: t.recommendedTreatment,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -195,17 +227,22 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
                           color: accent.withValues(alpha: 0.15),
                           shape: BoxShape.circle,
                         ),
-                        child: Text('${i + 1}',
-                            style: TextStyle(
-                                fontSize: 12,
-                                color: accent,
-                                fontWeight: FontWeight.w800)),
+                        child: Text(
+                          '${i + 1}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: accent,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                          child: Text(r.treatments[i],
-                              style: TextStyle(
-                                  height: 1.4, color: kText))),
+                        child: Text(
+                          r.treatments[i],
+                          style: TextStyle(height: 1.4, color: kText),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -213,12 +250,10 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
           ),
         ),
 
-      const InfoCard(
+      InfoCard(
         icon: IconlyBold.info_circle,
-        color: Color(0xFF64748B),
-        text:
-            'AI estimate from one photo. Confirm with a local agronomist before '
-            'applying chemical treatments.',
+        color: const Color(0xFF64748B),
+        text: t.leafDisclaimer,
       ),
 
       const SizedBox(height: 18),
@@ -229,10 +264,11 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
           shape: const StadiumBorder(),
         ),
         icon: const Icon(IconlyLight.camera, size: 18),
-        label: const Text('Take another photo'),
+        label: Text(t.takeAnotherPhoto),
       ),
     ];
   }
 
-  String _conf(double c) => c >= 0.75 ? 'High' : (c >= 0.5 ? 'Medium' : 'Low');
+  String _conf(double c, AppLocalizations t) =>
+      c >= 0.75 ? t.high : (c >= 0.5 ? t.medium : t.low);
 }

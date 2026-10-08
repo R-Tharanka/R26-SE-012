@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_theme.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../berry_disease/berry_scanner_screen.dart';
 import '../../grading_forecast/screens/berry_capture_screen.dart';
 import '../../grading_forecast/screens/grading_forecast_home_screen.dart';
+import '../../onboarding/language_picker_screen.dart';
 import '../../plant_health/screens/plant_health_scanner_screen.dart';
 import '../../recommendations/analysis_ui.dart' show FadeSlideIn;
 
@@ -31,26 +33,20 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _navigateToPlantHealth() {
     Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => const PlantHealthScannerScreen(),
-      ),
+      MaterialPageRoute<void>(builder: (_) => const PlantHealthScannerScreen()),
     );
   }
 
   void _navigateToBerryDisease() {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => const BerryScannerScreen(),
-      ),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute<void>(builder: (_) => const BerryScannerScreen()));
   }
 
   void _navigateToCapture() {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => const BerryCaptureScreen(),
-      ),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute<void>(builder: (_) => const BerryCaptureScreen()));
   }
 
   // ------------------------------------------------------------
@@ -66,9 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
     showModalBottomSheet<void>(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(24),
-        ),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (context) {
         return Padding(
@@ -160,10 +154,7 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (context) => AlertDialog(
         title: const Row(
           children: [
-            Icon(
-              Icons.help_outline,
-              color: Color(0xFF1B4332),
-            ),
+            Icon(Icons.help_outline, color: Color(0xFF1B4332)),
             SizedBox(width: 8),
             Text('PepperCare Help'),
           ],
@@ -192,25 +183,33 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     const backgroundColor = Color(0xFFF9F9F6);
+    final t = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: backgroundColor,
       appBar: AppBar(
-        title: const Row(
+        title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _AppLogo(size: 30),
-            SizedBox(width: 10),
-            Text('PepperCare'),
+            const _AppLogo(size: 30),
+            const SizedBox(width: 10),
+            Text(t.appTitle),
           ],
         ),
         actions: [
           IconButton(
-            tooltip: isDarkMode ? 'Light mode' : 'Dark mode',
+            tooltip: t.language,
+            icon: const Icon(Icons.language),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const LanguagePickerScreen(),
+              ),
+            ),
+          ),
+          IconButton(
+            tooltip: isDarkMode ? t.lightMode : t.darkMode,
             icon: Icon(
-              isDarkMode
-                  ? Icons.light_mode
-                  : Icons.dark_mode_outlined,
+              isDarkMode ? Icons.light_mode : Icons.dark_mode_outlined,
             ),
             onPressed: () {
               setState(() {
@@ -225,12 +224,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Positioned.fill(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(
-                  20,
-                  12,
-                  20,
-                  140,
-                ),
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 140),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -268,10 +262,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       badgeTextColor: const Color(0xFF1B4332),
                       timeText: '2 hours ago',
                       title: 'Main Plot A',
-                      subtitle:
-                          'No signs of root wilt or pests...',
-                      thumbnail:
-                          const _PepperClusterThumbnail(),
+                      subtitle: 'No signs of root wilt or pests...',
+                      thumbnail: const _PepperClusterThumbnail(),
                     ),
 
                     const SizedBox(height: 12),
@@ -282,10 +274,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       badgeTextColor: const Color(0xFFB91C1C),
                       timeText: 'Yesterday',
                       title: 'North Slope',
-                      subtitle:
-                          'Possible early leaf gall thrips...',
-                      thumbnail:
-                          const _SpottedLeafThumbnail(),
+                      subtitle: 'Possible early leaf gall thrips...',
+                      thumbnail: const _SpottedLeafThumbnail(),
                     ),
                   ],
                 ),
@@ -295,7 +285,6 @@ class _HomeScreenState extends State<HomeScreen> {
             // --------------------------------------------------
             // Bottom Actions
             // --------------------------------------------------
-
             Positioned(
               left: 0,
               right: 0,
@@ -314,26 +303,19 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: ElevatedButton(
                           onPressed: _navigateToCapture,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                const Color(0xFF1B4332),
+                            backgroundColor: const Color(0xFF1B4332),
                             foregroundColor: Colors.white,
                             elevation: 4,
                             shadowColor: Colors.black38,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 36,
-                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 36),
                             shape: RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.circular(26),
+                              borderRadius: BorderRadius.circular(26),
                             ),
                           ),
                           child: const Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(
-                                Icons.camera_alt_outlined,
-                                size: 22,
-                              ),
+                              Icon(Icons.camera_alt_outlined, size: 22),
                               SizedBox(width: 10),
                               Text(
                                 'Take Photo',
@@ -355,15 +337,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     decoration: const BoxDecoration(
                       color: Color(0xFFF4F4F0),
                       border: Border(
-                        top: BorderSide(
-                          color: Color(0xFFE5E5E0),
-                          width: 0.8,
-                        ),
+                        top: BorderSide(color: Color(0xFFE5E5E0), width: 0.8),
                       ),
                     ),
                     child: Row(
-                      mainAxisAlignment:
-                          MainAxisAlignment.spaceAround,
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         _buildNavItem(
                           index: 0,
@@ -422,10 +400,7 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(
-                color: const Color(0xFF2D6A4F),
-                width: 1.8,
-              ),
+              border: Border.all(color: const Color(0xFF2D6A4F), width: 1.8),
             ),
             child: const Icon(
               Icons.help_outline_rounded,
@@ -509,6 +484,7 @@ class _HomeScreenState extends State<HomeScreen> {
   // ------------------------------------------------------------
 
   Widget _buildCropCheckGrid() {
+    final t = AppLocalizations.of(context);
     return GridView.count(
       crossAxisCount: 2,
       shrinkWrap: true,
@@ -523,7 +499,7 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icons.bug_report_outlined,
             iconBgColor: const Color(0xFFFDE8E1),
             iconColor: const Color(0xFFE07A5F),
-            title: 'Pests',
+            title: t.homePests,
             onTap: () => _showFeatureInfo(
               'Pest Detection',
               'PLANT HEALTH',
@@ -541,7 +517,7 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icons.health_and_safety,
             iconBgColor: const Color(0xFFDCF8DB),
             iconColor: const Color(0xFF2B9348),
-            title: 'Leaf Health',
+            title: t.homeLeafHealth,
             onTap: () => _showFeatureInfo(
               'Leaf Health & Severity',
               'PLANT HEALTH',
@@ -558,7 +534,7 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icons.coronavirus_outlined,
             iconBgColor: const Color(0xFFFCE4EC),
             iconColor: const Color(0xFFC24176),
-            title: 'Berry Disease',
+            title: t.homeBerryDisease,
             onTap: () => _showFeatureInfo(
               'Berry Disease',
               'BERRY ANALYSIS',
@@ -576,7 +552,7 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icons.trending_up,
             iconBgColor: const Color(0xFFFFF0D9),
             iconColor: const Color(0xFFF39C12),
-            title: 'Quality &\nPrice',
+            title: t.homeQualityPrice,
             onTap: _navigateToQualityAndPrice,
           ),
         ),
@@ -601,23 +577,16 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
-            mainAxisAlignment:
-                MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: iconBgColor,
-                  borderRadius:
-                      BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(
-                  icon,
-                  color: iconColor,
-                  size: 26,
-                ),
+                child: Icon(icon, color: iconColor, size: 26),
               ),
               Text(
                 title,
@@ -641,8 +610,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildRecentResultsHeader() {
     return Row(
-      mainAxisAlignment:
-          MainAxisAlignment.spaceBetween,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         const Text(
           'Recent Results',
@@ -656,9 +624,7 @@ class _HomeScreenState extends State<HomeScreen> {
         TextButton(
           onPressed: () {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('History page loading...'),
-              ),
+              const SnackBar(content: Text('History page loading...')),
             );
           },
           child: const Text(
@@ -700,32 +666,24 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(14),
-            child: SizedBox(
-              width: 72,
-              height: 72,
-              child: thumbnail,
-            ),
+            child: SizedBox(width: 72, height: 72, child: thumbnail),
           ),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  mainAxisAlignment:
-                      MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Container(
-                      padding:
-                          const EdgeInsets.symmetric(
+                      padding: const EdgeInsets.symmetric(
                         horizontal: 8,
                         vertical: 3,
                       ),
                       decoration: BoxDecoration(
                         color: badgeBgColor,
-                        borderRadius:
-                            BorderRadius.circular(6),
+                        borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
                         badgeText,
@@ -798,23 +756,15 @@ class _HomeScreenState extends State<HomeScreen> {
       behavior: HitTestBehavior.opaque,
       child: isSelected
           ? Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 8,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               decoration: BoxDecoration(
                 color: const Color(0xFF1B4332),
-                borderRadius:
-                    BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(20),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
-                    icon,
-                    color: Colors.white,
-                    size: 20,
-                  ),
+                  Icon(icon, color: Colors.white, size: 20),
                   const SizedBox(width: 6),
                   Text(
                     label,
@@ -828,15 +778,10 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             )
           : Column(
-              mainAxisAlignment:
-                  MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  icon,
-                  color: const Color(0xFF8E8E93),
-                  size: 22,
-                ),
+                Icon(icon, color: const Color(0xFF8E8E93), size: 22),
                 const SizedBox(height: 4),
                 Text(
                   label,
@@ -887,9 +832,7 @@ class _PepperClusterThumbnail extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: const Color(0xFF386641),
-      child: CustomPaint(
-        painter: _PepperClusterPainter(),
-      ),
+      child: CustomPaint(painter: _PepperClusterPainter()),
     );
   }
 }
@@ -911,10 +854,7 @@ class _PepperClusterPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     final path = Path()
-      ..moveTo(
-        size.width * 0.3,
-        size.height * 0.1,
-      )
+      ..moveTo(size.width * 0.3, size.height * 0.1)
       ..cubicTo(
         size.width * 0.4,
         size.height * 0.4,
@@ -938,24 +878,14 @@ class _PepperClusterPainter extends CustomPainter {
     ];
 
     for (final pos in berryPositions) {
-      canvas.drawCircle(
-        pos,
-        6,
-        berryPaint,
-      );
+      canvas.drawCircle(pos, 6, berryPaint);
 
-      canvas.drawCircle(
-        pos + const Offset(-1.5, -1.5),
-        2,
-        highlightPaint,
-      );
+      canvas.drawCircle(pos + const Offset(-1.5, -1.5), 2, highlightPaint);
     }
   }
 
   @override
-  bool shouldRepaint(
-    covariant CustomPainter oldDelegate,
-  ) {
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
     return false;
   }
 }
@@ -971,9 +901,7 @@ class _SpottedLeafThumbnail extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: const Color(0xFF1B4332),
-      child: CustomPaint(
-        painter: _SpottedLeafPainter(),
-      ),
+      child: CustomPaint(painter: _SpottedLeafPainter()),
     );
   }
 }
@@ -990,10 +918,7 @@ class _SpottedLeafPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     final path = Path()
-      ..moveTo(
-        size.width * 0.5,
-        size.height * 0.15,
-      )
+      ..moveTo(size.width * 0.5, size.height * 0.15)
       ..quadraticBezierTo(
         size.width * 0.85,
         size.height * 0.4,
@@ -1010,37 +935,26 @@ class _SpottedLeafPainter extends CustomPainter {
     canvas.drawPath(path, leafPaint);
 
     canvas.drawCircle(
-      Offset(
-        size.width * 0.4,
-        size.height * 0.4,
-      ),
+      Offset(size.width * 0.4, size.height * 0.4),
       4.5,
       spotPaint,
     );
 
     canvas.drawCircle(
-      Offset(
-        size.width * 0.55,
-        size.height * 0.5,
-      ),
+      Offset(size.width * 0.55, size.height * 0.5),
       3.5,
       spotPaint,
     );
 
     canvas.drawCircle(
-      Offset(
-        size.width * 0.35,
-        size.height * 0.6,
-      ),
+      Offset(size.width * 0.35, size.height * 0.6),
       3,
       spotPaint,
     );
   }
 
   @override
-  bool shouldRepaint(
-    covariant CustomPainter oldDelegate,
-  ) {
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
     return false;
   }
-} 
+}

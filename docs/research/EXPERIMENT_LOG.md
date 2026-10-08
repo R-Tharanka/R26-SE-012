@@ -1197,3 +1197,18 @@ Date: 2026-10-08.
 - Flutter: local empty/10-MB validation, validated backend URL, full request/response timeout, explicit HTTP error mapping, strict schema parsing, and client-side rejection-first/grade-route enforcement. No fallback prediction is generated.
 - Verification: 15/15 focused backend tests passed, including the real Grade 1 API path. Direct Dart static analysis of the changed Flutter feature and focused tests reported no issues. Four Flutter API tests and two parser/invariant tests were added, but the Flutter test runner produced no output and was stopped without claiming test execution. The full legacy backend suite was not used as the Phase 7 gate because it includes retired pre-Phase-7 endpoint expectations and sandbox-dependent temporary-write tests.
 - Scientific boundary: this is integration/reliability evidence only. It adds no predictive accuracy, field robustness, confidence calibration, forecast reliability, or economic evidence.
+
+### MOBILE-FOUR-COMPONENT-INTEGRATION-001
+
+Date: 2026-10-08.
+
+- Scope: integrated the separately supplied pest, leaf-disease, and berry-disease Flutter implementation into the current mobile application while retaining the current shell and authoritative Phase 7 grading/forecast feature.
+- Authority: imported behavior was used for the three outsourced domains and their shared scanner/AI runtime. No imported `grading_forecast` source was copied; the existing Phase 7 mobile source has zero diff.
+- Runtime: added native background TFLite/JPEG preparation, imported Gemini structured detection, Anthropic v7 Claude Haiku crop refinement, on-demand recommendations, scanner lifecycle recovery, and a direct-execution web fallback.
+- Localization: added persisted English/Sinhala/Tamil selection and localized the application shell plus pest/leaf/berry-disease presentation. Phase 7 scientific screens remain on their current wording; unused legacy grading strings are not referenced.
+- Assets: 37 overlapping imported pest/leaf/berry assets were byte-identical to the current copies. No model or reference asset was replaced.
+- Dependencies: added Flutter localization, `intl`, and `shared_preferences`; updated the Anthropic SDK contract and aligned the image package. Current Android SDK settings and theme were retained.
+- Verification: direct Dart analysis reported no issues; the focused Phase 7 backend/API/startup gate passed 15/15; the grading mobile source remained unchanged; important `.pt`, ONNX, and TFLite hashes were recorded in `MOBILE_COMPONENT_INTEGRATION_RESULTS.md`.
+- Unverified boundary: `flutter test` and the bounded debug APK build produced no output while the local Flutter/Dart/Gradle toolchain remained occupied and were stopped. Emulator/physical-device scanner, live provider, localization, and five-case Phase 7 regression checks remain manual acceptance work.
+- Security: build-time Gemini/Anthropic keys remain recoverable from a distributed client. This preserves the supplied architecture for controlled development but is not acceptable secret management for uncontrolled public distribution.
+- Scientific boundary: this is software integration evidence only; it adds no predictive accuracy, field robustness, model calibration, forecast reliability, or user-benefit evidence.

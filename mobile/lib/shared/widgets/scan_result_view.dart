@@ -3,6 +3,8 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
 import '../../core/services/yolo_detector.dart';
+import '../../l10n/app_localizations.dart';
+import '../class_labels.dart';
 import '../models/detection.dart';
 import 'detection_overlay.dart';
 
@@ -48,10 +50,7 @@ class ScanResultView extends StatelessWidget {
               children: [
                 Image.memory(photo, fit: BoxFit.contain),
                 CustomPaint(
-                  painter: DetectionOverlay(
-                    detections,
-                    result.frameSize,
-                  ),
+                  painter: DetectionOverlay(detections, result.frameSize),
                 ),
               ],
             ),
@@ -91,9 +90,11 @@ class _Summary extends StatelessWidget {
   Widget build(BuildContext context) {
     // Only offer recommendations when there's an actual problem. If everything
     // detected is a "healthy" class, hide the button — no AI call needed.
-    final hasProblem =
-        detections.any((d) => !d.className.toLowerCase().contains('healthy'));
+    final hasProblem = detections.any(
+      (d) => !d.className.toLowerCase().contains('healthy'),
+    );
     final cs = Theme.of(context).colorScheme;
+    final t = AppLocalizations.of(context);
     return Container(
       width: double.infinity,
       color: cs.surface,
@@ -109,9 +110,8 @@ class _Summary extends StatelessWidget {
                 Expanded(
                   child: Text(
                     detections.isEmpty
-                        ? 'Nothing detected'
-                        : '${detections.length} '
-                            '${detections.length == 1 ? "finding" : "findings"}',
+                        ? t.nothingDetected
+                        : t.findingsCount(detections.length),
                     style: TextStyle(
                       color: cs.onSurface,
                       fontSize: 18,
@@ -132,8 +132,7 @@ class _Summary extends StatelessWidget {
             const SizedBox(height: 12),
             if (detections.isEmpty)
               Text(
-                'No matches above the confidence threshold. Try moving closer, '
-                'steadying the shot, or improving the lighting.',
+                t.noMatchesHint,
                 style: TextStyle(color: cs.onSurfaceVariant, height: 1.4),
               )
             else
@@ -156,7 +155,7 @@ class _Summary extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
                 icon: const Icon(Icons.auto_awesome),
-                label: const Text('Show recommendations'),
+                label: Text(t.showRecommendations),
               ),
               const SizedBox(height: 10),
               OutlinedButton.icon(
@@ -167,21 +166,24 @@ class _Summary extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
                 icon: const Icon(Icons.photo_camera_outlined),
-                label: const Text('Take another photo'),
+                label: Text(t.takeAnotherPhoto),
               ),
             ] else ...[
               if (detections.isNotEmpty && !hasProblem)
-                const Padding(
-                  padding: EdgeInsets.only(bottom: 12),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
                   child: Row(
                     children: [
-                      Icon(Icons.check_circle,
-                          color: Color(0xFF2ECC71), size: 20),
-                      SizedBox(width: 8),
+                      const Icon(
+                        Icons.check_circle,
+                        color: Color(0xFF2ECC71),
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'Looks healthy — no treatment needed.',
-                          style: TextStyle(
+                          t.looksHealthy,
+                          style: const TextStyle(
                             color: Color(0xFF2ECC71),
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -194,7 +196,7 @@ class _Summary extends StatelessWidget {
               FilledButton.icon(
                 onPressed: onRetake,
                 icon: const Icon(Icons.photo_camera_outlined),
-                label: const Text('Take another photo'),
+                label: Text(t.takeAnotherPhoto),
               ),
             ],
           ],
@@ -220,18 +222,19 @@ class _LowConfidenceNotice extends StatelessWidget {
           color: const Color(0xFFF39C12).withValues(alpha: 0.5),
         ),
       ),
-      child: const Row(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.warning_amber_rounded,
-              color: Color(0xFFF39C12), size: 20),
-          SizedBox(width: 10),
+          const Icon(
+            Icons.warning_amber_rounded,
+            color: Color(0xFFF39C12),
+            size: 20,
+          ),
+          const SizedBox(width: 10),
           Expanded(
             child: Text(
-              'Low confidence. Nothing met the usual bar, so weaker matches '
-              'are shown instead — treat these as a hint, not a diagnosis, '
-              'and retake in better light if you can.',
-              style: TextStyle(
+              AppLocalizations.of(context).lowConfidenceNotice,
+              style: const TextStyle(
                 color: Color(0xFFF5C97B),
                 fontSize: 12,
                 height: 1.4,
@@ -265,7 +268,10 @@ class _DetectionRow extends StatelessWidget {
         const SizedBox(width: 12),
         Expanded(
           child: Text(
-            detection.className,
+            localizedClassName(
+              detection.className,
+              AppLocalizations.of(context),
+            ),
             style: TextStyle(color: cs.onSurface, fontSize: 15),
             overflow: TextOverflow.ellipsis,
           ),

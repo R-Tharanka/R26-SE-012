@@ -1,22 +1,18 @@
+import 'dart:async';
+
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
 
 import '../../core/services/yolo_detector.dart';
-import '../../features/recommendations/ai_berry_service.dart';
 import '../../features/recommendations/ai_detection_service.dart';
 import '../../features/recommendations/ai_errors.dart';
-import '../../features/recommendations/ai_leaf_service.dart';
-import '../../features/recommendations/ai_pest_service.dart';
 import '../../features/recommendations/analysis_ui.dart' show fadeScaleRoute;
-import '../../features/recommendations/berry_analysis.dart';
 import '../../features/recommendations/berry_analysis_screen.dart';
-import '../../features/recommendations/leaf_analysis.dart';
 import '../../features/recommendations/leaf_analysis_screen.dart';
-import '../../features/recommendations/pest_analysis.dart';
 import '../../features/recommendations/pest_analysis_screen.dart';
+import '../../l10n/app_localizations.dart';
 import '../models/scanner_model_config.dart';
 import 'scan_result_view.dart';
 
@@ -45,18 +41,41 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
   CameraController? _controller;
   final YoloDetector _detector = YoloDetector(); // kept as offline fallback
   final AiDetectionService _aiDetector = AiDetectionService();
-  final AiLeafService _leafService = AiLeafService();
-  final AiBerryService _berryService = AiBerryService();
-  final AiPestService _pestService = AiPestService();
-  // Recommendation fetched in the background the moment a problem is detected,
-  // so it's ready when the user taps "Show recommendations".
-  Future<LeafAnalysis>? _leafRec;
-  Future<BerryAnalysis>? _berryRec;
-  Future<PestAnalysis>? _pestRec;
   bool _disposed = false;
+
+  /// Shown once on entry so the "how to scan" sheet doesn't pop up repeatedly.
+  bool _instructionsShown = false;
 
   /// True from shutter press until the result is ready.
   bool _analyzing = false;
+
+  /// Rotating status line shown over the analysing overlay so a long cloud call
+  /// never reads as frozen. Cycled by [_statusTimer] while [_analyzing].
+  String _status = '';
+  Timer? _statusTimer;
+
+  static List<String> _statusMessages(AppLocalizations t) => [
+    t.statusThinking,
+    t.statusValidating,
+    t.statusInspecting,
+    t.statusMatching,
+    t.statusCloserLook,
+    t.statusAlmostThere,
+  ];
+
+  /// Localized display label for this scanner (used in the hint + result badge).
+  String _localizedLabel(AppLocalizations t) {
+    switch (widget.modelConfig.id) {
+      case 'berry':
+        return t.berryLabel;
+      case 'pest':
+        return t.pestLabel;
+      case 'plant':
+        return t.plantLabel;
+      default:
+        return t.leafLabel;
+    }
+  }
 
   /// Set once a photo has been captured and analysed.
   Uint8List? _photo;
@@ -82,6 +101,31 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     _bootstrap();
+    // Show the localized "how to scan" guide before the user starts. The camera
+    // keeps initialising behind the sheet, so it's ready when they tap start.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _showInstructions());
+  }
+
+  void _showInstructions({bool force = false}) {
+    if (_disposed || !mounted) return;
+    if (_instructionsShown && !force) return;
+    _instructionsShown = true;
+    final t = AppLocalizations.of(context);
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (ctx) => _InstructionsSheet(
+        title: t.scanInstructionsTitle,
+        steps: [
+          t.scanInstructionsStep1(_localizedLabel(t)),
+          t.scanInstructionsStep2,
+          t.scanInstructionsStep3,
+        ],
+        startLabel: t.scanInstructionsStart,
+        onStart: () => Navigator.of(ctx).pop(),
+      ),
+    );
   }
 
   Future<void> _bootstrap() async {
@@ -127,6 +171,7 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
     final controller = _controller;
     if (controller == null || _analyzing || !_detector.isReady) return;
     setState(() => _analyzing = true);
+    _startStatusCycle();
     try {
       final shot = await controller.takePicture();
       await _analyzeBytes(await shot.readAsBytes());
@@ -140,10 +185,14 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
   Future<void> _pickFromGallery() async {
     if (_analyzing || !_detector.isReady) return;
     setState(() => _analyzing = true);
+    _startStatusCycle();
     try {
-      final picked = await ImagePicker()
-          .pickImage(source: ImageSource.gallery, maxWidth: 2000);
+      final picked = await ImagePicker().pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 2000,
+      );
       if (picked == null) {
+        _stopStatusCycle();
         if (!_disposed) setState(() => _analyzing = false);
         return;
       }
@@ -160,11 +209,8 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
     // result if the AI call fails (offline / no key).
     DetectionResult? yolo;
     try {
-      final decoded = img.decodeImage(bytes);
-      // JPEG rotation lives in EXIF while the pixels stay in sensor orientation;
-      // baking makes them upright to match how Image.memory displays them.
-      if (decoded != null && _detector.isReady) {
-        yolo = await _detector.detect(img.bakeOrientation(decoded), 0);
+      if (_detector.isReady) {
+        yolo = await _detector.detectJpeg(bytes, 0);
       }
     } catch (_) {
       yolo = null;
@@ -179,60 +225,53 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
         widget.modelConfig,
         yoloPriors: yolo?.detections ?? const [],
       );
-    } catch (_) {
-      if (yolo == null) {
-        final decoded = img.decodeImage(bytes);
-        if (decoded == null) {
-          throw StateError('Could not read that image.');
-        }
-        yolo = await _detector.detect(img.bakeOrientation(decoded), 0);
+    } catch (e, st) {
+      // Surface why the AI path failed — otherwise a Gemini error silently
+      // falls back to YOLO and looks like a slow success.
+      logAiError('scanner-ai-${widget.modelConfig.id}', e, st);
+      yolo ??= await _detector.detectJpeg(bytes, 0);
+      if (yolo.frameSize == Size.zero) {
+        throw StateError('Could not read that image.');
       }
       result = yolo;
     }
+    _stopStatusCycle();
     if (_disposed) return;
     setState(() {
       _photo = bytes;
       _result = result;
       _analyzing = false;
     });
-    _prefetchRecommendation(bytes);
   }
 
-  /// Starts fetching the recommendation in the background as soon as a problem
-  /// is detected, so it's ready when the user opens the recommendation screen.
-  void _prefetchRecommendation(Uint8List bytes) {
-    final dets = _result?.detections ?? const [];
-    final hasProblem =
-        dets.any((d) => !d.className.toLowerCase().contains('healthy'));
-    if (!hasProblem) return;
-    Future<T> guard<T>(Future<T> f) {
-      f.then((_) {}, onError: (_) {}); // avoid unhandled-error reports if unused
-      return f;
-    }
+  /// Cycles [_status] through [_statusMessages] every couple of seconds so the
+  /// analysing overlay stays alive during a long cloud call.
+  void _startStatusCycle() {
+    final messages = _statusMessages(AppLocalizations.of(context));
+    var i = 0;
+    setState(() => _status = messages[0]);
+    _statusTimer?.cancel();
+    _statusTimer = Timer.periodic(const Duration(milliseconds: 2200), (_) {
+      i = (i + 1) % messages.length;
+      if (!_disposed) setState(() => _status = messages[i]);
+    });
+  }
 
-    switch (widget.modelConfig.id) {
-      case 'berry':
-        _berryRec = guard(_berryService.analyze(bytes));
-      case 'pest':
-        _pestRec = guard(_pestService.analyze(bytes));
-      case 'plant':
-        if (_routesToPest()) {
-          _pestRec = guard(_pestService.analyze(bytes));
-        } else {
-          _leafRec = guard(_leafService.analyze(bytes));
-        }
-      default:
-        _leafRec = guard(_leafService.analyze(bytes));
-    }
+  void _stopStatusCycle() {
+    _statusTimer?.cancel();
+    _statusTimer = null;
   }
 
   void _onAnalyzeError(Object e, [StackTrace? st]) {
+    _stopStatusCycle();
     logAiError('scanner-${widget.modelConfig.id}', e, st);
     if (_disposed) return;
     setState(() => _analyzing = false);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(friendlyAiMessage(e))),
+      SnackBar(
+        content: Text(friendlyAiMessage(e, AppLocalizations.of(context))),
+      ),
     );
   }
 
@@ -240,28 +279,31 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
     setState(() {
       _photo = null;
       _result = null;
-      _leafRec = null;
-      _berryRec = null;
-      _pestRec = null;
     });
+    // If the camera was torn down (e.g. the app was backgrounded while the
+    // result was showing), bring it back so the preview isn't stuck on a
+    // spinner.
+    if (_controller == null && !_disposed) _bootstrap();
   }
 
   /// Opens the AI recommendation screen for the captured [photo], choosing the
   /// flow from the active model — and for the combined 'plant' scanner, from
   /// what was actually detected (pest class → pest flow, else leaf).
   void _showRecommendations(Uint8List photo) {
+    // The recommendation is a separate API call made when this screen opens
+    // (on the button tap), not prefetched during the scan.
     final Widget page;
     switch (widget.modelConfig.id) {
       case 'berry':
-        page = BerryAnalysisScreen(imageBytes: photo, prefetch: _berryRec);
+        page = BerryAnalysisScreen(imageBytes: photo);
       case 'pest':
-        page = PestAnalysisScreen(imageBytes: photo, prefetch: _pestRec);
+        page = PestAnalysisScreen(imageBytes: photo);
       case 'plant':
         page = _routesToPest()
-            ? PestAnalysisScreen(imageBytes: photo, prefetch: _pestRec)
-            : LeafAnalysisScreen(imageBytes: photo, prefetch: _leafRec);
+            ? PestAnalysisScreen(imageBytes: photo)
+            : LeafAnalysisScreen(imageBytes: photo);
       default:
-        page = LeafAnalysisScreen(imageBytes: photo, prefetch: _leafRec);
+        page = LeafAnalysisScreen(imageBytes: photo);
     }
     Navigator.of(context).push(fadeScaleRoute<void>(page));
   }
@@ -270,10 +312,11 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
   /// detection — a pest class sends the user to the pest flow, otherwise leaf.
   bool _routesToPest() {
     final dets = _result?.detections ?? const [];
-    final problems = dets
-        .where((d) => !d.className.toLowerCase().contains('healthy'))
-        .toList()
-      ..sort((a, b) => b.score.compareTo(a.score));
+    final problems =
+        dets
+            .where((d) => !d.className.toLowerCase().contains('healthy'))
+            .toList()
+          ..sort((a, b) => b.score.compareTo(a.score));
     final top = problems.isNotEmpty
         ? problems.first
         : (dets.isNotEmpty ? dets.first : null);
@@ -282,19 +325,28 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    final controller = _controller;
-    if (controller == null || !controller.value.isInitialized) return;
-    if (state == AppLifecycleState.inactive) {
-      controller.dispose();
-      if (!_disposed) setState(() => _controller = null);
+    if (_disposed) return;
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused) {
+      // Backgrounded (e.g. the OS gallery picker opens) → free the camera.
+      final controller = _controller;
+      if (controller != null && controller.value.isInitialized) {
+        controller.dispose();
+        if (!_disposed) setState(() => _controller = null);
+      }
     } else if (state == AppLifecycleState.resumed) {
-      _bootstrap();
+      // Re-create the camera we tore down — but only when the preview is what's
+      // on screen (not while a captured result is showing, which needs no
+      // camera). The old guard returned here when _controller was null, which
+      // left the preview permanently dead after returning from the picker.
+      if (_controller == null && _photo == null) _bootstrap();
     }
   }
 
   @override
   void dispose() {
     _disposed = true;
+    _statusTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     SystemChrome.setPreferredOrientations(_defaultOrientations);
     _controller?.dispose();
@@ -310,16 +362,24 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         title: Text(widget.title),
+        actions: [
+          IconButton(
+            tooltip: AppLocalizations.of(context).howToScan,
+            icon: const Icon(Icons.help_outline),
+            onPressed: () => _showInstructions(force: true),
+          ),
+        ],
       ),
       body: _buildBody(),
     );
   }
 
   Widget _buildBody() {
+    final t = AppLocalizations.of(context);
     if (_cameraError != null) {
       return _message(
         icon: Icons.no_photography_outlined,
-        title: 'Camera unavailable',
+        title: t.cameraUnavailable,
         detail: _cameraError!,
       );
     }
@@ -327,9 +387,10 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
     if (_modelError != null) {
       return _message(
         icon: Icons.download_for_offline_outlined,
-        title: 'Couldn\'t load the "${widget.modelConfig.label}" model',
-        detail: '${widget.modelConfig.assetPath}\n\n$_modelError\n\n'
-            'The other scan types are unaffected.',
+        title: t.modelLoadFailed(_localizedLabel(t)),
+        detail:
+            '${widget.modelConfig.assetPath}\n\n$_modelError\n\n'
+            '${t.otherScanTypesUnaffected}',
       );
     }
 
@@ -339,7 +400,7 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
       return ScanResultView(
         photo: photo,
         result: result,
-        modelLabel: widget.modelConfig.label,
+        modelLabel: _localizedLabel(t),
         onRetake: _retake,
         onShowRecommendations: () => _showRecommendations(photo),
       );
@@ -347,7 +408,9 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
 
     final controller = _controller;
     if (controller == null || !controller.value.isInitialized) {
-      return const Center(child: CircularProgressIndicator(color: Colors.white));
+      return const Center(
+        child: CircularProgressIndicator(color: Colors.white),
+      );
     }
 
     return Stack(
@@ -358,14 +421,18 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
           Container(
             color: Colors.black54,
             alignment: Alignment.center,
-            child: const Column(
+            child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                CircularProgressIndicator(color: Colors.white),
-                SizedBox(height: 16),
-                Text(
-                  'Analysing…',
-                  style: TextStyle(color: Colors.white, fontSize: 16),
+                const CircularProgressIndicator(color: Colors.white),
+                const SizedBox(height: 16),
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  child: Text(
+                    _status,
+                    key: ValueKey(_status),
+                    style: const TextStyle(color: Colors.white, fontSize: 16),
+                  ),
                 ),
               ],
             ),
@@ -376,6 +443,7 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
   }
 
   Widget _buildShutterBar() {
+    final t = AppLocalizations.of(context);
     final ready = _detector.isReady && !_analyzing;
     return SafeArea(
       child: Align(
@@ -387,16 +455,15 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
             children: [
               Container(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 12, vertical: 6),
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.black54,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  ready
-                      ? 'Scan a ${widget.modelConfig.label.toLowerCase()} — '
-                          'tap the shutter or pick from gallery'
-                      : 'Preparing…',
+                  ready ? t.scanHint(_localizedLabel(t)) : t.preparing,
                   style: const TextStyle(color: Colors.white, fontSize: 13),
                   textAlign: TextAlign.center,
                 ),
@@ -455,10 +522,109 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
           Text(
             detail,
             style: const TextStyle(
-                color: Colors.white54, height: 1.4, fontSize: 13),
+              color: Colors.white54,
+              height: 1.4,
+              fontSize: 13,
+            ),
             textAlign: TextAlign.center,
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Localized "how to scan" guide shown in a bottom sheet before the user starts.
+class _InstructionsSheet extends StatelessWidget {
+  final String title;
+  final List<String> steps;
+  final String startLabel;
+  final VoidCallback onStart;
+
+  const _InstructionsSheet({
+    required this.title,
+    required this.steps,
+    required this.startLabel,
+    required this.onStart,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          20,
+          4,
+          20,
+          20 + MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.center_focus_strong, color: cs.primary),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            for (int i = 0; i < steps.length; i++)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 26,
+                      height: 26,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: cs.primary.withValues(alpha: 0.15),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Text(
+                        '${i + 1}',
+                        style: TextStyle(
+                          color: cs.primary,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Text(
+                        steps[i],
+                        style: TextStyle(
+                          color: cs.onSurface,
+                          height: 1.4,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            const SizedBox(height: 4),
+            FilledButton(
+              onPressed: onStart,
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+              child: Text(startLabel),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -482,8 +648,10 @@ class _CircleAction extends StatelessWidget {
         child: SizedBox(
           width: 52,
           height: 52,
-          child: Icon(icon,
-              color: onPressed == null ? Colors.white54 : Colors.white),
+          child: Icon(
+            icon,
+            color: onPressed == null ? Colors.white54 : Colors.white,
+          ),
         ),
       ),
     );

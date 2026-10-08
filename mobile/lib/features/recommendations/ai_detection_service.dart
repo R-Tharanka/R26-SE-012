@@ -1,8 +1,11 @@
 import 'dart:convert';
-import 'dart:ui';
+import 'dart:isolate';
+import 'dart:async';
 
+import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
 import 'package:flutter/services.dart';
-import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:google_generative_ai/google_generative_ai.dart' show Schema;
+import 'package:http/http.dart' as http;
 import 'package:image/image.dart' as img;
 
 import '../../core/services/yolo_detector.dart' show DetectionResult;
@@ -11,6 +14,9 @@ import '../../shared/models/scanner_model_config.dart';
 import 'ai_config.dart';
 import 'ai_leaf_service.dart' show LeafAnalysisException;
 import 'claude_classifier_service.dart';
+
+Future<T> _runOffThread<T>(FutureOr<T> Function() work) =>
+    kIsWeb ? Future<T>.sync(work) : Isolate.run(work);
 
 /// Runs multi-object detection with the AI: given a captured photo it finds
 /// every object (e.g. each leaf), draws a box, and classifies it — returning a
@@ -81,6 +87,20 @@ class AiDetectionService {
   // Cache of resized reference exemplars per domain, loaded once.
   static final Map<String, List<_Exemplar>> _cache = {};
 
+  // One reused HTTP client (keeps the TLS connection warm across scans).
+  static final http.Client _http = http.Client();
+
+  // "Minimize thinking" generationConfig fragments, tried in order; the first the
+  // model accepts is remembered for the session. Different Gemini generations use
+  // different fields (3.x: thinkingLevel, 2.5: thinkingBudget), and the last entry
+  // (null) is the fallback of letting it think if neither is accepted.
+  static const List<Map<String, Object?>?> _thinkingCandidates = [
+    {'thinkingLevel': 'low'},
+    {'thinkingBudget': 0},
+    null,
+  ];
+  static int _thinkingIdx = 0;
+
   /// Detects and classifies every object in [jpegBytes] for [config].
   ///
   /// [yoloPriors] are detections from the on-device trained model (normalized to
@@ -95,78 +115,73 @@ class AiDetectionService {
       throw LeafAnalysisException('No AI key configured.');
     }
 
-    final decoded = img.decodeImage(jpegBytes);
-    if (decoded == null) {
-      throw LeafAnalysisException('Could not read the captured photo.');
-    }
-    final upright = img.bakeOrientation(decoded);
-    final frameSize = Size(upright.width.toDouble(), upright.height.toDouble());
-    final shot = _resizedJpeg(upright, 1024);
+    // Decode + orient + downscale off the UI isolate: on a multi-MP photo this
+    // is heavy enough to stall the analysing spinner. Only the small shot bytes
+    // and the frame dimensions come back — never the full-size image, which would
+    // be an expensive copy across the isolate boundary.
+    final (int frameW, int frameH, Uint8List shot) = await _runOffThread(() {
+      final decoded = img.decodeImage(jpegBytes);
+      if (decoded == null) {
+        throw LeafAnalysisException('Could not read the captured photo.');
+      }
+      final up = img.bakeOrientation(decoded);
+      return (up.width, up.height, _resizedJpeg(up, 1024));
+    });
+    final frameSize = Size(frameW.toDouble(), frameH.toDouble());
 
     final isPlant = config.id == 'plant';
-    final classNames = isPlant ? [...leafClasses, ...pestClasses] : config.classNames;
-    final objectNoun = isPlant ? 'pepper leaf or pest' : config.label.toLowerCase();
+    final classNames = isPlant
+        ? [...leafClasses, ...pestClasses]
+        : config.classNames;
+    final objectNoun = isPlant
+        ? 'pepper leaf or pest'
+        : config.label.toLowerCase();
 
     final exemplars = await _exemplars(config.id);
 
-    final model = GenerativeModel(
-      model: AiConfig.model,
-      apiKey: AiConfig.apiKey,
-      systemInstruction: Content.system(_systemPrompt),
-      generationConfig: GenerationConfig(
-        temperature: 0.1,
-        responseMimeType: 'application/json',
-        responseSchema: _schema(classNames),
-      ),
-    );
+    // REST parts: text + inline images. We call the REST endpoint directly (not
+    // the google_generative_ai SDK) for two reasons the SDK can't give us: a
+    // request timeout, and turning OFF Gemini's default "thinking" — the reason a
+    // single detection call was taking 30-60s.
+    final instruction = isPlant
+        ? 'The photo below shows a black pepper plant. First decide, per object, '
+              'whether it is a LEAF (disease) or a PEST, then give each object a '
+              'bounding box (normalized 0-1000 as ymin,xmin,ymax,xmax) and the '
+              'single best-matching class from: ${classNames.join(", ")}.'
+        : 'Now find and classify EVERY $objectNoun object in the photo below. '
+              'Return one detection per object with a bounding box (normalized '
+              '0-1000 as ymin,xmin,ymax,xmax) and the best-matching class from: '
+              '${classNames.join(", ")}.';
 
-    final parts = <Part>[
-      TextPart('Reference examples of each class:'),
+    final parts = <Map<String, Object?>>[
+      {'text': 'Reference examples of each class:'},
       for (final e in exemplars) ...[
-        TextPart('Example — ${e.label}:'),
-        DataPart('image/jpeg', e.bytes),
+        {'text': 'Example — ${e.label}:'},
+        {
+          'inline_data': {
+            'mime_type': 'image/jpeg',
+            'data': base64Encode(e.bytes),
+          },
+        },
       ],
-      TextPart(
-        isPlant
-            ? 'The photo below shows a black pepper plant. First decide, per '
-                'object, whether it is a LEAF (disease) or a PEST, then give each '
-                'object a bounding box (normalized 0-1000 as ymin,xmin,ymax,xmax) '
-                'and the single best-matching class from: ${classNames.join(", ")}.'
-            : 'Now find and classify EVERY $objectNoun object in the photo below. '
-                'Return one detection per object with a bounding box (normalized '
-                '0-1000 as ymin,xmin,ymax,xmax) and the best-matching class from: '
-                '${classNames.join(", ")}.',
-      ),
-      DataPart('image/jpeg', shot),
+      {'text': instruction},
+      {
+        'inline_data': {'mime_type': 'image/jpeg', 'data': base64Encode(shot)},
+      },
     ];
 
     final sw = Stopwatch()..start();
-    final GenerateContentResponse res;
-    try {
-      res = await model.generateContent([Content.multi(parts)]);
-    } on Exception catch (e) {
-      throw LeafAnalysisException('AI request failed: $e');
-    }
+    final json = await _callGemini(classNames, parts);
     sw.stop();
+    debugPrint(
+      '[ai-detect] gemini ${sw.elapsedMilliseconds}ms '
+      '(${exemplars.length} exemplars)',
+    );
 
-    final text = res.text?.trim();
-    if (text == null || text.isEmpty) {
-      throw LeafAnalysisException('AI returned no result.');
-    }
-
-    final Map<String, dynamic> json;
-    try {
-      json = jsonDecode(text) as Map<String, dynamic>;
-    } catch (_) {
-      throw LeafAnalysisException('Could not parse AI response.');
-    }
-
-    // Out-of-distribution gate: if the photo isn't a pepper plant of this type
-    // (a dog, another plant, an object…), block it — return nothing rather than
-    // force a bogus classification.
-    if (json['is_relevant'] == false) {
-      return DetectionResult(const [], frameSize, sw.elapsedMilliseconds);
-    }
+    // Out-of-distribution gate: Gemini can be over-eager, flagging real pepper
+    // photos that are just outside the training set. So we don't hard-drop on
+    // is_relevant alone — we parse what it found first and decide below.
+    final notRelevant = json['is_relevant'] == false;
 
     final list = (json['detections'] as List?) ?? const [];
     final dets = <Detection>[];
@@ -180,30 +195,44 @@ class AiDetectionService {
           ? (_plantColors[resolvedLabel] ?? const Color(0xFFE67E22))
           : config.colorFor(classId);
       double n(Object? v) =>
-          (v is num ? v.toDouble() : double.tryParse('${v ?? ''}') ?? 0) / 1000.0;
-      final l = n(raw['xmin']).clamp(0.0, 1.0).toDouble();
-      final t = n(raw['ymin']).clamp(0.0, 1.0).toDouble();
-      final r = n(raw['xmax']).clamp(0.0, 1.0).toDouble();
-      final b = n(raw['ymax']).clamp(0.0, 1.0).toDouble();
+          (v is num ? v.toDouble() : double.tryParse('${v ?? ''}') ?? 0) /
+          1000.0;
+      final l = n(raw['xmin']).clamp(0.0, 1.0);
+      final t = n(raw['ymin']).clamp(0.0, 1.0);
+      final r = n(raw['xmax']).clamp(0.0, 1.0);
+      final b = n(raw['ymax']).clamp(0.0, 1.0);
       if (r <= l || b <= t) continue;
       final conf = raw['confidence'];
-      dets.add(Detection(
-        classId: classId,
-        className: resolvedLabel,
-        score: conf is num ? conf.toDouble() : 0.9,
-        rect: Rect.fromLTRB(l, t, r, b),
-        color: color,
-      ));
+      dets.add(
+        Detection(
+          classId: classId,
+          className: resolvedLabel,
+          score: conf is num ? conf.toDouble() : 0.9,
+          rect: Rect.fromLTRB(l, t, r, b),
+          color: color,
+        ),
+      );
+    }
+
+    // If Gemini flagged the photo as not-pepper AND found nothing, don't just
+    // show an empty screen — fall back to the on-device model's detections
+    // (flagged low-confidence) so out-of-distribution images still predict.
+    if (notRelevant && dets.isEmpty) {
+      return DetectionResult(
+        yoloPriors,
+        frameSize,
+        sw.elapsedMilliseconds,
+        lowConfidence: yoloPriors.isNotEmpty,
+      );
     }
 
     // Second stage: re-classify each detected crop with Claude for higher
-    // fine-grained accuracy. Gemini keeps ownership of the boxes + OOD gate;
-    // Claude only refines the labels. Any failure → keep Gemini's labels.
+    // fine-grained accuracy. Any failure → keep Gemini's labels.
     var result = dets;
     if (AiConfig.hasClaudeKey && dets.isNotEmpty) {
       try {
         result = await _refineWithClaude(
-          upright,
+          jpegBytes,
           dets,
           config,
           isPlant,
@@ -219,9 +248,97 @@ class AiDetectionService {
     return DetectionResult(result, frameSize, sw.elapsedMilliseconds);
   }
 
+  /// POSTs one detection request to the Gemini REST endpoint, with a hard timeout
+  /// and thinking minimized. Returns the parsed JSON object. Throws
+  /// [LeafAnalysisException] on any failure (the caller then falls back to YOLO).
+  Future<Map<String, dynamic>> _callGemini(
+    List<String> classNames,
+    List<Map<String, Object?>> parts,
+  ) async {
+    final uri = Uri.parse(
+      'https://generativelanguage.googleapis.com/v1beta/models/'
+      '${AiConfig.model}:generateContent',
+    );
+    final body = <String, Object?>{
+      'systemInstruction': {
+        'parts': [
+          {'text': _systemPrompt},
+        ],
+      },
+      'contents': [
+        {'role': 'user', 'parts': parts},
+      ],
+      'generationConfig': <String, Object?>{
+        'temperature': 0.1,
+        'maxOutputTokens': 2048,
+        'responseMimeType': 'application/json',
+        'responseSchema': _schema(classNames).toJson(),
+      },
+    };
+
+    while (true) {
+      final gc = body['generationConfig'] as Map<String, Object?>;
+      final thinking = _thinkingCandidates[_thinkingIdx];
+      if (thinking == null) {
+        gc.remove('thinkingConfig');
+      } else {
+        gc['thinkingConfig'] = thinking;
+      }
+
+      final http.Response res;
+      try {
+        res = await _http
+            .post(
+              uri,
+              headers: {
+                'x-goog-api-key': AiConfig.apiKey,
+                'Content-Type': 'application/json',
+              },
+              body: jsonEncode(body),
+            )
+            .timeout(const Duration(seconds: 25));
+      } on Exception catch (e) {
+        throw LeafAnalysisException('Gemini request failed: $e');
+      }
+
+      // If this Gemini generation rejects the thinking field, advance to the next
+      // candidate and retry (once per candidate, remembered for the session).
+      if (res.statusCode == 400 &&
+          _thinkingIdx < _thinkingCandidates.length - 1 &&
+          res.body.toLowerCase().contains('thinking')) {
+        _thinkingIdx++;
+        continue;
+      }
+      if (res.statusCode != 200) {
+        throw LeafAnalysisException('Gemini ${res.statusCode}: ${res.body}');
+      }
+
+      final decoded = jsonDecode(utf8.decode(res.bodyBytes));
+      final candidates =
+          (decoded is Map ? decoded['candidates'] : null) as List?;
+      final first = (candidates != null && candidates.isNotEmpty)
+          ? candidates.first
+          : null;
+      final content = first is Map ? first['content'] : null;
+      final cParts = content is Map ? content['parts'] : null;
+      final firstPart = (cParts is List && cParts.isNotEmpty)
+          ? cParts.first
+          : null;
+      final text = firstPart is Map ? firstPart['text'] as String? : null;
+      if (text == null || text.trim().isEmpty) {
+        throw LeafAnalysisException('Gemini returned no result.');
+      }
+      try {
+        return jsonDecode(text.trim()) as Map<String, dynamic>;
+      } catch (_) {
+        throw LeafAnalysisException('Could not parse Gemini response.');
+      }
+    }
+  }
+
   // ---- Claude crop refinement ----
   Future<List<Detection>> _refineWithClaude(
-    img.Image upright,
+    Uint8List jpegBytes,
     List<Detection> dets,
     ScannerModelConfig config,
     bool isPlant,
@@ -237,13 +354,34 @@ class AiDetectionService {
     final chosen = ordered.take(maxCrops).toList();
     final indexOf = {for (var i = 0; i < dets.length; i++) dets[i]: i};
 
-    final crops = <ClaudeCrop>[];
+    // Pick which boxes to crop and compute their priors on the main isolate
+    // (cheap); do all the decode + crop + JPEG encoding off-thread.
+    final selected = <(int, Rect)>[];
+    final priors = <int, String>{};
     for (final d in chosen) {
       final id = indexOf[d]! + 1; // 1-based id shared with the prompt
-      final crop = _cropJpeg(upright, d.rect, pad: 0.06, maxDim: 448);
-      if (crop != null) {
-        crops.add(ClaudeCrop(id, crop, prior: _priorFor(d.rect, yoloPriors)));
+      selected.add((id, d.rect));
+      priors[id] = _priorFor(d.rect, yoloPriors);
+    }
+
+    final prepped = await _runOffThread(() {
+      final decoded = img.decodeImage(jpegBytes);
+      if (decoded == null) return null;
+      final up = img.bakeOrientation(decoded);
+      final cropsOut = <int, Uint8List>{};
+      for (final (id, rect) in selected) {
+        final c = _cropJpeg(up, rect, pad: 0.06, maxDim: 448);
+        if (c != null) cropsOut[id] = c;
       }
+      return (_resizedJpeg(up, 1024), cropsOut);
+    });
+    if (prepped == null) return dets;
+    final (Uint8List overview, Map<int, Uint8List> cropBytes) = prepped;
+
+    final crops = <ClaudeCrop>[];
+    for (final (id, _) in selected) {
+      final cb = cropBytes[id];
+      if (cb != null) crops.add(ClaudeCrop(id, cb, prior: priors[id] ?? ''));
     }
     if (crops.isEmpty) return dets;
 
@@ -261,11 +399,11 @@ class AiDetectionService {
           ];
 
     final results = await ClaudeClassifierService().classify(
-      overviewJpeg: _resizedJpeg(upright, 1024),
+      overviewJpeg: overview,
       crops: crops,
       exemplars: [
         for (final e in exemplars)
-          ClaudeExemplar(e.label, e.bytes, note: _captions[e.label] ?? '')
+          ClaudeExemplar(e.label, e.bytes, note: _captions[e.label] ?? ''),
       ],
       aspects: aspects,
       objectNoun: isPlant ? 'pepper leaf' : config.label.toLowerCase(),
@@ -293,8 +431,8 @@ class AiDetectionService {
           added = true;
         }
         if (!added) {
-          final bothUncertain = (disease?.isUncertain ?? true) &&
-              (pest?.isUncertain ?? true);
+          final bothUncertain =
+              (disease?.isUncertain ?? true) && (pest?.isUncertain ?? true);
           if (bothUncertain) continue; // can't tell → drop rather than mislabel
           out.add(_plantDet(det, 'Healthy leaves', 0.9)); // no problem found
         }
@@ -307,13 +445,15 @@ class AiDetectionService {
         if (v.isUncertain) continue;
         int classId = classNames.indexOf(v.label);
         if (classId < 0) classId = det.classId;
-        out.add(Detection(
-          classId: classId,
-          className: v.label,
-          score: v.confidence,
-          rect: det.rect,
-          color: config.colorFor(classId),
-        ));
+        out.add(
+          Detection(
+            classId: classId,
+            className: v.label,
+            score: v.confidence,
+            rect: det.rect,
+            color: config.colorFor(classId),
+          ),
+        );
       }
     }
     return out;
@@ -383,8 +523,12 @@ class AiDetectionService {
 
   // Crops [rect] (normalized 0..1) from [src] with a little padding and returns
   // a resized JPEG, or null if the region is degenerate.
-  static Uint8List? _cropJpeg(img.Image src, Rect rect,
-      {double pad = 0.06, int maxDim = 448}) {
+  static Uint8List? _cropJpeg(
+    img.Image src,
+    Rect rect, {
+    double pad = 0.06,
+    int maxDim = 448,
+  }) {
     final w = src.width, h = src.height;
     final l = ((rect.left - pad) * w).clamp(0, w - 1).round();
     final t = ((rect.top - pad) * h).clamp(0, h - 1).round();
@@ -408,21 +552,34 @@ class AiDetectionService {
     // by the Claude classifier, so the extra images are only paid for once.
     const perClass = 6;
 
-    final out = <_Exemplar>[];
+    // Load the raw asset bytes on the main isolate (rootBundle needs it, and the
+    // IO is light), but decode + bake + re-encode every image — the heavy part,
+    // up to 48 images for the plant domain — off-thread. Doing this inline is the
+    // main cause of the first-scan freeze.
+    final raw = <(String, Uint8List)>[];
     for (final entry in spec) {
       final label = entry[0];
       final folder = entry[1];
-      final matches = assets.where((a) => a.startsWith(folder) && _isImage(a))
-          .toList()
-        ..sort();
+      final matches =
+          assets.where((a) => a.startsWith(folder) && _isImage(a)).toList()
+            ..sort();
       for (final match in matches.take(perClass)) {
         final data = await rootBundle.load(match);
-        final decoded = img.decodeImage(data.buffer.asUint8List());
-        if (decoded == null) continue;
-        out.add(
-            _Exemplar(label, _resizedJpeg(img.bakeOrientation(decoded), 384)));
+        raw.add((label, data.buffer.asUint8List()));
       }
     }
+
+    final out = await _runOffThread(() {
+      final list = <_Exemplar>[];
+      for (final (label, bytes) in raw) {
+        final decoded = img.decodeImage(bytes);
+        if (decoded == null) continue;
+        list.add(
+          _Exemplar(label, _resizedJpeg(img.bakeOrientation(decoded), 384)),
+        );
+      }
+      return list;
+    });
     _cache[domainId] = out;
     return out;
   }
@@ -435,9 +592,11 @@ class AiDetectionService {
   static Uint8List _resizedJpeg(img.Image src, int maxDim) {
     final longest = src.width > src.height ? src.width : src.height;
     final scaled = longest > maxDim
-        ? img.copyResize(src,
+        ? img.copyResize(
+            src,
             width: src.width >= src.height ? maxDim : null,
-            height: src.height > src.width ? maxDim : null)
+            height: src.height > src.width ? maxDim : null,
+          )
         : src;
     return Uint8List.fromList(img.encodeJpg(scaled, quality: 85));
   }
@@ -561,48 +720,55 @@ judge by the damage.''';
   // Short distinguishing notes attached to each reference exemplar image.
   static const Map<String, String> _captions = {
     'Leaf Blight': 'papery brown lesion centre + yellow halo on a firm leaf',
-    'Quick Wilt': 'water-soaked dark patch, fringed margin + whole-leaf '
+    'Quick Wilt':
+        'water-soaked dark patch, fringed margin + whole-leaf '
         'yellowing/wilting',
-    'Little Leaf': 'small, crinkled/contracted, cupped blade, abnormally small '
+    'Little Leaf':
+        'small, crinkled/contracted, cupped blade, abnormally small '
         'vs neighbouring leaves',
-    'Healthy leaves': 'flat, uniform green, no lesions, full size, normal shape',
-    'Diconocoris distanti': 'lace bug; brown irregular spots/discoloration on '
+    'Healthy leaves':
+        'flat, uniform green, no lesions, full size, normal shape',
+    'Diconocoris distanti':
+        'lace bug; brown irregular spots/discoloration on '
         'leaf & spike',
     'Gynaikothrips karny': 'gall thrips; leaf curl/fold, silvery scarring',
-    'Pterolopha annulata': 'longhorn beetle; chewed holes / notched leaf margins',
+    'Pterolopha annulata':
+        'longhorn beetle; chewed holes / notched leaf margins',
     'healthy': 'no pest and no feeding damage',
-    'lace_bug_damage': 'uneven/gappy berry set, malformed or spotted berries — '
+    'lace_bug_damage':
+        'uneven/gappy berry set, malformed or spotted berries — '
         'incl. GREEN spikes; not just black/dried',
-    'healthy_berry': 'densely, evenly packed plump uniform berries, no gaps or '
+    'healthy_berry':
+        'densely, evenly packed plump uniform berries, no gaps or '
         'deformity',
   };
 
   static Schema _schema(List<String> classNames) => Schema.object(
-        properties: {
-          'is_relevant': Schema.boolean(),
-          'detections': Schema.array(
-            items: Schema.object(
-              properties: {
-                'label': Schema.enumString(enumValues: classNames),
-                'confidence': Schema.number(),
-                'ymin': Schema.number(),
-                'xmin': Schema.number(),
-                'ymax': Schema.number(),
-                'xmax': Schema.number(),
-              },
-              requiredProperties: [
-                'label',
-                'confidence',
-                'ymin',
-                'xmin',
-                'ymax',
-                'xmax',
-              ],
-            ),
-          ),
-        },
-        requiredProperties: ['is_relevant', 'detections'],
-      );
+    properties: {
+      'is_relevant': Schema.boolean(),
+      'detections': Schema.array(
+        items: Schema.object(
+          properties: {
+            'label': Schema.enumString(enumValues: classNames),
+            'confidence': Schema.number(),
+            'ymin': Schema.number(),
+            'xmin': Schema.number(),
+            'ymax': Schema.number(),
+            'xmax': Schema.number(),
+          },
+          requiredProperties: [
+            'label',
+            'confidence',
+            'ymin',
+            'xmin',
+            'ymax',
+            'xmax',
+          ],
+        ),
+      ),
+    },
+    requiredProperties: ['is_relevant', 'detections'],
+  );
 }
 
 class _Exemplar {

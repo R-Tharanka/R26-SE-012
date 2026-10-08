@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:google_generative_ai/google_generative_ai.dart';
 
+import '../../core/locale/app_locale.dart';
 import 'ai_config.dart';
 import 'ai_leaf_service.dart' show LeafAnalysisException;
 import 'pest_analysis.dart';
@@ -44,7 +45,11 @@ class AiPestService {
     try {
       res = await _model.generateContent([
         Content.multi([
-          TextPart(_taskPrompt),
+          TextPart(
+            '$_taskPrompt\n\nWrite summary and affected_regions in '
+            '${currentPromptLanguage()}. Keep pest_type exactly as the allowed '
+            'English values.',
+          ),
           DataPart('image/jpeg', jpegBytes),
         ]),
       ]);
@@ -92,9 +97,12 @@ Rules:
   static final Schema _schema = Schema.object(
     properties: {
       'is_pepper_plant': Schema.boolean(
-        description: 'True only if the image clearly shows a pepper plant part.',
+        description:
+            'True only if the image clearly shows a pepper plant part.',
       ),
-      'healthy': Schema.boolean(description: 'True if no pest/damage is present.'),
+      'healthy': Schema.boolean(
+        description: 'True if no pest/damage is present.',
+      ),
       'pest_type': Schema.enumString(
         enumValues: _pestVocab,
         description: 'Best-matching pest label from the allowed list.',
@@ -104,7 +112,8 @@ Rules:
         description: 'Which plant part the photo shows.',
       ),
       'pest_count': Schema.integer(
-        description: 'Number of pest individuals actually visible (0 if only damage).',
+        description:
+            'Number of pest individuals actually visible (0 if only damage).',
       ),
       'severity_percentage': Schema.number(
         description: 'Infestation severity including damage, 0-100.',
@@ -113,7 +122,9 @@ Rules:
       'affected_regions': Schema.string(
         description: 'Short description of the pest/damage seen.',
       ),
-      'summary': Schema.string(description: 'One plain sentence for the farmer.'),
+      'summary': Schema.string(
+        description: 'One plain sentence for the farmer.',
+      ),
     },
     requiredProperties: [
       'is_pepper_plant',

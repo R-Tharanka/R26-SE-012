@@ -4,10 +4,9 @@ This is the operational guide for the Phase 7 integrated pipeline:
 
 ```text
 Flutter web / Android emulator / Android device
-    -> FastAPI Phase 7 endpoint
-    -> frozen ONNX grading runtime
-    -> frozen Phase 5 forecast records
-    -> authoritative Phase 6 decision engine
+    +-> Berry grading/price -> FastAPI Phase 7 -> frozen ONNX + Phase 5/6
+    +-> Pest/leaf/berry disease -> on-device TFLite fallback and optional
+        Gemini/Claude analysis
 ```
 
 It is intentionally separate from the older `project_commands_guide.md`, which
@@ -20,10 +19,12 @@ This guide starts the local demonstration system. It does not train a model,
 change frozen thresholds, create a live price forecast, or validate field
 robustness.
 
-The selected mobile architecture is backend inference. The Android and web
-clients upload an image to the local Phase 7 backend; neither claims on-device
-ONNX or TFLite execution. The backend uses the frozen
-`v3_phase3_followup/best.onnx` artifact.
+The selected Phase 7 grading architecture is backend inference. Android and web
+clients upload grading images to the Phase 7 backend; neither claims on-device
+V3 ONNX or V3 TFLite execution. The backend uses the frozen
+`v3_phase3_followup/best.onnx` artifact. The separately integrated pest, leaf,
+and berry-disease components retain their own on-device TFLite fallback and
+optional Gemini/Claude mobile flow; those models are not the Phase 7 grader.
 
 The `market` section is frozen research evidence, not a live market price,
 buyer offer, trading signal, or financial recommendation.
@@ -41,6 +42,48 @@ Android SDK: C:\Users\thara\AppData\Local\Android\Sdk
 
 The current Flutter app package is `com.example.mobile`; replace it with a
 unique package name before distributing any APK outside local testing.
+
+### Combined mobile build-time configuration
+
+The integrated mobile app reads three independent build-time values:
+
+```text
+PEPPER_API_BASE_URL=https://YOUR_PHASE7_BACKEND
+GEMINI_API_KEY=YOUR_DEVELOPMENT_KEY
+ANTHROPIC_API_KEY=YOUR_DEVELOPMENT_KEY
+```
+
+Store development values in the ignored `mobile/.env` file. Never commit it.
+The grading backend works without the two cloud-provider keys. Pest, leaf, and
+berry-disease scanning then uses the shipped TFLite fallback, while cloud
+recommendation/refinement features remain unavailable.
+
+If no `.env` file is being used, omit `--dart-define-from-file=.env` from the
+commands below; keep the explicit `PEPPER_API_BASE_URL` argument for grading.
+
+For an emulator using a local backend, combine the ignored key file with an
+explicit emulator URL override:
+
+```powershell
+& "C:\test-by-me\flutter\flutter\bin\flutter.bat" run `
+  -d emulator-5554 `
+  --dart-define-from-file=.env `
+  --dart-define=PEPPER_API_BASE_URL=http://10.0.2.2:8000
+```
+
+For the hosted backend, use HTTPS:
+
+```powershell
+& "C:\test-by-me\flutter\flutter\bin\flutter.bat" run `
+  -d emulator-5554 `
+  --dart-define-from-file=.env `
+  --dart-define=PEPPER_API_BASE_URL=https://r26-se-012-production-7883.up.railway.app
+```
+
+Build-time mobile keys are recoverable from a distributed APK or browser
+bundle. Use restricted development keys only. Do not publish an APK containing
+unrestricted Gemini or Anthropic credentials; a backend proxy and per-user
+authorization are required before uncontrolled distribution.
 
 ## 3. Start and verify the backend
 
@@ -111,7 +154,9 @@ With the backend from section 3 still running, open terminal 3:
 ```powershell
 cd "D:\work\Year - 4\pepper\project\multimodal-pepper-ai-decision-support\mobile"
 & "C:\test-by-me\flutter\flutter\bin\flutter.bat" pub get
-& "C:\test-by-me\flutter\flutter\bin\flutter.bat" run -d chrome --dart-define=PEPPER_API_BASE_URL=http://127.0.0.1:8000
+& "C:\test-by-me\flutter\flutter\bin\flutter.bat" run -d chrome `
+  --dart-define-from-file=.env `
+  --dart-define=PEPPER_API_BASE_URL=http://127.0.0.1:8000
 ```
 
 Flutter opens a Chrome window. In the app, choose the Berry Grading and Export
@@ -126,12 +171,18 @@ same browser and check the backend terminal for the request/error.
 Stop the web run with `q` or `Ctrl+C`. During development, `r` performs Flutter
 hot reload.
 
+The browser check proves the Phase 7 grading path only. Direct Gemini/Claude
+browser execution is not an acceptance claim: browser CORS/provider support can
+differ, and embedding cloud keys in a public web bundle exposes them.
+
 ### Optional web release build
 
 This produces static web files but does not host them:
 
 ```powershell
-& "C:\test-by-me\flutter\flutter\bin\flutter.bat" build web --release --dart-define=PEPPER_API_BASE_URL=http://127.0.0.1:8000
+& "C:\test-by-me\flutter\flutter\bin\flutter.bat" build web --release `
+  --dart-define-from-file=.env `
+  --dart-define=PEPPER_API_BASE_URL=http://127.0.0.1:8000
 ```
 
 Output: `mobile/build/web/`.
@@ -157,6 +208,7 @@ Run Flutter from `mobile/`:
 ```powershell
 & "C:\test-by-me\flutter\flutter\bin\flutter.bat" run `
   -d emulator-5554 `
+  --dart-define-from-file=.env `
   --dart-define=PEPPER_API_BASE_URL=http://10.0.2.2:8000
 ```
 
@@ -218,6 +270,7 @@ Launch Flutter with the device ID reported by `flutter devices`:
 cd "D:\work\Year - 4\pepper\project\multimodal-pepper-ai-decision-support\mobile"
 & "C:\test-by-me\flutter\flutter\bin\flutter.bat" run `
   -d YOUR_DEVICE_ID `
+  --dart-define-from-file=.env `
   --dart-define=PEPPER_API_BASE_URL=http://127.0.0.1:8000
 ```
 
@@ -237,6 +290,7 @@ Use the IPv4 address of the active Wi-Fi adapter, for example `192.168.1.50`:
 ```powershell
 & "C:\test-by-me\flutter\flutter\bin\flutter.bat" run `
   -d YOUR_DEVICE_ID `
+  --dart-define-from-file=.env `
   --dart-define=PEPPER_API_BASE_URL=http://192.168.1.50:8000
 ```
 
@@ -260,6 +314,7 @@ Build it from `mobile/`:
 ```powershell
 cd "D:\work\Year - 4\pepper\project\multimodal-pepper-ai-decision-support\mobile"
 & "C:\test-by-me\flutter\flutter\bin\flutter.bat" build apk --release `
+  --dart-define-from-file=.env `
   --dart-define=PEPPER_API_BASE_URL=http://10.0.2.2:8000
 ```
 
@@ -299,6 +354,7 @@ Before distributing an APK, complete these non-research Android release tasks:
 
 ```powershell
 & "C:\test-by-me\flutter\flutter\bin\flutter.bat" build appbundle --release `
+  --dart-define-from-file=.env `
   --dart-define=PEPPER_API_BASE_URL=https://YOUR_BACKEND_HOST
 ```
 
