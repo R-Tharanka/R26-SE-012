@@ -170,13 +170,13 @@ class _Dashboard extends StatelessWidget {
     return SafeArea(
       top: false,
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(kPagePadding, 12, kPagePadding, 24),
+        padding: const EdgeInsets.fromLTRB(kPagePadding, 20, kPagePadding, 24),
         children: [
           FarmerSectionHeader(
             title: t.homeWelcomeTitle,
             subtitle: t.homeWelcomeSubtitle,
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 28),
           LayoutBuilder(
             builder: (context, constraints) {
               final textScale = MediaQuery.textScalerOf(context).scale(1);
