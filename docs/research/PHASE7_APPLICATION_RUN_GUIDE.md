@@ -104,22 +104,9 @@ evaluation partitions.
 Decision wording can vary with the frozen engine response. The invariant is
 that rejection and uncertainty states must not enter price routing.
 
-## 5. Browser status and direct browser testing
+## 5. Run and test in a browser
 
-The current full Flutter application **does not compile for web**. Its legacy
-scanner imports `tflite_flutter`, which depends on native `dart:ffi`; browser
-JavaScript runtimes do not provide `dart:ffi`. This is unrelated to the Phase 7
-backend ONNX workflow, but the import is part of the same Flutter application,
-so it blocks the web compiler before the Phase 7 screen can open.
-
-The observed failure is:
-
-```text
-Error: Dart library 'dart:ffi' is not available on this platform.
-Failed to compile application.
-```
-
-Therefore, do not currently use this command as a successful test path:
+With the backend from section 3 still running, open terminal 3:
 
 ```powershell
 cd "D:\work\Year - 4\pepper\project\multimodal-pepper-ai-decision-support\mobile"
@@ -127,29 +114,27 @@ cd "D:\work\Year - 4\pepper\project\multimodal-pepper-ai-decision-support\mobile
 & "C:\test-by-me\flutter\flutter\bin\flutter.bat" run -d chrome --dart-define=PEPPER_API_BASE_URL=http://127.0.0.1:8000
 ```
 
-Until the scanner is separated behind a platform-specific implementation, use
-one of these honest browser-level checks instead:
+Flutter opens a Chrome window. In the app, choose the Berry Grading and Export
+Price Forecasting flow, select one of the files in section 4 from the Windows
+file picker, and submit it.
 
-1. Open `http://127.0.0.1:8000/docs` and use **Try it out** on
-   `POST /api/v1/grading-forecast/analyze`, selecting any image from section 4.
-2. Use the direct `curl.exe` multipart request in section 3.
-3. Use the Android emulator or physical-device workflow in sections 6 and 7
-   for actual Flutter client verification.
+The browser runs on a temporary `localhost` port. The backend permits local
+browser origins, so no CORS change is required. If Chrome opens but analysis
+fails, first open `http://127.0.0.1:8000/api/v1/grading-forecast/ready` in the
+same browser and check the backend terminal for the request/error.
 
-The backend CORS configuration does permit local Flutter browser origins. CORS
-is not the present blocker; native TFLite FFI compilation is.
+Stop the web run with `q` or `Ctrl+C`. During development, `r` performs Flutter
+hot reload.
 
-### Future web release build
+### Optional web release build
 
-After a platform-specific scanner boundary has been implemented and verified,
-this command can produce static web files:
+This produces static web files but does not host them:
 
 ```powershell
 & "C:\test-by-me\flutter\flutter\bin\flutter.bat" build web --release --dart-define=PEPPER_API_BASE_URL=http://127.0.0.1:8000
 ```
 
-Expected output: `mobile/build/web/`. At present, the build fails at the
-`tflite_flutter` / `dart:ffi` incompatibility and no verified web release exists.
+Output: `mobile/build/web/`.
 
 `127.0.0.1` is suitable only when the browser and backend run on the same
 computer. Before hosting the web build elsewhere, deploy the backend over HTTPS
@@ -326,8 +311,7 @@ For each client path, retain only screenshots/log excerpts that do not expose
 personal images or sensitive details.
 
 - Backend `/health` and `/ready` respond successfully.
-- The selected supported client (emulator or Android device) can reach the
-  backend using its correct address.
+- Browser, emulator, or device can reach the backend using its correct address.
 - A Grade 1 image routes only to Grade 1 evidence.
 - A Grade 2 image routes only to Grade 2 evidence.
 - A non-pepper and poor-image input return rejection and `market = null`.
@@ -342,7 +326,7 @@ personal images or sensitive details.
 | Symptom | Check / resolution |
 |---|---|
 | `Cannot reach the research backend` | Verify `/ready` locally first, then use `127.0.0.1` for browser, `10.0.2.2` for emulator, or `adb reverse`/LAN IP for a device. |
-| Web compile reports `dart:ffi` unavailable | This is the current known `tflite_flutter` browser blocker. Use FastAPI `/docs` for browser API testing or Android for the Flutter client; it is not a CORS/backend failure. |
+| Browser CORS error | Start the current backend in section 3; it permits `localhost` and `127.0.0.1` local browser origins. Do not open the web app from a random host without explicitly reviewing backend CORS. |
 | Emulator connection refused | Confirm `http://10.0.2.2:8000/api/v1/grading-forecast/ready` works in emulator Chrome and that the backend uses `--host 0.0.0.0`. |
 | Windows firewall prompt | Permit Python only on the trusted private network necessary for the test. |
 | Image picker has no copied files | Check `& $adb shell ls -l /sdcard/Download`, then reopen the picker and select Downloads. |
