@@ -13,17 +13,24 @@ class GradingForecastResult {
   final DecisionSupportResult decisionSupport;
   final Map<String, dynamic> trace;
   final RuntimeResult runtime;
-  factory GradingForecastResult.fromJson(Map<String, dynamic> json) =>
-      GradingForecastResult(
-        schemaVersion: _string(json['schema_version']),
-        grading: GradingResult.fromJson(_map(json['grading'])),
-        market: MarketResult.fromJson(_map(json['market'])),
-        decisionSupport: DecisionSupportResult.fromJson(
-          _map(json['decision_support']),
-        ),
-        trace: _map(json['trace']),
-        runtime: RuntimeResult.fromJson(_map(json['runtime'])),
-      );
+  factory GradingForecastResult.fromJson(Map<String, dynamic> json) {
+    final schemaVersion = _requiredString(json['schema_version'], 'schema_version');
+    if (schemaVersion != 'phase6_decision_support_v1') {
+      throw const FormatException('Unsupported decision-support schema.');
+    }
+    final result = GradingForecastResult(
+      schemaVersion: schemaVersion,
+      grading: GradingResult.fromJson(_requiredMap(json['grading'], 'grading')),
+      market: MarketResult.fromJson(_requiredMap(json['market'], 'market')),
+      decisionSupport: DecisionSupportResult.fromJson(
+        _requiredMap(json['decision_support'], 'decision_support'),
+      ),
+      trace: _requiredMap(json['trace'], 'trace'),
+      runtime: RuntimeResult.fromJson(_requiredMap(json['runtime'], 'runtime')),
+    );
+    _validateDecisionContract(result);
+    return result;
+  }
 }
 
 class GradingResult {
@@ -49,15 +56,18 @@ class GradingResult {
   final String confidenceInterpretation;
   bool get isAccepted => status == 'ACCEPTED';
   factory GradingResult.fromJson(Map<String, dynamic> json) => GradingResult(
-    status: _string(json['status']),
-    decision: _string(json['decision']),
+    status: _requiredString(json['status'], 'grading.status'),
+    decision: _requiredString(json['decision'], 'grading.decision'),
     grade: _nullableString(json['grade']),
     modelConfidence: _nullableDouble(json['model_confidence']),
     detectionConfidence: _nullableDouble(json['detection_confidence']),
     classMargin: _nullableDouble(json['class_margin']),
-    qualityStatus: _string(json['quality_status']),
+    qualityStatus: _requiredString(json['quality_status'], 'grading.quality_status'),
     rejectionReason: _nullableString(json['rejection_reason']),
-    confidenceInterpretation: _string(json['confidence_interpretation']),
+    confidenceInterpretation: _requiredString(
+      json['confidence_interpretation'],
+      'grading.confidence_interpretation',
+    ),
   );
 }
 
@@ -111,7 +121,7 @@ class MarketResult {
   final String? evidencePartition;
   bool get isAvailable => status == 'AVAILABLE';
   factory MarketResult.fromJson(Map<String, dynamic> json) => MarketResult(
-    status: _string(json['status']),
+    status: _requiredString(json['status'], 'market.status'),
     source: _nullableString(json['source']),
     priceGrade: _nullableString(json['price_grade']),
     latestReferenceDate: _nullableString(json['latest_reference_date']),
@@ -122,7 +132,9 @@ class MarketResult {
     forecastDirection: _nullableString(json['forecast_direction']),
     forecastInterval: json['forecast_interval'] == null
         ? null
-        : ForecastInterval.fromJson(_map(json['forecast_interval'])),
+        : ForecastInterval.fromJson(
+            _requiredMap(json['forecast_interval'], 'market.forecast_interval'),
+          ),
     persistencePrice: _nullableDouble(json['persistence_price']),
     modelVsPersistence: _nullableString(json['model_vs_persistence']),
     forecastSignal: _nullableString(json['forecast_signal']),
@@ -141,8 +153,8 @@ class DecisionSupportResult {
   final List<String> limitations;
   factory DecisionSupportResult.fromJson(Map<String, dynamic> json) =>
       DecisionSupportResult(
-        category: _string(json['category']),
-        summary: _string(json['summary']),
+        category: _requiredString(json['category'], 'decision_support.category'),
+        summary: _requiredString(json['summary'], 'decision_support.summary'),
         limitations: _strings(json['limitations']),
       );
 }
@@ -159,21 +171,96 @@ class RuntimeResult {
   final String mobile;
   final String tflite;
   factory RuntimeResult.fromJson(Map<String, dynamic> json) => RuntimeResult(
-    grading: _string(json['grading']),
-    price: _string(json['price']),
-    mobile: _string(json['mobile']),
-    tflite: _string(json['tflite']),
+    grading: _requiredString(json['grading'], 'runtime.grading'),
+    price: _requiredString(json['price'], 'runtime.price'),
+    mobile: _requiredString(json['mobile'], 'runtime.mobile'),
+    tflite: _requiredString(json['tflite'], 'runtime.tflite'),
   );
 }
 
+void _validateDecisionContract(GradingForecastResult result) {
+  const statuses = {'ACCEPTED', 'REJECTED', 'UNCERTAIN'};
+  const categories = {
+    'REJECT',
+    'UNCERTAIN_GRADE',
+    'CONFLICTING_SAMPLE_VIEWS',
+    'PRICE_DATA_UNAVAILABLE',
+    'FORECAST_UNAVAILABLE',
+    'UPWARD_PRICE_OUTLOOK',
+    'DOWNWARD_PRICE_OUTLOOK',
+    'FLAT_PRICE_OUTLOOK',
+    'HIGH_UNCERTAINTY_OUTLOOK',
+  };
+  if (!statuses.contains(result.grading.status) ||
+      !categories.contains(result.decisionSupport.category)) {
+    throw const FormatException('Backend returned an unknown decision state.');
+  }
+
+  final nonAccepted = result.grading.status != 'ACCEPTED';
+  if (nonAccepted &&
+      (result.market.isAvailable ||
+          result.market.priceGrade != null ||
+          result.market.latestReferencePrice != null ||
+          result.market.forecastPrice != null)) {
+    throw const FormatException(
+      'Rejected or uncertain grading included market output.',
+    );
+  }
+  if (result.grading.status == 'REJECTED' &&
+      result.decisionSupport.category != 'REJECT') {
+    throw const FormatException('Rejected grading has an invalid category.');
+  }
+  if (result.grading.status == 'UNCERTAIN' &&
+      result.decisionSupport.category != 'UNCERTAIN_GRADE' &&
+      result.decisionSupport.category != 'CONFLICTING_SAMPLE_VIEWS') {
+    throw const FormatException('Uncertain grading has an invalid category.');
+  }
+  if (result.market.isAvailable) {
+    final expectedPriceGrade = switch (result.grading.grade) {
+      'V3 Grade 1' => 'Grade 1',
+      'V3 Grade 2' => 'Grade 2',
+      _ => null,
+    };
+    if (result.grading.status != 'ACCEPTED' ||
+        expectedPriceGrade == null ||
+        result.market.priceGrade != expectedPriceGrade ||
+        result.market.latestReferencePrice == null ||
+        result.market.forecastPrice == null) {
+      throw const FormatException(
+        'Backend returned an invalid grade-price route.',
+      );
+    }
+  }
+}
+
 String _string(Object? value) => value?.toString() ?? '';
+String _requiredString(Object? value, String field) {
+  if (value is! String || value.trim().isEmpty) {
+    throw FormatException('Missing or invalid $field.');
+  }
+  return value;
+}
+
+Map<String, dynamic> _requiredMap(Object? value, String field) {
+  if (value is! Map) throw FormatException('Missing or invalid $field.');
+  return value.map((key, item) => MapEntry(key.toString(), item));
+}
+
 String? _nullableString(Object? value) => value?.toString();
-double _double(Object? value) => value is num
-    ? value.toDouble()
-    : double.tryParse(value?.toString() ?? '') ?? 0;
+double _double(Object? value) {
+  final parsed = value is num
+      ? value.toDouble()
+      : double.tryParse(value?.toString() ?? '');
+  if (parsed == null || !parsed.isFinite) {
+    throw const FormatException('Missing or invalid numeric value.');
+  }
+  return parsed;
+}
+
 double? _nullableDouble(Object? value) => value == null ? null : _double(value);
-Map<String, dynamic> _map(Object? value) => value is Map
-    ? value.map((k, v) => MapEntry(k.toString(), v))
-    : <String, dynamic>{};
-List<String> _strings(Object? value) =>
-    value is List ? value.map((e) => e.toString()).toList() : const [];
+List<String> _strings(Object? value) {
+  if (value is! List) {
+    throw const FormatException('Missing or invalid string list.');
+  }
+  return value.map((item) => item.toString()).toList();
+}

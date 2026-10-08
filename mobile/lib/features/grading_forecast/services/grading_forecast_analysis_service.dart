@@ -11,5 +11,5 @@ class GradingForecastAnalysisService {
     Uint8List bytes,
     String filename,
   ) => _apiService.analyzeBytes(bytes, filename);
-  Future<void> dispose() async {}
+  Future<void> dispose() async => _apiService.close();
 }

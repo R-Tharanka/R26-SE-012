@@ -1183,3 +1183,17 @@ Date: 2026-10-08.
 - Correction: retained the original raw hash and added an explicit LF-normalized canonical text hash. Runtime validation accepts either the exact original bytes or the exact canonical text and continues to fail closed for any content change. No forecast value, model, threshold, route, or Phase 6 decision rule changed.
 - Readiness hardening: application startup and `/ready` now validate both the ONNX runtime and the frozen forecast source, preventing a deployment that can reject images but cannot complete accepted-grade pricing from reporting ready.
 - Verification: focused cross-platform integrity, startup, API, and real Grade 1 tests passed locally. Hosted Grade 1/2 verification is pending redeployment.
+
+### PHASE7-VALIDATION-ERROR-HANDLING-001
+
+Date: 2026-10-08.
+
+- Scope: focused validation and fail-closed error handling for the active Berry Grading and Export Price Forecasting API/mobile boundary. Frozen models, thresholds, price records, and Phase 6 rules were not changed.
+- Backend input validation: bounded multipart reading with a 10 MB maximum; byte-level image verification; single-frame JPEG/PNG/WEBP restriction; 50-million-pixel and 12,000-pixel-per-axis decoded-image limits; explicit 400/413/415 handling.
+- Backend runtime handling: separate safe HTTP 503 responses for grading runtime, forecast integrity, and invalid grade-price routes; generic unexpected failures remain sanitized HTTP 500 responses.
+- Contract validation: explicit Phase 7 grading/category enums, finite confidence/price fields, ordered non-probabilistic forecast intervals, exact Grade 1/Grade 2 routing, and rejection/uncertainty market blocking. Invalid integrated output is withheld rather than returned.
+- Readiness: `/health` remains liveness-only; `/ready` validates both ONNX and frozen forecast evidence and returns HTTP 503 when unavailable.
+- Privacy/logging: structured analysis UUID, processing stage, error type, and final category only; uploaded bytes and filenames are not logged.
+- Flutter: local empty/10-MB validation, validated backend URL, full request/response timeout, explicit HTTP error mapping, strict schema parsing, and client-side rejection-first/grade-route enforcement. No fallback prediction is generated.
+- Verification: 15/15 focused backend tests passed, including the real Grade 1 API path. Direct Dart static analysis of the changed Flutter feature and focused tests reported no issues. Four Flutter API tests and two parser/invariant tests were added, but the Flutter test runner produced no output and was stopped without claiming test execution. The full legacy backend suite was not used as the Phase 7 gate because it includes retired pre-Phase-7 endpoint expectations and sandbox-dependent temporary-write tests.
+- Scientific boundary: this is integration/reliability evidence only. It adds no predictive accuracy, field robustness, confidence calibration, forecast reliability, or economic evidence.

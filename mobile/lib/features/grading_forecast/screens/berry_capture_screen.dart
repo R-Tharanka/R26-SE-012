@@ -33,6 +33,14 @@ class _BerryCaptureScreenState extends State<BerryCaptureScreen> {
       }
       final bytes = await picked.readAsBytes();
       if (!mounted) return;
+      if (bytes.isEmpty) {
+        _showSelectionError('The selected image is empty. Choose another image.');
+        return;
+      }
+      if (bytes.length > 10 * 1024 * 1024) {
+        _showSelectionError('The selected image exceeds the 10 MB upload limit.');
+        return;
+      }
       setState(() {
         _selected = picked;
         _selectedBytes = bytes;
@@ -43,6 +51,10 @@ class _BerryCaptureScreenState extends State<BerryCaptureScreen> {
         const SnackBar(content: Text('Could not open camera/gallery. Please try again.')),
       );
     }
+  }
+
+  void _showSelectionError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   void _analyze() {
