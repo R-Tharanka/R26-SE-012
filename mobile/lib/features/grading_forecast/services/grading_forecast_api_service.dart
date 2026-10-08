@@ -8,14 +8,31 @@ import '../models/grading_forecast_result.dart';
 class GradingForecastApiException implements Exception {
   const GradingForecastApiException(
     this.message, {
+    this.kind = GradingForecastApiErrorKind.analysisFailed,
     this.statusCode,
     this.cause,
   });
   final String message;
+  final GradingForecastApiErrorKind kind;
   final int? statusCode;
   final Object? cause;
   @override
   String toString() => 'GradingForecastApiException($statusCode): $message';
+}
+
+enum GradingForecastApiErrorKind {
+  emptyImage,
+  imageTooLarge,
+  invalidBackendAddress,
+  invalidImage,
+  unsupportedImage,
+  malformedRequest,
+  serviceBusy,
+  serviceUnavailable,
+  timeout,
+  unreachable,
+  malformedResponse,
+  analysisFailed,
 }
 
 class GradingForecastApiService {
@@ -34,11 +51,15 @@ class GradingForecastApiService {
     String filename,
   ) async {
     if (bytes.isEmpty) {
-      throw const GradingForecastApiException('The selected image is empty.');
+      throw const GradingForecastApiException(
+        'The selected image is empty.',
+        kind: GradingForecastApiErrorKind.emptyImage,
+      );
     }
     if (bytes.length > maxImageBytes) {
       throw const GradingForecastApiException(
         'The selected image exceeds the 10 MB upload limit.',
+        kind: GradingForecastApiErrorKind.imageTooLarge,
         statusCode: 413,
       );
     }
@@ -48,16 +69,13 @@ class GradingForecastApiService {
         (endpoint.scheme != 'http' && endpoint.scheme != 'https')) {
       throw const GradingForecastApiException(
         'The research backend address is invalid.',
+        kind: GradingForecastApiErrorKind.invalidBackendAddress,
       );
     }
-    final request =
-        http.MultipartRequest(
-            'POST',
-            endpoint,
-          )
-          ..files.add(
-            http.MultipartFile.fromBytes('image', bytes, filename: filename),
-          );
+    final request = http.MultipartRequest('POST', endpoint)
+      ..files.add(
+        http.MultipartFile.fromBytes('image', bytes, filename: filename),
+      );
     try {
       final streamed = await _client.send(request).timeout(requestTimeout);
       final response = await http.Response.fromStream(
@@ -77,11 +95,15 @@ class GradingForecastApiService {
         final detail = _responseDetail(decoded);
         throw GradingForecastApiException(
           detail ?? _messageForStatus(response.statusCode),
+          kind: _kindForStatus(response.statusCode),
           statusCode: response.statusCode,
         );
       }
       if (decoded is! Map) {
-        throw const GradingForecastApiException('Unexpected response format.');
+        throw const GradingForecastApiException(
+          'Unexpected response format.',
+          kind: GradingForecastApiErrorKind.malformedResponse,
+        );
       }
       return GradingForecastResult.fromJson(decoded.cast<String, dynamic>());
     } on GradingForecastApiException {
@@ -89,21 +111,25 @@ class GradingForecastApiService {
     } on TimeoutException catch (e) {
       throw GradingForecastApiException(
         'Analysis timed out. Please retry.',
+        kind: GradingForecastApiErrorKind.timeout,
         cause: e,
       );
     } on SocketException catch (e) {
       throw GradingForecastApiException(
         'Cannot reach the research backend.',
+        kind: GradingForecastApiErrorKind.unreachable,
         cause: e,
       );
     } on http.ClientException catch (e) {
       throw GradingForecastApiException(
         'Cannot reach the research backend.',
+        kind: GradingForecastApiErrorKind.unreachable,
         cause: e,
       );
     } on FormatException catch (e) {
       throw GradingForecastApiException(
         'Backend returned malformed data.',
+        kind: GradingForecastApiErrorKind.malformedResponse,
         cause: e,
       );
     }
@@ -133,6 +159,17 @@ class GradingForecastApiService {
       'The research backend is temporarily unavailable. Please retry later.',
     _ => 'Analysis failed on the research backend.',
   };
+
+  static GradingForecastApiErrorKind _kindForStatus(int statusCode) =>
+      switch (statusCode) {
+        400 => GradingForecastApiErrorKind.invalidImage,
+        413 => GradingForecastApiErrorKind.imageTooLarge,
+        415 => GradingForecastApiErrorKind.unsupportedImage,
+        422 => GradingForecastApiErrorKind.malformedRequest,
+        429 => GradingForecastApiErrorKind.serviceBusy,
+        502 || 503 || 504 => GradingForecastApiErrorKind.serviceUnavailable,
+        _ => GradingForecastApiErrorKind.analysisFailed,
+      };
 
   static String _resolveBaseUrl(String? override) {
     if (override != null && override.trim().isNotEmpty) {

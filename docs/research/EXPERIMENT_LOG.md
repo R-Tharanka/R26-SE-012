@@ -1212,3 +1212,14 @@ Date: 2026-10-08.
 - Unverified boundary: `flutter test` and the bounded debug APK build produced no output while the local Flutter/Dart/Gradle toolchain remained occupied and were stopped. Emulator/physical-device scanner, live provider, localization, and five-case Phase 7 regression checks remain manual acceptance work.
 - Security: build-time Gemini/Anthropic keys remain recoverable from a distributed client. This preserves the supplied architecture for controlled development but is not acceptable secret management for uncontrolled public distribution.
 - Scientific boundary: this is software integration evidence only; it adds no predictive accuracy, field robustness, model calibration, forecast reliability, or user-benefit evidence.
+
+### PHASE7-GRADING-FORECAST-LOCALIZATION-001
+
+Date: 2026-10-08.
+
+- Scope: added English, Sinhala, and Tamil presentation support to the current Phase 7 Berry Grading and Export Price Forecasting Flutter workflow.
+- Boundary: localization is applied after strict Phase 6 response parsing. Internal categories, decisions, grade-price routes, trace values, models, thresholds, price records, and backend schemas were not changed.
+- Coverage: component home, capture validation, processing, safe API errors, rejection/uncertainty reasons, accepted grading result, frozen market outlook, limitations, disclaimer, and trace heading.
+- Terminology: V3 grades remain project-specific; model scores remain non-probabilistic; EAC prices remain reference prices; frozen forecasts remain research evidence rather than live offers or trading instructions.
+- Verification: Flutter localization generation completed; direct Dart analysis reported no issues; 12/12 focused localization, API-client, and strict Phase 7 contract tests passed.
+- Limitation: independent Sinhala/Tamil linguistic review and emulator/physical-device layout acceptance remain pending. This is deployment/accessibility engineering and adds no predictive or field evidence.

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pepper_care/l10n/app_localizations.dart';
 
 import 'berry_capture_screen.dart';
 
@@ -7,8 +8,9 @@ class GradingForecastHomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Pepper Care')),
+      appBar: AppBar(title: Text(t.appTitle)),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Center(
@@ -22,13 +24,13 @@ class GradingForecastHomeScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      'Berry Grading and Export Price Forecasting',
+                      t.gradingHomeTitle,
                       style: Theme.of(context).textTheme.titleLarge,
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 12),
-                    const Text(
-                      'Capture a pepper sample image for project-specific grading and a limited frozen EAC price outlook.',
+                    Text(
+                      t.phase7GradingHomeSubtitle,
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 16),
@@ -40,7 +42,7 @@ class GradingForecastHomeScreen extends StatelessWidget {
                           ),
                         );
                       },
-                      child: const Text('Check Berry Quality'),
+                      child: Text(t.checkBerryQuality),
                     ),
                   ],
                 ),

@@ -86,6 +86,14 @@ The stable response retains `grading`, `market`, `decision_support`, and `trace`
 
 Flutter now defaults to the API path and parses the Phase 6 schema. It presents loading, error, rejection, uncertainty, accepted grade, source-labelled reference price, frozen forecast, interval, persistence comparison, limitations, and research trace states. It no longer formats model score as a probability or displays sell/wait recommendations.
 
+The grading/forecast presentation now supports English, Sinhala, and Tamil.
+Localization is applied after strict response validation: stable Phase 6/API
+values remain authoritative for routing and rejection, while screen labels,
+safe errors, decision summaries, reasons, limitations, and forecast caveats are
+localized. Focused localization/API/contract verification passed 12/12 tests;
+independent linguistic and device-layout review remains pending. Full details
+are recorded in `PHASE7_GRADING_FORECAST_LOCALIZATION_RESULTS.md`.
+
 Focused Flutter analysis reported no issues and two response-parser tests passed. Eight focused backend/API tests passed. The original automated run did not complete an Android emulator execution.
 
 On 2026-10-08, a researcher-operated emulator run exercised the five controlled files. The first run passed Grade 1, Grade 2, and non-pepper behavior, but the poor-image file became `NO_PEPPER` with a passed quality gate and the uncertainty file became an accepted Grade 2 with price output. Investigation found that the Flutter picker was resizing images to at most `1280x1280` and recompressing them at quality 75 before upload. That changed the pixels presented to the frozen quality, detection, and class-margin gates. The picker preprocessing was removed so the selected file bytes are passed through without application-requested resizing or recompression.
@@ -165,6 +173,7 @@ Phase 7 integrity passed 22/22 checks. It verified frozen Phase 3, Phase 4, Phas
 - Researcher-operated emulator, physical-device, and hosted-backend smoke tests were completed, but no independently instrumented device study, end-to-end field dataset, user-usefulness study, or production-readiness assessment was completed.
 - The public research endpoint has no user authentication or distributed rate limiter; Railway resource limits and controlled URL distribution remain operational safeguards, not production security controls.
 - The upload limits reduce accidental/resource-abuse risk but do not establish production security or adversarial robustness.
+- Sinhala and Tamil translations have not received independent professional linguistic review, and localized device-layout acceptance remains pending.
 
 ## 18. What Phase 7 proves
 

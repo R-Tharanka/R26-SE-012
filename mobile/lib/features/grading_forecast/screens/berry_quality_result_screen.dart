@@ -1,5 +1,9 @@
 import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
+import 'package:pepper_care/l10n/app_localizations.dart';
+
+import '../grading_forecast_localizations.dart';
 import '../models/grading_forecast_result.dart';
 import 'price_forecast_screen.dart';
 
@@ -9,14 +13,16 @@ class BerryQualityResultScreen extends StatelessWidget {
     required this.imageBytes,
     required this.result,
   });
+
   final Uint8List imageBytes;
   final GradingForecastResult result;
+
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     final grading = result.grading;
-    final decision = result.decisionSupport;
     return Scaffold(
-      appBar: AppBar(title: const Text('Pepper Decision Support')),
+      appBar: AppBar(title: Text(t.phase7DecisionSupportTitle)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -32,26 +38,38 @@ class BerryQualityResultScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    decision.category.replaceAll('_', ' '),
+                    localizedDecisionCategory(
+                      t,
+                      result.decisionSupport.category,
+                    ),
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 8),
-                  Text(decision.summary),
+                  Text(localizedDecisionSummary(t, result)),
                   const Divider(),
-                  _row('Grading decision', grading.decision),
-                  _row('Project grade', grading.grade ?? 'Not available'),
-                  _row('Quality gate', grading.qualityStatus),
+                  _row(
+                    t.phase7GradingDecision,
+                    localizedDecision(t, grading.decision),
+                  ),
+                  _row(t.phase7ProjectGrade, localizedGrade(t, grading.grade)),
+                  _row(
+                    t.phase7QualityGate,
+                    localizedQualityStatus(t, grading.qualityStatus),
+                  ),
                   if (grading.modelConfidence != null)
                     _row(
-                      'Model score',
+                      t.phase7ModelScore,
                       grading.modelConfidence!.toStringAsFixed(4),
                     ),
                   Text(
-                    grading.confidenceInterpretation,
+                    t.phase7ConfidenceInterpretation,
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                   if (grading.rejectionReason != null)
-                    _row('Reason', grading.rejectionReason!),
+                    _row(
+                      t.phase7Reason,
+                      localizedRejectionReason(t, grading.rejectionReason!),
+                    ),
                 ],
               ),
             ),
@@ -63,15 +81,15 @@ class BerryQualityResultScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Research limitations',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                  Text(
+                    t.phase7ResearchLimitations,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
-                  ...decision.limitations.map(
-                    (e) => Padding(
+                  ...localizedResearchLimitations(t).map(
+                    (limitation) => Padding(
                       padding: const EdgeInsets.only(bottom: 6),
-                      child: Text('• $e'),
+                      child: Text('• $limitation'),
                     ),
                   ),
                 ],
@@ -86,7 +104,7 @@ class BerryQualityResultScreen extends StatelessWidget {
                   builder: (_) => PriceForecastScreen(result: result),
                 ),
               ),
-              child: const Text('View grade-specific price outlook'),
+              child: Text(t.phase7ViewPriceOutlook),
             ),
           ],
         ],

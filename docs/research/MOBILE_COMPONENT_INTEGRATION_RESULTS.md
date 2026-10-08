@@ -56,8 +56,9 @@ and backend URL configuration.
 - The current `ScannerModelConfig` safeguards, theme, Android SDK settings,
   broad asset declarations, and Phase 7 grading source were retained.
 - Localization keys describing the legacy grader remain inert catalog entries;
-  no current grading screen imports or reads them. Removing them mechanically
-  was rejected as riskier than retaining unused strings.
+  they were not attached to the current grading screens. A later scoped
+  implementation added new Phase 7-specific English, Sinhala, and Tamil text
+  while preserving the current scientific workflow and stable API values.
 
 ## Implemented integration
 
@@ -107,9 +108,12 @@ replaced. Post-integration important hashes are:
 | Leaf TFLite | `285f31bd32094a21b4a7c86d90cadcff9c51f325bf1b58d31f599418d69beaf0` |
 | Pest TFLite | `fa9e343a5d9df0799dc0e4c81391936ffe3d999240774d1678c29c7baa0886b9` |
 
-`git diff` reports no change under
-`mobile/lib/features/grading_forecast/`. Backend Phase 7 focused verification
-passed 15/15 tests after the mobile integration.
+At the time of the four-component merge, `git diff` reported no change under
+`mobile/lib/features/grading_forecast/`. The later localization work changed
+only Phase 7 presentation and safe mobile error classification; it did not
+change the backend contract, models, thresholds, routes, or scientific rules.
+Backend Phase 7 focused verification passed 15/15 tests after the original
+mobile integration.
 
 ## Automated verification
 
@@ -119,6 +123,8 @@ passed 15/15 tests after the mobile integration.
   current Phase 7 route, and legacy Grade 3 absence checks.
 - Existing YOLO geometry/NMS, overlay, scan-result, Phase 7 parser, and API tests
   remain in the suite.
+- The later Phase 7 localization/API/contract suite passed 12/12 tests, and
+  direct Dart analysis reported no issues.
 - `flutter test` and the bounded debug APK build produced no output while local
   Flutter/Dart/Gradle processes remained occupied. Both were stopped; no test or
   build pass is claimed from those attempts.

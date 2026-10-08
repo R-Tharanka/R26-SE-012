@@ -212,6 +212,282 @@ class AppLocalizationsSi extends AppLocalizations {
   String get backendError => 'සේවාදායක දෝෂයකි. නැවත උත්සාහ කරන්න.';
 
   @override
+  String get phase7GradingHomeSubtitle =>
+      'ව්‍යාපෘතියට විශේෂිත ශ්‍රේණිගත කිරීමක් සහ සීමිත, ස්ථාවර EAC මිල දැක්මක් සඳහා ගම්මිරිස් නියැදි ඡායාරූපයක් ලබාගන්න.';
+
+  @override
+  String get phase7ProcessingMessage =>
+      'ස්ථාවර ශ්‍රේණිගත කිරීම සහ මිල තීරණ සහාය ක්‍රියාත්මක වෙමින් පවතී...';
+
+  @override
+  String get phase7EmptyImage =>
+      'තෝරාගත් ඡායාරූපය හිස්ය. වෙනත් ඡායාරූපයක් තෝරන්න.';
+
+  @override
+  String get phase7ImageTooLarge =>
+      'තෝරාගත් ඡායාරූපය 10 MB උඩුගත කිරීමේ සීමාව ඉක්මවයි.';
+
+  @override
+  String get phase7InvalidBackendAddress =>
+      'පර්යේෂණ සේවාදායක ලිපිනය වලංගු නොවේ.';
+
+  @override
+  String get phase7InvalidImage => 'තෝරාගත් ගොනුව කියවිය හැකි ඡායාරූපයක් නොවේ.';
+
+  @override
+  String get phase7UnsupportedImage =>
+      'සජීවීකරණය නොකළ JPEG, PNG හෝ WEBP ඡායාරූපයක් භාවිතා කරන්න.';
+
+  @override
+  String get phase7MalformedRequest => 'ඡායාරූප ඉල්ලීම නිවැරදි ආකෘතියක නොමැත.';
+
+  @override
+  String get phase7ServiceBusy =>
+      'සත්කාරක සේවාව කාර්යබහුලයි. මඳක් රැඳී නැවත උත්සාහ කරන්න.';
+
+  @override
+  String get phase7ServiceUnavailable =>
+      'පර්යේෂණ සේවාදායකය තාවකාලිකව නොලැබේ. පසුව නැවත උත්සාහ කරන්න.';
+
+  @override
+  String get phase7Timeout => 'විශ්ලේෂණ කාලය ඉක්මවා ගියේය. නැවත උත්සාහ කරන්න.';
+
+  @override
+  String get phase7Unreachable => 'පර්යේෂණ සේවාදායකයට සම්බන්ධ විය නොහැක.';
+
+  @override
+  String get phase7MalformedResponse =>
+      'සේවාදායකය වැරදි ආකෘතියක දත්ත ලබා දුන්නේය.';
+
+  @override
+  String get phase7AnalysisFailed =>
+      'පර්යේෂණ සේවාදායකයේ විශ්ලේෂණය අසාර්ථක විය.';
+
+  @override
+  String get phase7DecisionSupportTitle => 'ගම්මිරිස් තීරණ සහාය';
+
+  @override
+  String get phase7GradingDecision => 'ශ්‍රේණිගත කිරීමේ තීරණය';
+
+  @override
+  String get phase7ProjectGrade => 'ව්‍යාපෘති ශ්‍රේණිය';
+
+  @override
+  String get phase7QualityGate => 'ගුණත්ව පරීක්ෂාව';
+
+  @override
+  String get phase7ModelScore => 'ආකෘති ලකුණ';
+
+  @override
+  String get phase7ConfidenceInterpretation =>
+      'ආකෘති ලකුණකි; ක්‍රමාංකනය කළ සම්භාවිතාවක් නොවේ';
+
+  @override
+  String get phase7Reason => 'හේතුව';
+
+  @override
+  String get phase7ResearchLimitations => 'පර්යේෂණ සීමාවන්';
+
+  @override
+  String get phase7ViewPriceOutlook => 'ශ්‍රේණියට විශේෂිත මිල දැක්ම බලන්න';
+
+  @override
+  String get phase7PriceOutlookTitle => 'මිල දැක්ම';
+
+  @override
+  String get phase7PriceSeries => 'මිල ශ්‍රේණිය';
+
+  @override
+  String get phase7Source => 'මූලාශ්‍රය';
+
+  @override
+  String get phase7LatestReferenceDate => 'නවතම යොමු දිනය';
+
+  @override
+  String get phase7LatestReferencePrice => 'නවතම යොමු මිල';
+
+  @override
+  String get phase7FrozenForecastTarget => 'ස්ථාවර පුරෝකථන ඉලක්කය';
+
+  @override
+  String get phase7FrozenForecastPrice => 'ස්ථාවර පුරෝකථන මිල';
+
+  @override
+  String get phase7Direction => 'දිශාව';
+
+  @override
+  String get phase7Signal => 'සංඥාව';
+
+  @override
+  String get phase7PersistenceComparison =>
+      'Persistence මූලික ආකෘතිය සමඟ සැසඳීම';
+
+  @override
+  String get phase7ForecastInterval => 'වලංගුකරණයෙන් ලබාගත් පුරෝකථන පරාසය';
+
+  @override
+  String get phase7ForecastDisclaimer =>
+      'මෙය ස්ථාවර EAC ගොවිපළ-දොරටු පර්යේෂණ පුරෝකථනයකි; සජීවී ගැනුම්කරු මිලක්, සහතික කළ මිලක් හෝ මිලදී ගැනීමේ/විකිණීමේ උපදෙසක් නොවේ.';
+
+  @override
+  String get phase7ResearchTrace => 'පර්යේෂණ සොයාබැලීමේ තොරතුරු';
+
+  @override
+  String get phase7NotAvailable => 'ලබාගත නොහැක';
+
+  @override
+  String get phase7NullValue => 'හිස්';
+
+  @override
+  String phase7PriceValue(String value) {
+    return 'කිලෝග්‍රෑමයකට රු. $value';
+  }
+
+  @override
+  String get phase7CategoryReject => 'ප්‍රතික්ෂේපයි';
+
+  @override
+  String get phase7CategoryUncertainGrade => 'අනිශ්චිත ශ්‍රේණිය';
+
+  @override
+  String get phase7CategoryConflictingViews => 'නියැදි දර්ශන පරස්පරයි';
+
+  @override
+  String get phase7CategoryPriceUnavailable => 'මිල දත්ත නොමැත';
+
+  @override
+  String get phase7CategoryForecastUnavailable => 'පුරෝකථනය නොමැත';
+
+  @override
+  String get phase7CategoryUpwardOutlook => 'ඉහළ යන මිල දැක්ම';
+
+  @override
+  String get phase7CategoryDownwardOutlook => 'පහළ යන මිල දැක්ම';
+
+  @override
+  String get phase7CategoryFlatOutlook => 'ස්ථාවර මිල දැක්ම';
+
+  @override
+  String get phase7CategoryHighUncertainty => 'ඉහළ අනිශ්චිතතා දැක්ම';
+
+  @override
+  String get phase7DecisionGrade1 => 'ශ්‍රේණිය 1';
+
+  @override
+  String get phase7DecisionGrade2 => 'ශ්‍රේණිය 2';
+
+  @override
+  String get phase7DecisionNoPepper => 'ගම්මිරිස් හඳුනා නොගැනිණි';
+
+  @override
+  String get phase7DecisionPoorImage => 'දුර්වල ඡායාරූපය';
+
+  @override
+  String get phase7ProjectGrade1 => 'V3 ශ්‍රේණිය 1';
+
+  @override
+  String get phase7ProjectGrade2 => 'V3 ශ්‍රේණිය 2';
+
+  @override
+  String get phase7PriceGrade1 => 'ශ්‍රේණිය 1';
+
+  @override
+  String get phase7PriceGrade2 => 'ශ්‍රේණිය 2';
+
+  @override
+  String get phase7Passed => 'සමත්';
+
+  @override
+  String get phase7Failed => 'අසමත්';
+
+  @override
+  String get phase7ReasonNoDetection => 'සීමාවට ඉහළ හඳුනාගැනීමක් නොමැත';
+
+  @override
+  String get phase7ReasonBlur => 'ඡායාරූපයේ පැහැදිලිතාව අවමයට වඩා අඩුය';
+
+  @override
+  String get phase7ReasonTooDark => 'ඡායාරූපයේ දීප්තිය අවමයට වඩා අඩුය';
+
+  @override
+  String get phase7ReasonTooBright => 'ඡායාරූපයේ දීප්තිය උපරිමයට වඩා වැඩිය';
+
+  @override
+  String get phase7ReasonSmallArea =>
+      'හඳුනාගත් ගම්මිරිස් ප්‍රදේශය අවමයට වඩා අඩුය';
+
+  @override
+  String get phase7ReasonLowConfidence => 'ශ්‍රේණි ලකුණ අවමයට වඩා අඩුය';
+
+  @override
+  String get phase7ReasonLowMargin => 'ශ්‍රේණි පරතරය අවමයට වඩා අඩුය';
+
+  @override
+  String get phase7DirectionUp => 'ඉහළට';
+
+  @override
+  String get phase7DirectionDown => 'පහළට';
+
+  @override
+  String get phase7DirectionFlat => 'ස්ථාවර';
+
+  @override
+  String get phase7SignalHighUncertainty => 'ඉහළ අනිශ්චිතතාව';
+
+  @override
+  String get phase7SignalLimited => 'සීමිත සංඥාව';
+
+  @override
+  String get phase7RidgeBetter => 'Ridge වඩා හොඳයි';
+
+  @override
+  String get phase7PersistenceBetter => 'Persistence වඩා හොඳයි';
+
+  @override
+  String get phase7PersistenceTie => 'සමානයි';
+
+  @override
+  String get phase7SummaryReject =>
+      'වලංගු ගම්මිරිස් බව තහවුරු නොවීය; ශ්‍රේණියට විශේෂිත වෙළඳපොළ දැක්මක් සකස් නොකළේය.';
+
+  @override
+  String get phase7SummaryUncertain =>
+      'විශ්වාසදායක ශ්‍රේණියක් තහවුරු නොවීය; ශ්‍රේණියට විශේෂිත වෙළඳපොළ දැක්මක් සකස් නොකළේය.';
+
+  @override
+  String get phase7SummaryPriceUnavailable =>
+      'ශ්‍රේණිය පිළිගත් නමුත් අවශ්‍ය ශ්‍රේණි-විශේෂිත යොමු මිල නොමැත.';
+
+  @override
+  String get phase7SummaryForecastUnavailable =>
+      'ශ්‍රේණි-විශේෂිත යොමු මිල ඇත, නමුත් ස්ථාවර Phase 5 පුරෝකථනයක් නොමැත.';
+
+  @override
+  String phase7SummaryAccepted(
+    String grade,
+    String priceGrade,
+    String direction,
+    String signal,
+  ) {
+    return '$grade ලෙස පිළිගන්නා ලදී. ස්ථාවර $priceGrade පුරෝකථනය $direction චලනයක් දක්වන අතර සංඥාව $signal ලෙස වර්ග කර ඇත. මෙය සීමිත පර්යේෂණ දැක්මක් මිස මිලදී ගැනීමේ/විකිණීමේ උපදෙසක් නොවේ.';
+  }
+
+  @override
+  String get phase7LimitationProjectGrade =>
+      'V3 ශ්‍රේණි මෙම ව්‍යාපෘතියට විශේෂිත වන අතර නිල SLS, ගැනුම්කරු, අපනයන සහතික හෝ රසායනාගාර ශ්‍රේණි නොවේ.';
+
+  @override
+  String get phase7LimitationResearchOnly =>
+      'මෙය පර්යේෂණ තීරණ සහායක් මිස ස්වයංක්‍රීය වෙළඳ නිර්දේශයක් නොවේ.';
+
+  @override
+  String get phase7LimitationMixedForecast =>
+      'Phase 5 මිල සංඥාව සීමිත/මිශ්‍ර වන අතර persistence තවමත් ප්‍රබල මූලික සැසඳීමකි.';
+
+  @override
+  String get phase7EacReferencePrice => 'EAC ගොවිපළ-දොරටු යොමු මිල';
+
+  @override
   String get berryQualityResult => 'ගෙඩියේ ගුණත්ව ප්‍රතිඵලය';
 
   @override

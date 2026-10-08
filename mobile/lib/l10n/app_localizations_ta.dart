@@ -215,6 +215,288 @@ class AppLocalizationsTa extends AppLocalizations {
   String get backendError => 'சேவையக பிழை. மீண்டும் முயற்சிக்கவும்.';
 
   @override
+  String get phase7GradingHomeSubtitle =>
+      'திட்டத்திற்குரிய தரப்படுத்தலுக்கும் வரையறுக்கப்பட்ட, உறையவைக்கப்பட்ட EAC விலை நோக்கிற்கும் மிளகு மாதிரிப் படத்தை எடுக்கவும்.';
+
+  @override
+  String get phase7ProcessingMessage =>
+      'உறையவைக்கப்பட்ட தரப்படுத்தல் மற்றும் விலைத் தீர்மான ஆதரவு இயங்குகிறது...';
+
+  @override
+  String get phase7EmptyImage =>
+      'தேர்ந்தெடுத்த படம் காலியாக உள்ளது. வேறொரு படத்தைத் தேர்ந்தெடுக்கவும்.';
+
+  @override
+  String get phase7ImageTooLarge =>
+      'தேர்ந்தெடுத்த படம் 10 MB பதிவேற்ற வரம்பை மீறுகிறது.';
+
+  @override
+  String get phase7InvalidBackendAddress =>
+      'ஆராய்ச்சி பின்தள முகவரி செல்லுபடியாகாது.';
+
+  @override
+  String get phase7InvalidImage =>
+      'தேர்ந்தெடுத்த கோப்பு வாசிக்கக்கூடிய படமல்ல.';
+
+  @override
+  String get phase7UnsupportedImage =>
+      'அசைவூட்டப்படாத JPEG, PNG அல்லது WEBP படத்தைப் பயன்படுத்தவும்.';
+
+  @override
+  String get phase7MalformedRequest => 'படக் கோரிக்கை சரியான வடிவில் இல்லை.';
+
+  @override
+  String get phase7ServiceBusy =>
+      'வழங்கப்பட்ட சேவை தற்போது பரபரப்பாக உள்ளது. காத்திருந்து மீண்டும் முயற்சிக்கவும்.';
+
+  @override
+  String get phase7ServiceUnavailable =>
+      'ஆராய்ச்சி பின்தளம் தற்காலிகமாகக் கிடைக்கவில்லை. பின்னர் மீண்டும் முயற்சிக்கவும்.';
+
+  @override
+  String get phase7Timeout =>
+      'பகுப்பாய்வு நேரம் முடிந்தது. மீண்டும் முயற்சிக்கவும்.';
+
+  @override
+  String get phase7Unreachable => 'ஆராய்ச்சி பின்தளத்தை அணுக முடியவில்லை.';
+
+  @override
+  String get phase7MalformedResponse =>
+      'பின்தளம் தவறான வடிவிலான தரவை வழங்கியது.';
+
+  @override
+  String get phase7AnalysisFailed =>
+      'ஆராய்ச்சி பின்தளத்தில் பகுப்பாய்வு தோல்வியடைந்தது.';
+
+  @override
+  String get phase7DecisionSupportTitle => 'மிளகு தீர்மான ஆதரவு';
+
+  @override
+  String get phase7GradingDecision => 'தரப்படுத்தல் தீர்மானம்';
+
+  @override
+  String get phase7ProjectGrade => 'திட்டத் தரம்';
+
+  @override
+  String get phase7QualityGate => 'தரச் சோதனை';
+
+  @override
+  String get phase7ModelScore => 'மாதிரி மதிப்பெண்';
+
+  @override
+  String get phase7ConfidenceInterpretation =>
+      'மாதிரி மதிப்பெண்; அளவுத்திருத்தப்பட்ட நிகழ்தகவு அல்ல';
+
+  @override
+  String get phase7Reason => 'காரணம்';
+
+  @override
+  String get phase7ResearchLimitations => 'ஆராய்ச்சி வரம்புகள்';
+
+  @override
+  String get phase7ViewPriceOutlook =>
+      'தரத்திற்குரிய விலை நோக்கைப் பார்க்கவும்';
+
+  @override
+  String get phase7PriceOutlookTitle => 'விலை நோக்கு';
+
+  @override
+  String get phase7PriceSeries => 'விலைத் தொடர்';
+
+  @override
+  String get phase7Source => 'மூலம்';
+
+  @override
+  String get phase7LatestReferenceDate => 'சமீபத்திய குறிப்பு தேதி';
+
+  @override
+  String get phase7LatestReferencePrice => 'சமீபத்திய குறிப்பு விலை';
+
+  @override
+  String get phase7FrozenForecastTarget =>
+      'உறையவைக்கப்பட்ட முன்னறிவிப்பு இலக்கு';
+
+  @override
+  String get phase7FrozenForecastPrice => 'உறையவைக்கப்பட்ட முன்னறிவிப்பு விலை';
+
+  @override
+  String get phase7Direction => 'திசை';
+
+  @override
+  String get phase7Signal => 'சமிக்ஞை';
+
+  @override
+  String get phase7PersistenceComparison => 'Persistence அடிப்படையுடன் ஒப்பீடு';
+
+  @override
+  String get phase7ForecastInterval =>
+      'சரிபார்ப்பிலிருந்து பெறப்பட்ட முன்னறிவிப்பு இடைவெளி';
+
+  @override
+  String get phase7ForecastDisclaimer =>
+      'இது உறையவைக்கப்பட்ட EAC பண்ணைவாயில் ஆராய்ச்சி முன்னறிவிப்பு; நேரடி வாங்குநர் விலை, உறுதிசெய்யப்பட்ட விலை அல்லது வாங்க/விற்க அறிவுரை அல்ல.';
+
+  @override
+  String get phase7ResearchTrace => 'ஆராய்ச்சி தடமறிதல் தகவல்';
+
+  @override
+  String get phase7NotAvailable => 'கிடைக்கவில்லை';
+
+  @override
+  String get phase7NullValue => 'வெற்று';
+
+  @override
+  String phase7PriceValue(String value) {
+    return 'கிலோ ஒன்றுக்கு ரூ. $value';
+  }
+
+  @override
+  String get phase7CategoryReject => 'நிராகரிப்பு';
+
+  @override
+  String get phase7CategoryUncertainGrade => 'நிச்சயமற்ற தரம்';
+
+  @override
+  String get phase7CategoryConflictingViews =>
+      'மாதிரிப் பார்வைகள் முரண்படுகின்றன';
+
+  @override
+  String get phase7CategoryPriceUnavailable => 'விலைத் தரவு கிடைக்கவில்லை';
+
+  @override
+  String get phase7CategoryForecastUnavailable => 'முன்னறிவிப்பு கிடைக்கவில்லை';
+
+  @override
+  String get phase7CategoryUpwardOutlook => 'உயரும் விலை நோக்கு';
+
+  @override
+  String get phase7CategoryDownwardOutlook => 'குறையும் விலை நோக்கு';
+
+  @override
+  String get phase7CategoryFlatOutlook => 'நிலையான விலை நோக்கு';
+
+  @override
+  String get phase7CategoryHighUncertainty => 'அதிக நிச்சயமின்மை நோக்கு';
+
+  @override
+  String get phase7DecisionGrade1 => 'தரம் 1';
+
+  @override
+  String get phase7DecisionGrade2 => 'தரம் 2';
+
+  @override
+  String get phase7DecisionNoPepper => 'மிளகு கண்டறியப்படவில்லை';
+
+  @override
+  String get phase7DecisionPoorImage => 'தரமற்ற படம்';
+
+  @override
+  String get phase7ProjectGrade1 => 'V3 தரம் 1';
+
+  @override
+  String get phase7ProjectGrade2 => 'V3 தரம் 2';
+
+  @override
+  String get phase7PriceGrade1 => 'தரம் 1';
+
+  @override
+  String get phase7PriceGrade2 => 'தரம் 2';
+
+  @override
+  String get phase7Passed => 'தேர்ச்சி';
+
+  @override
+  String get phase7Failed => 'தோல்வி';
+
+  @override
+  String get phase7ReasonNoDetection => 'வரம்புக்கு மேற்பட்ட கண்டறிதல் இல்லை';
+
+  @override
+  String get phase7ReasonBlur => 'படத் தெளிவு குறைந்தபட்சத்தைவிடக் குறைவு';
+
+  @override
+  String get phase7ReasonTooDark => 'பட வெளிச்சம் குறைந்தபட்சத்தைவிடக் குறைவு';
+
+  @override
+  String get phase7ReasonTooBright => 'பட வெளிச்சம் அதிகபட்சத்தைவிட அதிகம்';
+
+  @override
+  String get phase7ReasonSmallArea =>
+      'கண்டறிந்த மிளகுப் பகுதி குறைந்தபட்சத்தைவிடக் குறைவு';
+
+  @override
+  String get phase7ReasonLowConfidence =>
+      'தர மதிப்பெண் குறைந்தபட்சத்தைவிடக் குறைவு';
+
+  @override
+  String get phase7ReasonLowMargin => 'தர வேறுபாடு குறைந்தபட்சத்தைவிடக் குறைவு';
+
+  @override
+  String get phase7DirectionUp => 'மேல்நோக்கி';
+
+  @override
+  String get phase7DirectionDown => 'கீழ்நோக்கி';
+
+  @override
+  String get phase7DirectionFlat => 'நிலையானது';
+
+  @override
+  String get phase7SignalHighUncertainty => 'அதிக நிச்சயமின்மை';
+
+  @override
+  String get phase7SignalLimited => 'வரையறுக்கப்பட்ட சமிக்ஞை';
+
+  @override
+  String get phase7RidgeBetter => 'Ridge சிறந்தது';
+
+  @override
+  String get phase7PersistenceBetter => 'Persistence சிறந்தது';
+
+  @override
+  String get phase7PersistenceTie => 'சமம்';
+
+  @override
+  String get phase7SummaryReject =>
+      'செல்லுபடியான மிளகு உறுதிப்படுத்தப்படவில்லை; தரத்திற்குரிய சந்தை நோக்கு உருவாக்கப்படவில்லை.';
+
+  @override
+  String get phase7SummaryUncertain =>
+      'நம்பகமான தரம் உறுதிப்படுத்தப்படவில்லை; தரத்திற்குரிய சந்தை நோக்கு உருவாக்கப்படவில்லை.';
+
+  @override
+  String get phase7SummaryPriceUnavailable =>
+      'தரம் ஏற்றுக்கொள்ளப்பட்டது, ஆனால் தேவையான தரத்திற்குரிய குறிப்பு விலை கிடைக்கவில்லை.';
+
+  @override
+  String get phase7SummaryForecastUnavailable =>
+      'தரத்திற்குரிய குறிப்பு விலை உள்ளது, ஆனால் உறையவைக்கப்பட்ட Phase 5 முன்னறிவிப்பு கிடைக்கவில்லை.';
+
+  @override
+  String phase7SummaryAccepted(
+    String grade,
+    String priceGrade,
+    String direction,
+    String signal,
+  ) {
+    return '$grade ஆக ஏற்றுக்கொள்ளப்பட்டது. உறையவைக்கப்பட்ட $priceGrade முன்னறிவிப்பு $direction நகர்வைக் காட்டுகிறது; சமிக்ஞை $signal என வகைப்படுத்தப்பட்டுள்ளது. இது வரையறுக்கப்பட்ட ஆராய்ச்சி நோக்கு மட்டுமே; வாங்க/விற்க அறிவுரை அல்ல.';
+  }
+
+  @override
+  String get phase7LimitationProjectGrade =>
+      'V3 தரங்கள் இந்தத் திட்டத்திற்குரியவை; அவை அதிகாரப்பூர்வ SLS, வாங்குநர், ஏற்றுமதிச் சான்றிதழ் அல்லது ஆய்வகத் தரங்கள் அல்ல.';
+
+  @override
+  String get phase7LimitationResearchOnly =>
+      'இது ஆராய்ச்சி தீர்மான ஆதரவு மட்டுமே; தன்னாட்சி வர்த்தகப் பரிந்துரை அல்ல.';
+
+  @override
+  String get phase7LimitationMixedForecast =>
+      'Phase 5 விலைச் சமிக்ஞை வரையறுக்கப்பட்ட/கலப்பானது; persistence இன்னும் வலுவான அடிப்படை ஒப்பீடாக உள்ளது.';
+
+  @override
+  String get phase7EacReferencePrice => 'EAC பண்ணைவாயில் குறிப்பு விலை';
+
+  @override
   String get berryQualityResult => 'கொட்டை தர முடிவு';
 
   @override

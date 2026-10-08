@@ -210,6 +210,279 @@ class AppLocalizationsEn extends AppLocalizations {
   String get backendError => 'Backend error. Please try again.';
 
   @override
+  String get phase7GradingHomeSubtitle =>
+      'Capture a pepper sample image for project-specific grading and a limited frozen EAC price outlook.';
+
+  @override
+  String get phase7ProcessingMessage =>
+      'Running frozen grading and price decision support...';
+
+  @override
+  String get phase7EmptyImage =>
+      'The selected image is empty. Choose another image.';
+
+  @override
+  String get phase7ImageTooLarge =>
+      'The selected image exceeds the 10 MB upload limit.';
+
+  @override
+  String get phase7InvalidBackendAddress =>
+      'The research backend address is invalid.';
+
+  @override
+  String get phase7InvalidImage => 'The selected file is not a readable image.';
+
+  @override
+  String get phase7UnsupportedImage =>
+      'Use a non-animated JPEG, PNG, or WEBP image.';
+
+  @override
+  String get phase7MalformedRequest => 'The image request is malformed.';
+
+  @override
+  String get phase7ServiceBusy =>
+      'The hosted service is busy. Please wait and retry.';
+
+  @override
+  String get phase7ServiceUnavailable =>
+      'The research backend is temporarily unavailable. Please retry later.';
+
+  @override
+  String get phase7Timeout => 'Analysis timed out. Please retry.';
+
+  @override
+  String get phase7Unreachable => 'Cannot reach the research backend.';
+
+  @override
+  String get phase7MalformedResponse => 'The backend returned malformed data.';
+
+  @override
+  String get phase7AnalysisFailed => 'Analysis failed on the research backend.';
+
+  @override
+  String get phase7DecisionSupportTitle => 'Pepper Decision Support';
+
+  @override
+  String get phase7GradingDecision => 'Grading decision';
+
+  @override
+  String get phase7ProjectGrade => 'Project grade';
+
+  @override
+  String get phase7QualityGate => 'Quality gate';
+
+  @override
+  String get phase7ModelScore => 'Model score';
+
+  @override
+  String get phase7ConfidenceInterpretation =>
+      'Model score; not a calibrated probability';
+
+  @override
+  String get phase7Reason => 'Reason';
+
+  @override
+  String get phase7ResearchLimitations => 'Research limitations';
+
+  @override
+  String get phase7ViewPriceOutlook => 'View grade-specific price outlook';
+
+  @override
+  String get phase7PriceOutlookTitle => 'Price Outlook';
+
+  @override
+  String get phase7PriceSeries => 'Price series';
+
+  @override
+  String get phase7Source => 'Source';
+
+  @override
+  String get phase7LatestReferenceDate => 'Latest reference date';
+
+  @override
+  String get phase7LatestReferencePrice => 'Latest reference price';
+
+  @override
+  String get phase7FrozenForecastTarget => 'Frozen forecast target';
+
+  @override
+  String get phase7FrozenForecastPrice => 'Frozen forecast price';
+
+  @override
+  String get phase7Direction => 'Direction';
+
+  @override
+  String get phase7Signal => 'Signal';
+
+  @override
+  String get phase7PersistenceComparison => 'Persistence comparison';
+
+  @override
+  String get phase7ForecastInterval => 'Validation-derived forecast interval';
+
+  @override
+  String get phase7ForecastDisclaimer =>
+      'This is a frozen EAC farm-gate research forecast, not a live buyer offer, guaranteed price, or buy/sell instruction.';
+
+  @override
+  String get phase7ResearchTrace => 'Research trace';
+
+  @override
+  String get phase7NotAvailable => 'Not available';
+
+  @override
+  String get phase7NullValue => 'null';
+
+  @override
+  String phase7PriceValue(String value) {
+    return 'LKR $value / kg';
+  }
+
+  @override
+  String get phase7CategoryReject => 'REJECT';
+
+  @override
+  String get phase7CategoryUncertainGrade => 'UNCERTAIN GRADE';
+
+  @override
+  String get phase7CategoryConflictingViews => 'CONFLICTING SAMPLE VIEWS';
+
+  @override
+  String get phase7CategoryPriceUnavailable => 'PRICE DATA UNAVAILABLE';
+
+  @override
+  String get phase7CategoryForecastUnavailable => 'FORECAST UNAVAILABLE';
+
+  @override
+  String get phase7CategoryUpwardOutlook => 'UPWARD PRICE OUTLOOK';
+
+  @override
+  String get phase7CategoryDownwardOutlook => 'DOWNWARD PRICE OUTLOOK';
+
+  @override
+  String get phase7CategoryFlatOutlook => 'FLAT PRICE OUTLOOK';
+
+  @override
+  String get phase7CategoryHighUncertainty => 'HIGH UNCERTAINTY OUTLOOK';
+
+  @override
+  String get phase7DecisionGrade1 => 'GRADE 1';
+
+  @override
+  String get phase7DecisionGrade2 => 'GRADE 2';
+
+  @override
+  String get phase7DecisionNoPepper => 'NO PEPPER';
+
+  @override
+  String get phase7DecisionPoorImage => 'POOR IMAGE';
+
+  @override
+  String get phase7ProjectGrade1 => 'V3 Grade 1';
+
+  @override
+  String get phase7ProjectGrade2 => 'V3 Grade 2';
+
+  @override
+  String get phase7PriceGrade1 => 'Grade 1';
+
+  @override
+  String get phase7PriceGrade2 => 'Grade 2';
+
+  @override
+  String get phase7Passed => 'PASSED';
+
+  @override
+  String get phase7Failed => 'FAILED';
+
+  @override
+  String get phase7ReasonNoDetection => 'No detection above the threshold';
+
+  @override
+  String get phase7ReasonBlur => 'Image sharpness is below the minimum';
+
+  @override
+  String get phase7ReasonTooDark => 'Image brightness is below the minimum';
+
+  @override
+  String get phase7ReasonTooBright => 'Image brightness is above the maximum';
+
+  @override
+  String get phase7ReasonSmallArea =>
+      'Detected pepper area is below the minimum';
+
+  @override
+  String get phase7ReasonLowConfidence => 'Grade score is below the minimum';
+
+  @override
+  String get phase7ReasonLowMargin => 'Grade margin is below the minimum';
+
+  @override
+  String get phase7DirectionUp => 'UP';
+
+  @override
+  String get phase7DirectionDown => 'DOWN';
+
+  @override
+  String get phase7DirectionFlat => 'FLAT';
+
+  @override
+  String get phase7SignalHighUncertainty => 'HIGH UNCERTAINTY';
+
+  @override
+  String get phase7SignalLimited => 'LIMITED SIGNAL';
+
+  @override
+  String get phase7RidgeBetter => 'RIDGE BETTER';
+
+  @override
+  String get phase7PersistenceBetter => 'PERSISTENCE BETTER';
+
+  @override
+  String get phase7PersistenceTie => 'TIE';
+
+  @override
+  String get phase7SummaryReject =>
+      'Valid pepper was not established; no grade-specific market outlook was generated.';
+
+  @override
+  String get phase7SummaryUncertain =>
+      'A reliable grade was not established; no grade-specific market outlook was generated.';
+
+  @override
+  String get phase7SummaryPriceUnavailable =>
+      'The grade was accepted, but the required grade-specific reference price is unavailable.';
+
+  @override
+  String get phase7SummaryForecastUnavailable =>
+      'The grade-specific reference price is available, but no frozen Phase 5 forecast is available.';
+
+  @override
+  String phase7SummaryAccepted(
+    String grade,
+    String priceGrade,
+    String direction,
+    String signal,
+  ) {
+    return 'Accepted as $grade. The frozen $priceGrade forecast indicates $direction movement, with signal classified as $signal. This is a limited research outlook, not a buy/sell instruction.';
+  }
+
+  @override
+  String get phase7LimitationProjectGrade =>
+      'V3 grades are project-specific and are not official SLS, buyer, export-certification, or laboratory grades.';
+
+  @override
+  String get phase7LimitationResearchOnly =>
+      'This is research decision support, not an autonomous trading recommendation.';
+
+  @override
+  String get phase7LimitationMixedForecast =>
+      'The Phase 5 price signal is limited/mixed and persistence remains a strong baseline.';
+
+  @override
+  String get phase7EacReferencePrice => 'EAC farm-gate reference price';
+
+  @override
   String get berryQualityResult => 'Berry Quality Result';
 
   @override

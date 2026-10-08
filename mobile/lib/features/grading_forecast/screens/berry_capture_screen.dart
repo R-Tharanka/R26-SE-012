@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:pepper_care/l10n/app_localizations.dart';
 
 import 'processing_screen.dart';
 
@@ -34,11 +35,11 @@ class _BerryCaptureScreenState extends State<BerryCaptureScreen> {
       final bytes = await picked.readAsBytes();
       if (!mounted) return;
       if (bytes.isEmpty) {
-        _showSelectionError('The selected image is empty. Choose another image.');
+        _showSelectionError(AppLocalizations.of(context).phase7EmptyImage);
         return;
       }
       if (bytes.length > 10 * 1024 * 1024) {
-        _showSelectionError('The selected image exceeds the 10 MB upload limit.');
+        _showSelectionError(AppLocalizations.of(context).phase7ImageTooLarge);
         return;
       }
       setState(() {
@@ -48,13 +49,17 @@ class _BerryCaptureScreenState extends State<BerryCaptureScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not open camera/gallery. Please try again.')),
+        SnackBar(
+          content: Text(AppLocalizations.of(context).couldNotOpenCameraGallery),
+        ),
       );
     }
   }
 
   void _showSelectionError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   void _analyze() {
@@ -65,20 +70,20 @@ class _BerryCaptureScreenState extends State<BerryCaptureScreen> {
 
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => ProcessingScreen(imageBytes: bytes, imageName: selected.name),
+        builder: (_) =>
+            ProcessingScreen(imageBytes: bytes, imageName: selected.name),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     final imageBytes = _selectedBytes;
     final canAnalyze = imageBytes != null && imageBytes.isNotEmpty;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Capture Pepper Berry Image'),
-      ),
+      appBar: AppBar(title: Text(t.captureBerryTitle)),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -89,13 +94,13 @@ class _BerryCaptureScreenState extends State<BerryCaptureScreen> {
                 child: Padding(
                   padding: const EdgeInsets.all(12),
                   child: imageBytes == null
-                      ? const Center(
+                      ? Center(
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.image_outlined, size: 48),
-                              SizedBox(height: 8),
-                              Text('No image selected yet.'),
+                              const Icon(Icons.image_outlined, size: 48),
+                              const SizedBox(height: 8),
+                              Text(t.noImageSelected),
                             ],
                           ),
                         )
@@ -117,7 +122,7 @@ class _BerryCaptureScreenState extends State<BerryCaptureScreen> {
                   child: OutlinedButton.icon(
                     onPressed: () => _pick(ImageSource.camera),
                     icon: const Icon(Icons.photo_camera),
-                    label: const Text('Camera'),
+                    label: Text(t.camera),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -125,7 +130,7 @@ class _BerryCaptureScreenState extends State<BerryCaptureScreen> {
                   child: OutlinedButton.icon(
                     onPressed: () => _pick(ImageSource.gallery),
                     icon: const Icon(Icons.photo_library_outlined),
-                    label: const Text('Gallery'),
+                    label: Text(t.gallery),
                   ),
                 ),
               ],
@@ -133,13 +138,10 @@ class _BerryCaptureScreenState extends State<BerryCaptureScreen> {
             const SizedBox(height: 12),
             FilledButton(
               onPressed: canAnalyze ? _analyze : null,
-              child: const Text('Analyze'),
+              child: Text(t.analyze),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Tip: use a clear, well-lit photo and avoid blur.',
-              textAlign: TextAlign.center,
-            ),
+            Text(t.captureTip, textAlign: TextAlign.center),
           ],
         ),
       ),

@@ -460,6 +460,503 @@ abstract class AppLocalizations {
   /// **'Backend error. Please try again.'**
   String get backendError;
 
+  /// No description provided for @phase7GradingHomeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Capture a pepper sample image for project-specific grading and a limited frozen EAC price outlook.'**
+  String get phase7GradingHomeSubtitle;
+
+  /// No description provided for @phase7ProcessingMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Running frozen grading and price decision support...'**
+  String get phase7ProcessingMessage;
+
+  /// No description provided for @phase7EmptyImage.
+  ///
+  /// In en, this message translates to:
+  /// **'The selected image is empty. Choose another image.'**
+  String get phase7EmptyImage;
+
+  /// No description provided for @phase7ImageTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'The selected image exceeds the 10 MB upload limit.'**
+  String get phase7ImageTooLarge;
+
+  /// No description provided for @phase7InvalidBackendAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'The research backend address is invalid.'**
+  String get phase7InvalidBackendAddress;
+
+  /// No description provided for @phase7InvalidImage.
+  ///
+  /// In en, this message translates to:
+  /// **'The selected file is not a readable image.'**
+  String get phase7InvalidImage;
+
+  /// No description provided for @phase7UnsupportedImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a non-animated JPEG, PNG, or WEBP image.'**
+  String get phase7UnsupportedImage;
+
+  /// No description provided for @phase7MalformedRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'The image request is malformed.'**
+  String get phase7MalformedRequest;
+
+  /// No description provided for @phase7ServiceBusy.
+  ///
+  /// In en, this message translates to:
+  /// **'The hosted service is busy. Please wait and retry.'**
+  String get phase7ServiceBusy;
+
+  /// No description provided for @phase7ServiceUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The research backend is temporarily unavailable. Please retry later.'**
+  String get phase7ServiceUnavailable;
+
+  /// No description provided for @phase7Timeout.
+  ///
+  /// In en, this message translates to:
+  /// **'Analysis timed out. Please retry.'**
+  String get phase7Timeout;
+
+  /// No description provided for @phase7Unreachable.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot reach the research backend.'**
+  String get phase7Unreachable;
+
+  /// No description provided for @phase7MalformedResponse.
+  ///
+  /// In en, this message translates to:
+  /// **'The backend returned malformed data.'**
+  String get phase7MalformedResponse;
+
+  /// No description provided for @phase7AnalysisFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Analysis failed on the research backend.'**
+  String get phase7AnalysisFailed;
+
+  /// No description provided for @phase7DecisionSupportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pepper Decision Support'**
+  String get phase7DecisionSupportTitle;
+
+  /// No description provided for @phase7GradingDecision.
+  ///
+  /// In en, this message translates to:
+  /// **'Grading decision'**
+  String get phase7GradingDecision;
+
+  /// No description provided for @phase7ProjectGrade.
+  ///
+  /// In en, this message translates to:
+  /// **'Project grade'**
+  String get phase7ProjectGrade;
+
+  /// No description provided for @phase7QualityGate.
+  ///
+  /// In en, this message translates to:
+  /// **'Quality gate'**
+  String get phase7QualityGate;
+
+  /// No description provided for @phase7ModelScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Model score'**
+  String get phase7ModelScore;
+
+  /// No description provided for @phase7ConfidenceInterpretation.
+  ///
+  /// In en, this message translates to:
+  /// **'Model score; not a calibrated probability'**
+  String get phase7ConfidenceInterpretation;
+
+  /// No description provided for @phase7Reason.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason'**
+  String get phase7Reason;
+
+  /// No description provided for @phase7ResearchLimitations.
+  ///
+  /// In en, this message translates to:
+  /// **'Research limitations'**
+  String get phase7ResearchLimitations;
+
+  /// No description provided for @phase7ViewPriceOutlook.
+  ///
+  /// In en, this message translates to:
+  /// **'View grade-specific price outlook'**
+  String get phase7ViewPriceOutlook;
+
+  /// No description provided for @phase7PriceOutlookTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Price Outlook'**
+  String get phase7PriceOutlookTitle;
+
+  /// No description provided for @phase7PriceSeries.
+  ///
+  /// In en, this message translates to:
+  /// **'Price series'**
+  String get phase7PriceSeries;
+
+  /// No description provided for @phase7Source.
+  ///
+  /// In en, this message translates to:
+  /// **'Source'**
+  String get phase7Source;
+
+  /// No description provided for @phase7LatestReferenceDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest reference date'**
+  String get phase7LatestReferenceDate;
+
+  /// No description provided for @phase7LatestReferencePrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest reference price'**
+  String get phase7LatestReferencePrice;
+
+  /// No description provided for @phase7FrozenForecastTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Frozen forecast target'**
+  String get phase7FrozenForecastTarget;
+
+  /// No description provided for @phase7FrozenForecastPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Frozen forecast price'**
+  String get phase7FrozenForecastPrice;
+
+  /// No description provided for @phase7Direction.
+  ///
+  /// In en, this message translates to:
+  /// **'Direction'**
+  String get phase7Direction;
+
+  /// No description provided for @phase7Signal.
+  ///
+  /// In en, this message translates to:
+  /// **'Signal'**
+  String get phase7Signal;
+
+  /// No description provided for @phase7PersistenceComparison.
+  ///
+  /// In en, this message translates to:
+  /// **'Persistence comparison'**
+  String get phase7PersistenceComparison;
+
+  /// No description provided for @phase7ForecastInterval.
+  ///
+  /// In en, this message translates to:
+  /// **'Validation-derived forecast interval'**
+  String get phase7ForecastInterval;
+
+  /// No description provided for @phase7ForecastDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'This is a frozen EAC farm-gate research forecast, not a live buyer offer, guaranteed price, or buy/sell instruction.'**
+  String get phase7ForecastDisclaimer;
+
+  /// No description provided for @phase7ResearchTrace.
+  ///
+  /// In en, this message translates to:
+  /// **'Research trace'**
+  String get phase7ResearchTrace;
+
+  /// No description provided for @phase7NotAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Not available'**
+  String get phase7NotAvailable;
+
+  /// No description provided for @phase7NullValue.
+  ///
+  /// In en, this message translates to:
+  /// **'null'**
+  String get phase7NullValue;
+
+  /// No description provided for @phase7PriceValue.
+  ///
+  /// In en, this message translates to:
+  /// **'LKR {value} / kg'**
+  String phase7PriceValue(String value);
+
+  /// No description provided for @phase7CategoryReject.
+  ///
+  /// In en, this message translates to:
+  /// **'REJECT'**
+  String get phase7CategoryReject;
+
+  /// No description provided for @phase7CategoryUncertainGrade.
+  ///
+  /// In en, this message translates to:
+  /// **'UNCERTAIN GRADE'**
+  String get phase7CategoryUncertainGrade;
+
+  /// No description provided for @phase7CategoryConflictingViews.
+  ///
+  /// In en, this message translates to:
+  /// **'CONFLICTING SAMPLE VIEWS'**
+  String get phase7CategoryConflictingViews;
+
+  /// No description provided for @phase7CategoryPriceUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'PRICE DATA UNAVAILABLE'**
+  String get phase7CategoryPriceUnavailable;
+
+  /// No description provided for @phase7CategoryForecastUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'FORECAST UNAVAILABLE'**
+  String get phase7CategoryForecastUnavailable;
+
+  /// No description provided for @phase7CategoryUpwardOutlook.
+  ///
+  /// In en, this message translates to:
+  /// **'UPWARD PRICE OUTLOOK'**
+  String get phase7CategoryUpwardOutlook;
+
+  /// No description provided for @phase7CategoryDownwardOutlook.
+  ///
+  /// In en, this message translates to:
+  /// **'DOWNWARD PRICE OUTLOOK'**
+  String get phase7CategoryDownwardOutlook;
+
+  /// No description provided for @phase7CategoryFlatOutlook.
+  ///
+  /// In en, this message translates to:
+  /// **'FLAT PRICE OUTLOOK'**
+  String get phase7CategoryFlatOutlook;
+
+  /// No description provided for @phase7CategoryHighUncertainty.
+  ///
+  /// In en, this message translates to:
+  /// **'HIGH UNCERTAINTY OUTLOOK'**
+  String get phase7CategoryHighUncertainty;
+
+  /// No description provided for @phase7DecisionGrade1.
+  ///
+  /// In en, this message translates to:
+  /// **'GRADE 1'**
+  String get phase7DecisionGrade1;
+
+  /// No description provided for @phase7DecisionGrade2.
+  ///
+  /// In en, this message translates to:
+  /// **'GRADE 2'**
+  String get phase7DecisionGrade2;
+
+  /// No description provided for @phase7DecisionNoPepper.
+  ///
+  /// In en, this message translates to:
+  /// **'NO PEPPER'**
+  String get phase7DecisionNoPepper;
+
+  /// No description provided for @phase7DecisionPoorImage.
+  ///
+  /// In en, this message translates to:
+  /// **'POOR IMAGE'**
+  String get phase7DecisionPoorImage;
+
+  /// No description provided for @phase7ProjectGrade1.
+  ///
+  /// In en, this message translates to:
+  /// **'V3 Grade 1'**
+  String get phase7ProjectGrade1;
+
+  /// No description provided for @phase7ProjectGrade2.
+  ///
+  /// In en, this message translates to:
+  /// **'V3 Grade 2'**
+  String get phase7ProjectGrade2;
+
+  /// No description provided for @phase7PriceGrade1.
+  ///
+  /// In en, this message translates to:
+  /// **'Grade 1'**
+  String get phase7PriceGrade1;
+
+  /// No description provided for @phase7PriceGrade2.
+  ///
+  /// In en, this message translates to:
+  /// **'Grade 2'**
+  String get phase7PriceGrade2;
+
+  /// No description provided for @phase7Passed.
+  ///
+  /// In en, this message translates to:
+  /// **'PASSED'**
+  String get phase7Passed;
+
+  /// No description provided for @phase7Failed.
+  ///
+  /// In en, this message translates to:
+  /// **'FAILED'**
+  String get phase7Failed;
+
+  /// No description provided for @phase7ReasonNoDetection.
+  ///
+  /// In en, this message translates to:
+  /// **'No detection above the threshold'**
+  String get phase7ReasonNoDetection;
+
+  /// No description provided for @phase7ReasonBlur.
+  ///
+  /// In en, this message translates to:
+  /// **'Image sharpness is below the minimum'**
+  String get phase7ReasonBlur;
+
+  /// No description provided for @phase7ReasonTooDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Image brightness is below the minimum'**
+  String get phase7ReasonTooDark;
+
+  /// No description provided for @phase7ReasonTooBright.
+  ///
+  /// In en, this message translates to:
+  /// **'Image brightness is above the maximum'**
+  String get phase7ReasonTooBright;
+
+  /// No description provided for @phase7ReasonSmallArea.
+  ///
+  /// In en, this message translates to:
+  /// **'Detected pepper area is below the minimum'**
+  String get phase7ReasonSmallArea;
+
+  /// No description provided for @phase7ReasonLowConfidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Grade score is below the minimum'**
+  String get phase7ReasonLowConfidence;
+
+  /// No description provided for @phase7ReasonLowMargin.
+  ///
+  /// In en, this message translates to:
+  /// **'Grade margin is below the minimum'**
+  String get phase7ReasonLowMargin;
+
+  /// No description provided for @phase7DirectionUp.
+  ///
+  /// In en, this message translates to:
+  /// **'UP'**
+  String get phase7DirectionUp;
+
+  /// No description provided for @phase7DirectionDown.
+  ///
+  /// In en, this message translates to:
+  /// **'DOWN'**
+  String get phase7DirectionDown;
+
+  /// No description provided for @phase7DirectionFlat.
+  ///
+  /// In en, this message translates to:
+  /// **'FLAT'**
+  String get phase7DirectionFlat;
+
+  /// No description provided for @phase7SignalHighUncertainty.
+  ///
+  /// In en, this message translates to:
+  /// **'HIGH UNCERTAINTY'**
+  String get phase7SignalHighUncertainty;
+
+  /// No description provided for @phase7SignalLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'LIMITED SIGNAL'**
+  String get phase7SignalLimited;
+
+  /// No description provided for @phase7RidgeBetter.
+  ///
+  /// In en, this message translates to:
+  /// **'RIDGE BETTER'**
+  String get phase7RidgeBetter;
+
+  /// No description provided for @phase7PersistenceBetter.
+  ///
+  /// In en, this message translates to:
+  /// **'PERSISTENCE BETTER'**
+  String get phase7PersistenceBetter;
+
+  /// No description provided for @phase7PersistenceTie.
+  ///
+  /// In en, this message translates to:
+  /// **'TIE'**
+  String get phase7PersistenceTie;
+
+  /// No description provided for @phase7SummaryReject.
+  ///
+  /// In en, this message translates to:
+  /// **'Valid pepper was not established; no grade-specific market outlook was generated.'**
+  String get phase7SummaryReject;
+
+  /// No description provided for @phase7SummaryUncertain.
+  ///
+  /// In en, this message translates to:
+  /// **'A reliable grade was not established; no grade-specific market outlook was generated.'**
+  String get phase7SummaryUncertain;
+
+  /// No description provided for @phase7SummaryPriceUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The grade was accepted, but the required grade-specific reference price is unavailable.'**
+  String get phase7SummaryPriceUnavailable;
+
+  /// No description provided for @phase7SummaryForecastUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The grade-specific reference price is available, but no frozen Phase 5 forecast is available.'**
+  String get phase7SummaryForecastUnavailable;
+
+  /// No description provided for @phase7SummaryAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted as {grade}. The frozen {priceGrade} forecast indicates {direction} movement, with signal classified as {signal}. This is a limited research outlook, not a buy/sell instruction.'**
+  String phase7SummaryAccepted(
+    String grade,
+    String priceGrade,
+    String direction,
+    String signal,
+  );
+
+  /// No description provided for @phase7LimitationProjectGrade.
+  ///
+  /// In en, this message translates to:
+  /// **'V3 grades are project-specific and are not official SLS, buyer, export-certification, or laboratory grades.'**
+  String get phase7LimitationProjectGrade;
+
+  /// No description provided for @phase7LimitationResearchOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'This is research decision support, not an autonomous trading recommendation.'**
+  String get phase7LimitationResearchOnly;
+
+  /// No description provided for @phase7LimitationMixedForecast.
+  ///
+  /// In en, this message translates to:
+  /// **'The Phase 5 price signal is limited/mixed and persistence remains a strong baseline.'**
+  String get phase7LimitationMixedForecast;
+
+  /// No description provided for @phase7EacReferencePrice.
+  ///
+  /// In en, this message translates to:
+  /// **'EAC farm-gate reference price'**
+  String get phase7EacReferencePrice;
+
   /// No description provided for @berryQualityResult.
   ///
   /// In en, this message translates to:

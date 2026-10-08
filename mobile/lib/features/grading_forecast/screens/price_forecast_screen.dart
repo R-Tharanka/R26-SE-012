@@ -1,15 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:pepper_care/l10n/app_localizations.dart';
+
+import '../grading_forecast_localizations.dart';
 import '../models/grading_forecast_result.dart';
 
 class PriceForecastScreen extends StatelessWidget {
   const PriceForecastScreen({super.key, required this.result});
+
   final GradingForecastResult result;
+
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     final market = result.market;
     final interval = market.forecastInterval;
     return Scaffold(
-      appBar: AppBar(title: const Text('Price Outlook')),
+      appBar: AppBar(title: Text(t.phase7PriceOutlookTitle)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -20,56 +26,68 @@ class PriceForecastScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    result.decisionSupport.category.replaceAll('_', ' '),
+                    localizedDecisionCategory(
+                      t,
+                      result.decisionSupport.category,
+                    ),
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 12),
-                  _row('Price series', market.priceGrade ?? 'Not available'),
-                  _row('Source', market.source ?? 'Not available'),
                   _row(
-                    'Latest reference date',
-                    market.latestReferenceDate ?? 'Not available',
+                    t.phase7PriceSeries,
+                    localizedGrade(t, market.priceGrade),
+                  ),
+                  _row(t.phase7Source, localizedMarketSource(t, market.source)),
+                  _row(
+                    t.phase7LatestReferenceDate,
+                    market.latestReferenceDate ?? t.phase7NotAvailable,
                   ),
                   _row(
-                    'Latest reference price',
-                    _price(market.latestReferencePrice),
+                    t.phase7LatestReferencePrice,
+                    _price(t, market.latestReferencePrice),
                   ),
                   _row(
-                    'Frozen forecast target',
-                    market.forecastTargetDate ?? 'Not available',
+                    t.phase7FrozenForecastTarget,
+                    market.forecastTargetDate ?? t.phase7NotAvailable,
                   ),
-                  _row('Frozen forecast price', _price(market.forecastPrice)),
                   _row(
-                    'Direction',
-                    market.forecastDirection ?? 'Not available',
+                    t.phase7FrozenForecastPrice,
+                    _price(t, market.forecastPrice),
                   ),
-                  _row('Signal', market.forecastSignal ?? 'Not available'),
                   _row(
-                    'Persistence comparison',
-                    market.modelVsPersistence ?? 'Not available',
+                    t.phase7Direction,
+                    localizedDirection(t, market.forecastDirection),
+                  ),
+                  _row(
+                    t.phase7Signal,
+                    localizedSignal(t, market.forecastSignal),
+                  ),
+                  _row(
+                    t.phase7PersistenceComparison,
+                    localizedPersistence(t, market.modelVsPersistence),
                   ),
                   if (interval != null)
                     _row(
-                      interval.label,
-                      '${_price(interval.lower)} – ${_price(interval.upper)}',
+                      t.phase7ForecastInterval,
+                      '${_price(t, interval.lower)} – ${_price(t, interval.upper)}',
                     ),
                   const SizedBox(height: 12),
-                  const Text(
-                    'This is a frozen EAC farm-gate research forecast, not a live buyer offer, guaranteed price, or buy/sell instruction.',
-                  ),
+                  Text(t.phase7ForecastDisclaimer),
                 ],
               ),
             ),
           ),
           const SizedBox(height: 12),
           ExpansionTile(
-            title: const Text('Research trace'),
+            title: Text(t.phase7ResearchTrace),
             children: result.trace.entries
                 .map(
-                  (e) => ListTile(
+                  (entry) => ListTile(
                     dense: true,
-                    title: Text(e.key),
-                    subtitle: Text(e.value?.toString() ?? 'null'),
+                    title: Text(entry.key),
+                    subtitle: Text(
+                      entry.value?.toString() ?? t.phase7NullValue,
+                    ),
                   ),
                 )
                 .toList(),
@@ -79,8 +97,10 @@ class PriceForecastScreen extends StatelessWidget {
     );
   }
 
-  static String _price(double? value) =>
-      value == null ? 'Not available' : 'LKR ${value.toStringAsFixed(2)} / kg';
+  static String _price(AppLocalizations t, double? value) => value == null
+      ? t.phase7NotAvailable
+      : t.phase7PriceValue(value.toStringAsFixed(2));
+
   static Widget _row(String label, String value) => Padding(
     padding: const EdgeInsets.symmetric(vertical: 5),
     child: Row(

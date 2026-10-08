@@ -175,6 +175,20 @@ The browser check proves the Phase 7 grading path only. Direct Gemini/Claude
 browser execution is not an acceptance claim: browser CORS/provider support can
 differ, and embedding cloud keys in a public web bundle exposes them.
 
+### Verify grading localization
+
+Use the dashboard language selector to repeat the grading flow in English,
+Sinhala, and Tamil. For each language, verify the capture, processing, grading
+result, rejection/uncertainty, price outlook, limitations, errors, and research
+trace heading. API trace keys and stored Phase 6 enum values intentionally
+remain stable technical identifiers; localized text is a presentation layer.
+
+At minimum, rerun the Grade 1, Grade 2, non-pepper, poor-image, and uncertain
+controlled cases in Sinhala and Tamil. Confirm that rejected and uncertain
+cases still have no market output and that localized model scores are not
+described as probabilities. Record any font, truncation, or translation issue;
+automated tests do not replace independent linguistic/device review.
+
 ### Optional web release build
 
 This produces static web files but does not host them:

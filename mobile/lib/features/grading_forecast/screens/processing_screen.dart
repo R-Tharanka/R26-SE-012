@@ -1,8 +1,10 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:pepper_care/l10n/app_localizations.dart';
 
 import '../services/grading_forecast_analysis_service.dart';
+import '../grading_forecast_localizations.dart';
 import '../services/grading_forecast_api_service.dart'
     show GradingForecastApiException;
 import 'berry_quality_result_screen.dart';
@@ -57,13 +59,13 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
       if (!mounted) return;
       setState(() {
         _isRunning = false;
-        _errorMessage = e.message;
+        _errorMessage = e.localizedMessage(AppLocalizations.of(context));
       });
     } catch (_) {
       if (!mounted) return;
       setState(() {
         _isRunning = false;
-        _errorMessage = 'Failed to analyze the image. Please try again.';
+        _errorMessage = AppLocalizations.of(context).analyzeFailed;
       });
     }
   }
@@ -76,8 +78,9 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Processing')),
+      appBar: AppBar(title: Text(t.processing)),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -87,14 +90,12 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: _isRunning
-                    ? const Column(
+                    ? Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          CircularProgressIndicator(),
-                          SizedBox(height: 16),
-                          Text(
-                            'Running frozen grading and price decision support...',
-                          ),
+                          const CircularProgressIndicator(),
+                          const SizedBox(height: 16),
+                          Text(t.phase7ProcessingMessage),
                         ],
                       )
                     : Column(
@@ -103,14 +104,11 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
                           const Icon(Icons.error_outline, size: 40),
                           const SizedBox(height: 8),
                           Text(
-                            _errorMessage ?? 'Backend error. Please try again.',
+                            _errorMessage ?? t.backendError,
                             textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: 16),
-                          FilledButton(
-                            onPressed: _start,
-                            child: const Text('Retry'),
-                          ),
+                          FilledButton(onPressed: _start, child: Text(t.retry)),
                         ],
                       ),
               ),
