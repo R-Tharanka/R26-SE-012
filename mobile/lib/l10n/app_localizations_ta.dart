@@ -156,6 +156,12 @@ class AppLocalizationsTa extends AppLocalizations {
   String get historySettings => 'வரலாற்று அமைப்புகள்';
 
   @override
+  String get historyFilter => 'வரலாற்றை வடிகட்டு';
+
+  @override
+  String get historyDeleteOptions => 'வரலாற்றை நிர்வகித்து நீக்கு';
+
+  @override
   String get historyAutoDeleteTitle => '14 நாட்களுக்குப் பிறகு வரலாற்றை நீக்கு';
 
   @override

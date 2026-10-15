@@ -47,6 +47,8 @@
   "historyLoadMore": "Load more",
   "historyLoadingMore": "Loading more…",
   "historySettings": "History settings",
+  "historyFilter": "Filter history",
+  "historyDeleteOptions": "Manage and delete history",
   "historyAutoDeleteTitle": "Delete history after 14 days",
   "historyAutoDeleteDescription": "Optional and off by default. Expired history is removed when the app next opens or resumes.",
   "historyClearAll": "Clear all history",

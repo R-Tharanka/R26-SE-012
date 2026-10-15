@@ -106,6 +106,10 @@ void main() {
     await settleHistory(tester);
 
     expect(find.text('No analysis history yet'), findsOneWidget);
+    expect(find.byType(ChoiceChip), findsNothing);
+    expect(find.byType(SwitchListTile), findsNothing);
+    await tester.tap(find.byKey(const ValueKey('historyDeleteButton')));
+    await tester.pumpAndSettle();
     final toggle = tester.widget<SwitchListTile>(find.byType(SwitchListTile));
     expect(toggle.value, isFalse);
     await disposeApp(tester);
@@ -154,18 +158,30 @@ void main() {
       await tester.pumpWidget(app());
       await settleHistory(tester);
       try {
-        await tester.tap(find.text('Clear all history'));
-        await tester.pumpAndSettle();
-        await tester.tap(find.text('Cancel'));
+        await tester.tap(find.byKey(const ValueKey('historyDeleteButton')));
         await tester.pump();
+        await tester.pump(const Duration(milliseconds: 250));
+        await tester.tap(find.text('Clear all history'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 350));
+        await tester.tap(find.text('Cancel'));
+        await tester.pump(const Duration(milliseconds: 250));
         final recordsAfterCancel = await tester.runAsync(
           () async => (await repository.fetchPage()).records,
         );
         expect(recordsAfterCancel, hasLength(1));
 
+        await tester.tap(find.byKey(const ValueKey('historyDeleteButton')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 250));
         await tester.tap(find.text('Clear all history'));
-        await tester.pumpAndSettle();
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 350));
         await tester.tap(find.text('Clear all').last);
+        await tester.pump();
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 150)),
+        );
         await settleHistory(tester);
         final recordsAfterClear = await tester.runAsync(
           () async => (await repository.fetchPage()).records,
@@ -177,4 +193,25 @@ void main() {
       }
     },
   );
+
+  testWidgets('filter options stay hidden until the filter icon is tapped', (
+    tester,
+  ) async {
+    await tester.runAsync(() => saveRecord('filter-menu'));
+    await tester.pumpWidget(app());
+    await settleHistory(tester);
+    try {
+      expect(find.text('All'), findsNothing);
+      expect(find.text('Leaf Health Check'), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('historyFilterButton')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('All'), findsOneWidget);
+      expect(find.text('Pest Detection'), findsOneWidget);
+      expect(find.text('Berry Disease Check'), findsOneWidget);
+    } finally {
+      await disposeApp(tester);
+    }
+  });
 }

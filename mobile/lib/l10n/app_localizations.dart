@@ -370,6 +370,18 @@ abstract class AppLocalizations {
   /// **'History settings'**
   String get historySettings;
 
+  /// No description provided for @historyFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter history'**
+  String get historyFilter;
+
+  /// No description provided for @historyDeleteOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage and delete history'**
+  String get historyDeleteOptions;
+
   /// No description provided for @historyAutoDeleteTitle.
   ///
   /// In en, this message translates to:

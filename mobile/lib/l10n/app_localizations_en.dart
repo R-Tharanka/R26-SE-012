@@ -154,6 +154,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get historySettings => 'History settings';
 
   @override
+  String get historyFilter => 'Filter history';
+
+  @override
+  String get historyDeleteOptions => 'Manage and delete history';
+
+  @override
   String get historyAutoDeleteTitle => 'Delete history after 14 days';
 
   @override

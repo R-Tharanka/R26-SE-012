@@ -47,6 +47,8 @@
   "historyLoadMore": "மேலும் ஏற்றவும்",
   "historyLoadingMore": "மேலும் ஏற்றுகிறது…",
   "historySettings": "வரலாற்று அமைப்புகள்",
+  "historyFilter": "வரலாற்றை வடிகட்டு",
+  "historyDeleteOptions": "வரலாற்றை நிர்வகித்து நீக்கு",
   "historyAutoDeleteTitle": "14 நாட்களுக்குப் பிறகு வரலாற்றை நீக்கு",
   "historyAutoDeleteDescription": "விருப்பத்தேர்வு; இயல்பாக முடக்கப்பட்டுள்ளது. செயலி அடுத்தமுறை திறக்கும்போது அல்லது மீண்டும் செயல்படும்போது காலாவதியான வரலாறு நீக்கப்படும்.",
   "historyClearAll": "அனைத்து வரலாற்றையும் அழி",

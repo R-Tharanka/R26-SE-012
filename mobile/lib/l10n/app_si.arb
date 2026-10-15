@@ -47,6 +47,8 @@
   "historyLoadMore": "තවත් පෙන්වන්න",
   "historyLoadingMore": "තවත් පූරණය කරමින්…",
   "historySettings": "ඉතිහාස සැකසුම්",
+  "historyFilter": "ඉතිහාසය පෙරහන් කරන්න",
+  "historyDeleteOptions": "ඉතිහාසය කළමනාකරණය කර මකන්න",
   "historyAutoDeleteTitle": "දින 14කට පසු ඉතිහාසය මකන්න",
   "historyAutoDeleteDescription": "විකල්පයකි සහ පෙරනිමියෙන් අක්‍රියයි. යෙදුම නැවත විවෘත කරන හෝ සක්‍රිය කරන විට කල් ඉකුත් වූ ඉතිහාසය මැකේ.",
   "historyClearAll": "සියලු ඉතිහාසය මකන්න",

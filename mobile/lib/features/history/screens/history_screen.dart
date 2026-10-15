@@ -147,6 +147,64 @@ class _HistoryScreenState extends State<HistoryScreen> {
     }
   }
 
+  Future<void> _showHistoryManagement() async {
+    final repository = _repository;
+    if (repository == null) return;
+    var autoDeleteEnabled = repository.autoDeleteEnabled;
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          final t = AppLocalizations.of(context);
+          return AlertDialog(
+            title: Text(t.historySettings),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SwitchListTile.adaptive(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(t.historyAutoDeleteTitle),
+                    subtitle: Text(t.historyAutoDeleteDescription),
+                    value: autoDeleteEnabled,
+                    onChanged: (enabled) async {
+                      setDialogState(() => autoDeleteEnabled = enabled);
+                      await _setAutoDelete(enabled);
+                    },
+                  ),
+                  const Divider(),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Icon(
+                      Icons.delete_sweep_outlined,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                    title: Text(t.historyClearAll),
+                    subtitle: Text(t.historyClearConfirmMessage),
+                    onTap: _clearing
+                        ? null
+                        : () {
+                            Navigator.of(dialogContext).pop();
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              if (mounted) unawaited(_clearAll());
+                            });
+                          },
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: Text(t.historyCancel),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
   Future<void> _clearAll() async {
     final repository = _repository;
     if (repository == null || _clearing) return;
@@ -215,16 +273,27 @@ class _HistoryScreenState extends State<HistoryScreen> {
             32,
           ),
           children: [
-            FarmerSectionHeader(title: t.navHistory, subtitle: t.historyIntro),
-            const SizedBox(height: 16),
-            _SettingsCard(
-              enabled: repository.autoDeleteEnabled,
-              clearing: _clearing,
-              onChanged: _setAutoDelete,
-              onClear: _clearAll,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Text(
+                    t.historyIntro,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                _filterMenu(t),
+                IconButton(
+                  key: const ValueKey('historyDeleteButton'),
+                  tooltip: t.historyDeleteOptions,
+                  onPressed: _showHistoryManagement,
+                  icon: const Icon(Icons.delete_outline_rounded),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            _filters(t),
             const SizedBox(height: 12),
             if (_loading)
               const Padding(
@@ -276,22 +345,32 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
-  Widget _filters(AppLocalizations t) => Wrap(
-    spacing: 8,
-    runSpacing: 8,
-    children: [
-      ChoiceChip(
-        label: Text(t.historyAllTypes),
-        selected: _filter == null,
-        onSelected: (_) => _setFilter(null),
+  Widget _filterMenu(AppLocalizations t) => PopupMenuButton<String>(
+    key: const ValueKey('historyFilterButton'),
+    tooltip: t.historyFilter,
+    initialValue: _filter?.code ?? '',
+    onSelected: (value) =>
+        _setFilter(value.isEmpty ? null : HistoryFeature.tryParse(value)),
+    itemBuilder: (context) => [
+      PopupMenuItem<String>(
+        value: '',
+        child: _FilterMenuItem(
+          label: t.historyAllTypes,
+          selected: _filter == null,
+        ),
       ),
       for (final feature in HistoryFeature.values)
-        ChoiceChip(
-          label: Text(historyFeatureLabel(t, feature)),
-          selected: _filter == feature,
-          onSelected: (_) => _setFilter(feature),
+        PopupMenuItem<String>(
+          value: feature.code,
+          child: _FilterMenuItem(
+            label: historyFeatureLabel(t, feature),
+            selected: _filter == feature,
+          ),
         ),
     ],
+    icon: Icon(
+      _filter == null ? Icons.filter_list_rounded : Icons.filter_alt_rounded,
+    ),
   );
 
   Widget _errorCard(AppLocalizations t) => Card(
@@ -319,48 +398,29 @@ class _HistoryScreenState extends State<HistoryScreen> {
   );
 }
 
-class _SettingsCard extends StatelessWidget {
-  const _SettingsCard({
-    required this.enabled,
-    required this.clearing,
-    required this.onChanged,
-    required this.onClear,
-  });
+class _FilterMenuItem extends StatelessWidget {
+  const _FilterMenuItem({required this.label, required this.selected});
 
-  final bool enabled;
-  final bool clearing;
-  final ValueChanged<bool> onChanged;
-  final VoidCallback onClear;
+  final String label;
+  final bool selected;
 
   @override
   Widget build(BuildContext context) {
-    final t = AppLocalizations.of(context);
-    return Card(
-      child: Column(
-        children: [
-          SwitchListTile.adaptive(
-            title: Text(t.historyAutoDeleteTitle),
-            subtitle: Text(t.historyAutoDeleteDescription),
-            value: enabled,
-            onChanged: onChanged,
-          ),
-          const Divider(height: 1),
-          ListTile(
-            leading: Icon(
-              Icons.delete_sweep_outlined,
-              color: Theme.of(context).colorScheme.error,
-            ),
-            title: Text(t.historyClearAll),
-            trailing: clearing
-                ? const SizedBox.square(
-                    dimension: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.chevron_right_rounded),
-            onTap: clearing ? null : onClear,
-          ),
-        ],
-      ),
+    return Row(
+      children: [
+        SizedBox(
+          width: 24,
+          child: selected
+              ? Icon(
+                  Icons.check_rounded,
+                  size: 20,
+                  color: Theme.of(context).colorScheme.primary,
+                )
+              : null,
+        ),
+        const SizedBox(width: 10),
+        Flexible(child: Text(label)),
+      ],
     );
   }
 }

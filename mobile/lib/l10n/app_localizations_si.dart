@@ -154,6 +154,12 @@ class AppLocalizationsSi extends AppLocalizations {
   String get historySettings => 'ඉතිහාස සැකසුම්';
 
   @override
+  String get historyFilter => 'ඉතිහාසය පෙරහන් කරන්න';
+
+  @override
+  String get historyDeleteOptions => 'ඉතිහාසය කළමනාකරණය කර මකන්න';
+
+  @override
   String get historyAutoDeleteTitle => 'දින 14කට පසු ඉතිහාසය මකන්න';
 
   @override
