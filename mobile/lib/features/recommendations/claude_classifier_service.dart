@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:anthropic_sdk_dart/anthropic_sdk_dart.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 
 import 'ai_config.dart';
 
@@ -61,6 +62,13 @@ class ClaudeVerdict {
 /// Returns crop id -> (aspect key -> verdict). Any thrown error is treated by
 /// the caller as "keep the Gemini labels".
 class ClaudeClassifierService {
+  // One reused client → no fresh TLS handshake per scan.
+  static final AnthropicClient _client = AnthropicClient(
+    config: const AnthropicConfig(
+      authProvider: ApiKeyProvider(AiConfig.claudeApiKey),
+    ),
+  );
+
   Future<Map<int, Map<String, ClaudeVerdict>>> classify({
     required Uint8List overviewJpeg,
     required List<ClaudeCrop> crops,
@@ -71,12 +79,6 @@ class ClaudeClassifierService {
     if (!AiConfig.hasClaudeKey || crops.isEmpty || aspects.isEmpty) {
       return const {};
     }
-
-    final client = AnthropicClient(
-      config: const AnthropicConfig(
-        authProvider: ApiKeyProvider(AiConfig.claudeApiKey),
-      ),
-    );
 
     final blocks = <InputContentBlock>[
       InputContentBlock.text(
@@ -132,21 +134,21 @@ class ClaudeClassifierService {
     }
     blocks.add(InputContentBlock.text(_instruction(aspects)));
 
-    try {
-      final res = await client.messages.create(
-        MessageCreateRequest(
-          model: AiConfig.claudeModel,
-          maxTokens: 6000,
-          // Extended thinking: let Claude reason about discriminating features
-          // before committing. (Thinking blocks are excluded from res.text.)
-          thinking: ThinkingConfig.enabled(budgetTokens: 2000),
-          messages: [InputMessage.userBlocks(blocks)],
-        ),
-      );
-      return _parse(res.text, aspects);
-    } finally {
-      client.close();
-    }
+    final res = await _client.messages
+        .create(
+          MessageCreateRequest(
+            model: AiConfig.claudeModel,
+            maxTokens: 6000,
+            // No `thinking` param: Opus 5.5 / Sonnet 5.5 REJECT the old
+            // ThinkingConfig.enabled(budgetTokens:) with a 400 ("use adaptive"),
+            // which silently dropped every crop back to the Gemini label. Omitting
+            // it runs adaptive thinking by default on these models — so Claude
+            // actually reasons about the crop before committing.
+            messages: [InputMessage.userBlocks(blocks)],
+          ),
+        )
+        .timeout(const Duration(seconds: 20));
+    return _parse(res.text, aspects);
   }
 
   static InputContentBlock _img(Uint8List jpeg) => InputContentBlock.image(
@@ -186,10 +188,43 @@ class ClaudeClassifierService {
       )
       ..writeln()
       ..writeln(
+        'For each answer, "evidence" MUST name the SPECIFIC visible '
+        'feature that justifies the label (e.g. "brown feeding spots on two '
+        'berries"), or "none" if you saw no positive sign. If "evidence" is '
+        'empty or "none", you did NOT find a positive sign — then the label '
+        'MUST be the healthy/None option, never a disease, pest or damage '
+        'class.',
+      )
+      ..writeln()
+      ..writeln(
+        'Healthy/None is the DEFAULT for every question. Leave it ONLY '
+        'when a specific sign clearly meets a cue above. For DISEASE: distinct '
+        'spots/dots scattered on the blade (Leaf Blight), a darkened continuous '
+        'edge/tip/margin dead zone with NO spots (Quick Wilt), or a leaf plainly '
+        'smaller than its neighbours (Little Leaf). For PESTS: pale stippling with dark '
+        'underside specks or blackened spikes (lace bug), curled/folded/galled '
+        'leaves with silvery scarring (thrips), or leaves webbed/folded together '
+        'and dried into pods with blackened spikes/windows (caterpillar). A firm '
+        'flat green leaf with just a thin dry tip, one or two specks, or faint '
+        'yellowing — and no pest sign — is Healthy/None, not a disease or pest.',
+      )
+      ..writeln(
+        'IGNORE background, lighting and photo style: some reference '
+        'leaves sit on a plain grey studio backdrop while diseased/infested ones '
+        'are field photos. Backdrop, blur, shadows and colour cast are NEVER '
+        'evidence — "evidence" must name a feature ON the object itself (a spot, '
+        'patch, stipple, gall, web, hole or insect you can point to).',
+      )
+      ..writeln()
+      ..writeln(
         'Respond with ONLY a JSON object, no prose, no markdown fences:',
       );
     final shape = aspects
-        .map((a) => '"${a.key}":{"label":"<class or None>","confidence":0.0}')
+        .map(
+          (a) =>
+              '"${a.key}":{"label":"<class or None>","confidence":0.0,'
+              '"evidence":"<specific visible feature, or none>"}',
+        )
         .join(',');
     b.writeln('{"results":[{"id":1,$shape}]}');
     return b.toString();
@@ -232,13 +267,25 @@ class ClaudeClassifierService {
         if (cell is! Map) continue;
         final rawLabel = (cell['label'] ?? '').toString().trim();
         final low = rawLabel.toLowerCase();
-        final label =
+        var label =
             lookups[a.key]![low] ??
             (low == 'none'
                 ? 'None'
                 : low == 'uncertain'
                 ? 'Uncertain'
                 : rawLabel);
+        // Positive-evidence gate: a disease/pest/damage label without specific
+        // cited evidence is uncertain. It must not silently become healthy.
+        final evidence = (cell['evidence'] ?? '')
+            .toString()
+            .trim()
+            .toLowerCase();
+        final hasEvidence = evidence.isNotEmpty && evidence != 'none';
+        final isPositive =
+            label != 'None' &&
+            label != 'Uncertain' &&
+            lookups[a.key]!.containsValue(label);
+        if (isPositive && !hasEvidence) label = 'Uncertain';
         final conf = cell['confidence'];
         perAspect[a.key] = ClaudeVerdict(
           label,
@@ -249,4 +296,10 @@ class ClaudeClassifierService {
     }
     return out;
   }
+
+  @visibleForTesting
+  static Map<int, Map<String, ClaudeVerdict>> parseForTesting(
+    String text,
+    List<ClaudeAspect> aspects,
+  ) => _parse(text, aspects);
 }

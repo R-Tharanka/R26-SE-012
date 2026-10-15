@@ -29,10 +29,12 @@ class AiConfig {
     'ANTHROPIC_API_KEY',
   );
 
-  // Haiku, not Opus: this stage only picks one of a few classes per crop, so the
-  // fastest tier is plenty and keeps the second cloud round-trip cheap. Bump to
-  // 'claude-sonnet-5-5' if crop accuracy measurably suffers.
-  static const String claudeModel = 'claude-haiku-4-5';
+  // Opus for the crop classifier: the Leaf Blight vs Quick Wilt call is a hard
+  // fine-grained visual discrimination, and Opus is the most accurate at it.
+  // MUST run with NO `thinking` param (budgetTokens:/enabled 400s on this model —
+  // see claude_classifier_service). Switch to 'claude-sonnet-5-5' (also valid
+  // with no thinking) if you want it cheaper/faster.
+  static const String claudeModel = 'claude-opus-5-5';
 
   static bool get hasClaudeKey => claudeApiKey.isNotEmpty;
 }

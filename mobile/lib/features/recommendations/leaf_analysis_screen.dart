@@ -18,10 +18,13 @@ import 'leaf_analysis.dart';
 class LeafAnalysisScreen extends StatefulWidget {
   final Uint8List imageBytes;
   final Future<LeafAnalysis>? prefetch;
+  final String? detectedClass;
+
   const LeafAnalysisScreen({
     super.key,
     required this.imageBytes,
     this.prefetch,
+    this.detectedClass,
   });
 
   @override
@@ -48,7 +51,12 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
       _result = null;
     });
     try {
-      final r = await (_pending ?? _service.analyze(widget.imageBytes));
+      final r =
+          await (_pending ??
+              _service.analyze(
+                widget.imageBytes,
+                knownDisease: widget.detectedClass,
+              ));
       _pending =
           null; // a retry re-calls the service instead of the dead future
       if (!mounted) return;
@@ -207,10 +215,9 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
           title: t.whatWeSee,
           child: Text(
             r.affectedRegions,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: kTextSub,
-              height: 1.48,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: kTextSub, height: 1.48),
           ),
         ),
 
@@ -233,7 +240,8 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
                           color: accent.withValues(
-                            alpha: Theme.of(context).brightness == Brightness.dark
+                            alpha:
+                                Theme.of(context).brightness == Brightness.dark
                                 ? 0.25
                                 : 0.15,
                           ),
@@ -252,10 +260,8 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
                       Expanded(
                         child: Text(
                           r.treatments[i],
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            height: 1.45,
-                            color: kText,
-                          ),
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(height: 1.45, color: kText),
                         ),
                       ),
                     ],

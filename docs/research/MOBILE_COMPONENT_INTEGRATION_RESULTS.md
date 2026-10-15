@@ -155,3 +155,114 @@ On an emulator or physical Android device:
 ## Status
 
 `IMPLEMENTED; STATIC AND BACKEND VERIFICATION PASSED; DEVICE/FLUTTER-RUNNER ACCEPTANCE PENDING`.
+
+## 2026-10-15 outsourced-component update
+
+### Purpose and authority
+
+A newer copy of the outsourced Pest Detection, Leaf Disease Detection, and
+Berry Disease Detection implementation was supplied in the ignored
+`other members components - mobile` directory. The update was merged at the
+inference and recommendation boundaries while the current application remained
+authoritative for UI/UX, navigation, accessibility, localization, browser
+compatibility, and Berry Grading and Export Price Forecasting.
+
+No imported grading/forecast source, application shell, theme, platform
+configuration, generated build output, cache, `.env`, or provider credential
+was copied. The imported source directory remained untouched.
+
+### Functional update
+
+- TFLite and Gemini detection now execute concurrently, sharing one local-model
+  future with Claude priors and the offline/failure fallback.
+- Reference exemplars are prepared in advance and cached. Limits are 10 images
+  per class for the combined plant scanner, 15 for standalone leaf/pest, and 6
+  for berry disease.
+- The supplied correction mapping Leaf Blight to `leaf/quick/` and Quick Wilt
+  to `leaf/blight/` was retained because the imported project documents those
+  source folders as mislabeled.
+- The newer disease, pest, and berry prompts, crop limit, evidence-aware Claude
+  refinement, reusable Anthropic client, 20-second timeout, and
+  `claude-opus-5-5` selection were integrated.
+- The optional Gemini/TFLite agreement gate remains disabled pending a labeled
+  calibration study, exactly as supplied.
+- Recommendation routing uses the strongest non-healthy detection. A leaf
+  recommendation is anchored to the scanner's detected disease so the second
+  analysis supplies severity and treatment without silently choosing a
+  different disease.
+- Native preprocessing continues off the UI isolate. The current direct web
+  fallback was preserved instead of importing mobile-only isolate assumptions.
+
+### Insufficient-evidence behavior
+
+The supplied parser converted a positive Claude label with no cited visual
+evidence to `None`. That could silently present a diseased or pest-affected
+object as healthy. The integrated parser instead uses its existing
+`Uncertain` verdict. A crop with missing or uncertain evidence is omitted from
+the refined detections; a healthy plant result is produced only when both plant
+aspects explicitly return `None`.
+
+The scanner result model has no separate public detection-row state for
+`INSUFFICIENT_EVIDENCE`. Consequently, an abstained crop may produce no finding
+rather than a dedicated uncertainty card. This interface limitation is recorded
+instead of changing the shared result schema or fabricating a healthy label.
+
+### Reference assets and integrity
+
+Only JPG/JPEG/PNG reference exemplars were copied from the supplied source:
+
+- 209 imported reference images were reproduced byte-for-byte in the current
+  asset tree;
+- 183 were new paths and 26 replaced older same-path references;
+- six current-only PNG reference variants were retained;
+- the resulting 215 reference images occupy approximately 44.95 MB before APK
+  packaging;
+- `.DS_Store`, `.env`, `models.zip`, caches, Pods, and build output were excluded.
+
+The three outsourced TFLite binaries were already identical and were not
+replaced. Post-update protected hashes remain:
+
+| Artifact | SHA-256 |
+|---|---|
+| Frozen Phase 3 `best.pt` | `e825278e0cf8eaff64cd05a2941cf96794e573027823a0ccd308bbc3f1a418ca` |
+| Phase 7 `best.onnx` | `f8bb36b3ce9c354fd0707f555dbff88bc4f24606b4b93be99a74b03e6db54d38` |
+| Berry grading MobileNet TFLite | `b0885ea82136718312549dbea4a5ec19908433bf61d3ad79d67f68f45752c90b` |
+| Berry-disease TFLite | `48207a4189a4b33ea74e4669203b75d1d7295972f17129d677c3d4a9ac58fe1f` |
+| Leaf TFLite | `285f31bd32094a21b4a7c86d90cadcff9c51f325bf1b58d31f599418d69beaf0` |
+| Pest TFLite | `fa9e343a5d9df0799dc0e4c81391936ffe3d999240774d1678c29c7baa0886b9` |
+
+There is no diff under `backend/`, `ml/`, or
+`mobile/lib/features/grading_forecast/`. Phase 6 rules, Phase 7 contracts,
+thresholds, price evidence, ONNX inference, and five-case grading expectations
+remain outside this update.
+
+### Verification
+
+- Direct Dart analysis and official `flutter analyze`: no issues.
+- New outsourced-update tests: 5/5 passed.
+- Focused scanner/navigation/Phase 7 tests: 56/56 passed.
+- Complete Flutter suite after regenerating Dart localization output from the
+  existing ARB catalogs: 80/80 passed.
+- The unchanged focused Phase 7 backend integration suite: 11/11 passed.
+- Localization generation corrected a previously stale Sinhala generated file;
+  no ARB catalog or localization interface was changed.
+- Android debug build without API keys entered Gradle but produced no completion
+  or error within the bounded run and was stopped. No APK-build pass is claimed.
+
+### Remaining manual verification and risk
+
+- Exercise pest, leaf, and berry camera/gallery paths on an emulator and a
+  physical Android device, with and without authorized development keys.
+- Confirm reference warm-up, camera lifecycle recovery, fallback behavior,
+  recommendation routing, and long Sinhala/Tamil layouts on-device.
+- Rerun the established five Phase 7 grading cases to provide device-level
+  regression evidence after packaging the combined app.
+- Gemini/Anthropic behavior and the supplied Opus model identifier require live
+  provider verification. Automated tests do not establish cloud accuracy.
+- Client-embedded provider keys remain recoverable and are suitable only for
+  controlled development builds; public distribution requires a protected
+  server-side provider proxy.
+
+Updated status:
+
+`IMPLEMENTED; STATIC AND FLUTTER TEST VERIFICATION PASSED; ANDROID BUILD AND LIVE DEVICE/CLOUD ACCEPTANCE PENDING`.

@@ -1237,3 +1237,17 @@ Date: 2026-10-08.
 - Verification: official `flutter analyze` reported no issues and the complete Flutter suite passed 75/75 tests. A diff boundary check showed no backend, ML, model, or data changes.
 - Build boundary: a hosted-backend debug APK build reached Gradle but produced no completion/error within the bounded run and was stopped. No newly built APK or emulator/device UI acceptance is claimed.
 - Interpretation: deployment/usability engineering only; no new predictive accuracy, field robustness, confidence calibration, price reliability, or farmer-benefit evidence.
+
+### MOBILE-OUTSOURCED-COMPONENT-UPDATE-002
+
+Date: 2026-10-15.
+
+- Scope: merged the newer supplied Pest Detection, Leaf Disease Detection, and Berry Disease Detection inference/recommendation behavior into the current Flutter shell. This is deployment integration, not model training or predictive evaluation.
+- Authority: the imported project governed the three outsourced component behaviors; the current project remained authoritative for UI/UX, navigation, accessibility, localization, browser support, and Berry Grading and Export Price Forecasting.
+- Runtime: added parallel TFLite/Gemini execution, reference warm-up/cache, expanded exemplar limits, corrected imported leaf-reference mapping, updated visual prompts, evidence-aware Claude refinement, detected-class recommendation anchoring, a reusable Anthropic client, and a bounded provider timeout. The current web-safe direct fallback was preserved.
+- Evidence safety: an unsupported positive Claude label now becomes the existing `Uncertain` verdict and abstains. It is not silently rewritten as `None`, healthy, or pest-free. The shared scanner schema has no dedicated insufficient-evidence row, which remains a documented presentation limitation.
+- Assets: imported 209 JPG/JPEG/PNG references byte-for-byte (183 new paths and 26 replacements), retained six current-only variants, and excluded secrets, caches, archives, and generated build products. The resulting 215-image reference set occupies approximately 44.95 MB before APK packaging. Outsourced TFLite binaries were unchanged.
+- Protected boundary: no backend, ML, Phase 6, Phase 7 grading source, grading model, threshold, API contract, forecast evidence, or price route changed. Frozen PT/ONNX and four TFLite hashes remained stable.
+- Verification: direct Dart analysis and official `flutter analyze` passed; new focused tests passed 5/5; focused scanner/navigation/Phase 7 tests passed 56/56; the complete Flutter suite passed 80/80 after synchronizing generated Sinhala localization from the existing ARB catalog; the unchanged Phase 7 backend integration suite passed 11/11.
+- Build boundary: a credential-free debug APK build entered Gradle but remained silent past the bounded window and was stopped. No build, emulator, device, or live-provider pass is claimed.
+- Remaining acceptance: manually verify all three outsourced camera/gallery and recommendation paths with authorized keys and fallback mode, then rerun the five established Phase 7 grading cases on the packaged application.

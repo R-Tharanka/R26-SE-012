@@ -13,6 +13,7 @@ import '../../features/recommendations/berry_analysis_screen.dart';
 import '../../features/recommendations/leaf_analysis_screen.dart';
 import '../../features/recommendations/pest_analysis_screen.dart';
 import '../../l10n/app_localizations.dart';
+import '../models/detection.dart';
 import '../models/scanner_model_config.dart';
 import 'scan_result_view.dart';
 
@@ -136,6 +137,7 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
       if (_disposed) return;
       await _detector.load(widget.modelConfig);
       if (_disposed) return;
+      AiDetectionService.warmUp(widget.modelConfig.id);
       setState(() {});
     } on CameraException catch (e) {
       if (_disposed) return;
@@ -204,17 +206,15 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
 
   /// Shared detection path for both camera capture and gallery pick.
   Future<void> _analyzeBytes(Uint8List bytes) async {
-    // Run the on-device trained (YOLO) model up front. Its detections seed the
-    // AI as a domain-trained second opinion (ensemble), and stand in as the
-    // result if the AI call fails (offline / no key).
-    DetectionResult? yolo;
-    try {
-      if (_detector.isReady) {
-        yolo = await _detector.detectJpeg(bytes, 0);
-      }
-    } catch (_) {
-      yolo = null;
-    }
+    // The local detector and Gemini run concurrently. The same future supplies
+    // Claude's prior and the fail-closed local fallback, avoiding duplicate
+    // inference when the cloud path is unavailable.
+    final Future<DetectionResult?> yoloFuture = _detector.isReady
+        ? _detector
+              .detectJpeg(bytes, 0)
+              .then<DetectionResult?>((result) => result)
+              .catchError((_) => null)
+        : Future<DetectionResult?>.value(null);
 
     // Primary path: AI detection (multi-object, higher accuracy), informed by
     // the trained model's priors. Falls back to the YOLO result on failure.
@@ -223,13 +223,13 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
       result = await _aiDetector.detect(
         bytes,
         widget.modelConfig,
-        yoloPriors: yolo?.detections ?? const [],
+        yolo: yoloFuture,
       );
     } catch (e, st) {
       // Surface why the AI path failed — otherwise a Gemini error silently
       // falls back to YOLO and looks like a slow success.
       logAiError('scanner-ai-${widget.modelConfig.id}', e, st);
-      yolo ??= await _detector.detectJpeg(bytes, 0);
+      final yolo = await yoloFuture ?? await _detector.detectJpeg(bytes, 0);
       if (yolo.frameSize == Size.zero) {
         throw StateError('Could not read that image.');
       }
@@ -292,6 +292,14 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
   void _showRecommendations(Uint8List photo) {
     // The recommendation is a separate API call made when this screen opens
     // (on the button tap), not prefetched during the scan.
+    final top = _topDetection();
+    final detectedLeaf =
+        top != null &&
+            !top.className.toLowerCase().contains('healthy') &&
+            !AiDetectionService.isPestClass(top.className)
+        ? top.className
+        : null;
+
     final Widget page;
     switch (widget.modelConfig.id) {
       case 'berry':
@@ -299,28 +307,33 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
       case 'pest':
         page = PestAnalysisScreen(imageBytes: photo);
       case 'plant':
-        page = _routesToPest()
+        page = top != null && AiDetectionService.isPestClass(top.className)
             ? PestAnalysisScreen(imageBytes: photo)
-            : LeafAnalysisScreen(imageBytes: photo);
+            : LeafAnalysisScreen(
+                imageBytes: photo,
+                detectedClass: detectedLeaf,
+              );
       default:
-        page = LeafAnalysisScreen(imageBytes: photo);
+        page = LeafAnalysisScreen(
+          imageBytes: photo,
+          detectedClass: detectedLeaf,
+        );
     }
     Navigator.of(context).push(fadeScaleRoute<void>(page));
   }
 
   /// For the combined scanner: route by the most-confident non-healthy
   /// detection — a pest class sends the user to the pest flow, otherwise leaf.
-  bool _routesToPest() {
+  Detection? _topDetection() {
     final dets = _result?.detections ?? const [];
     final problems =
         dets
             .where((d) => !d.className.toLowerCase().contains('healthy'))
             .toList()
           ..sort((a, b) => b.score.compareTo(a.score));
-    final top = problems.isNotEmpty
+    return problems.isNotEmpty
         ? problems.first
         : (dets.isNotEmpty ? dets.first : null);
-    return top != null && AiDetectionService.isPestClass(top.className);
   }
 
   @override

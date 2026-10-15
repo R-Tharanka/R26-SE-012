@@ -52,21 +52,37 @@ class AiLeafService {
     ),
   );
 
-  Future<LeafAnalysis> analyze(Uint8List jpegBytes) async {
+  /// [knownDisease] is the class the scanner already detected (e.g. "Quick
+  /// Wilt"). When given, the diagnosis is PINNED to it — this screen only fills
+  /// in the severity, affected regions and treatment for that disease, instead
+  /// of running a second, independent classification that can disagree with the
+  /// scan the user just saw.
+  Future<LeafAnalysis> analyze(
+    Uint8List jpegBytes, {
+    String? knownDisease,
+  }) async {
     if (!AiConfig.hasKey) {
       throw LeafAnalysisException(
         'No AI API key. Run with --dart-define=GEMINI_API_KEY=your_key',
       );
     }
 
+    final anchor = (knownDisease == null || knownDisease.trim().isEmpty)
+        ? ''
+        : '\n\nA specialist detector has ALREADY diagnosed this leaf as '
+              '"$knownDisease". Treat that as correct: set disease_type to exactly '
+              '"$knownDisease", and describe its symptoms, severity and treatment '
+              'accordingly. Do NOT pick a different disease.';
+
     final GenerateContentResponse res;
     try {
       res = await _model.generateContent([
         Content.multi([
           TextPart(
-            '$_taskPrompt\n\nWrite summary, affected_regions and every '
-            'treatment step in ${currentPromptLanguage()}. Keep disease_type '
-            'and severity_band exactly as the allowed English values.',
+            '$_taskPrompt$anchor\n\nWrite summary, affected_regions and '
+            'every treatment step in ${currentPromptLanguage()}. Keep '
+            'disease_type and severity_band exactly as the allowed English '
+            'values.',
           ),
           DataPart('image/jpeg', jpegBytes),
         ]),
@@ -84,6 +100,15 @@ class AiLeafService {
 
     try {
       final json = jsonDecode(text) as Map<String, dynamic>;
+      // Pin the label to the scan when we have one, but only if the leaf is in
+      // distribution (is_pepper_leaf). The prompt already steers the model here;
+      // this guarantees the header matches the "Quick Wilt 95%" the user saw.
+      if (knownDisease != null &&
+          knownDisease.trim().isNotEmpty &&
+          json['is_pepper_leaf'] == true) {
+        json['disease_type'] = knownDisease;
+        json['healthy'] = false;
+      }
       return LeafAnalysis.fromJson(json);
     } catch (_) {
       throw LeafAnalysisException('Could not parse AI response:\n$text');
