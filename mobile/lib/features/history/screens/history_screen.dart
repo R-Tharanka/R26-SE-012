@@ -173,22 +173,31 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     },
                   ),
                   const Divider(),
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: Icon(
-                      Icons.delete_sweep_outlined,
-                      color: Theme.of(context).colorScheme.error,
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      key: const ValueKey('historyClearAllButton'),
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size.fromHeight(52),
+                        backgroundColor: Theme.of(
+                          context,
+                        ).colorScheme.errorContainer,
+                        foregroundColor: Theme.of(
+                          context,
+                        ).colorScheme.onErrorContainer,
+                      ),
+                      onPressed: _clearing
+                          ? null
+                          : () {
+                              Navigator.of(dialogContext).pop();
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                if (mounted) unawaited(_clearAll());
+                              });
+                            },
+                      icon: const Icon(Icons.delete_forever_outlined),
+                      label: Text(t.historyClearAll),
                     ),
-                    title: Text(t.historyClearAll),
-                    subtitle: Text(t.historyClearConfirmMessage),
-                    onTap: _clearing
-                        ? null
-                        : () {
-                            Navigator.of(dialogContext).pop();
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              if (mounted) unawaited(_clearAll());
-                            });
-                          },
                   ),
                 ],
               ),
