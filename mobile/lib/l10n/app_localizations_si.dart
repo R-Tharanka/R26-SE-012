@@ -318,7 +318,8 @@ class AppLocalizationsSi extends AppLocalizations {
       'ගම්මිරිස් නියැදියක ඡායාරූපයක් ගෙන ගුණාත්මකභාවය ඇස්තමේන්තු කර සරල මිල පුරෝකථනයක් ලබාගන්න.';
 
   @override
-  String get checkBerryQuality => 'ගම්මිරිස් නියැදියේ ගුණාත්මකභාවය පරීක්ෂා කරන්න';
+  String get checkBerryQuality =>
+      'ගම්මිරිස් නියැදියේ ගුණාත්මකභාවය පරීක්ෂා කරන්න';
 
   @override
   String get captureBerryTitle => 'ගම්මිරිස් නියැදියක ඡායාරූපය ගන්න';
@@ -356,7 +357,8 @@ class AppLocalizationsSi extends AppLocalizations {
       'කැමරාව භාවිතා කරන්න හෝ ගැලරියෙන් මුල් ඡායාරූපයක් තෝරන්න.';
 
   @override
-  String get analyzeBerrySample => 'ගම්මිරිස් නියැදියේ ගුණාත්මකභාවය පරීක්ෂා කරන්න';
+  String get analyzeBerrySample =>
+      'ගම්මිරිස් නියැදියේ ගුණාත්මකභාවය පරීක්ෂා කරන්න';
 
   @override
   String get couldNotOpenCameraGallery =>
@@ -366,7 +368,8 @@ class AppLocalizationsSi extends AppLocalizations {
   String get processing => 'සකසමින්';
 
   @override
-  String get analyzingBerryQuality => 'ගම්මිරිස් නියැදියේ ගුණාත්මකභාවය විශ්ලේෂණය කරමින්...';
+  String get analyzingBerryQuality =>
+      'ගම්මිරිස් නියැදියේ ගුණාත්මකභාවය විශ්ලේෂණය කරමින්...';
 
   @override
   String get analyzeFailed =>
@@ -1004,7 +1007,7 @@ class AppLocalizationsSi extends AppLocalizations {
   String get analysingLeaf => 'AI සමඟ කොළය විශ්ලේෂණය කරමින්…';
 
   @override
-  String get analysingBerry => 'AI සමඟ ගෙඩි ශ්‍රේණිගත කරමින්…';
+  String get analysingBerry => 'AI සමඟ නියැදිය ශ්‍රේණිගත කරමින්…';
 
   @override
   String get analysingPest => 'AI සමඟ පළිබෝධ සඳහා පරීක්ෂා කරමින්…';
@@ -1031,7 +1034,7 @@ class AppLocalizationsSi extends AppLocalizations {
   String get clsHealthyLeaves => 'නිරෝගී කොළ';
 
   @override
-  String get clsHealthyBerry => 'නිරෝගී ගෙඩිය';
+  String get clsHealthyBerry => 'නිරෝගී කරල්';
 
   @override
   String get clsLeafBlight => 'කොළ අංගමාරය';
