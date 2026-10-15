@@ -70,7 +70,7 @@ void main() {
 
       await tester.tap(find.text('History'));
       await tester.pumpAndSettle();
-      expect(find.text('No analysis history yet'), findsOneWidget);
+      expect(find.text('History is unavailable'), findsOneWidget);
 
       await tester.tap(find.text('Guide'));
       await tester.pumpAndSettle();

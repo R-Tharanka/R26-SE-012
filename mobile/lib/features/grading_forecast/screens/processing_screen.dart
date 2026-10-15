@@ -1,10 +1,15 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:pepper_care/l10n/app_localizations.dart';
 
 import '../../../shared/widgets/farmer_ui.dart';
+import '../../history/history_scope.dart';
+import '../../history/models/history_record.dart';
+import '../../history/serialization/history_payload_codec.dart';
 import '../grading_forecast_localizations.dart';
+import '../models/grading_forecast_result.dart';
 import '../services/grading_forecast_analysis_service.dart';
 import '../services/grading_forecast_api_service.dart'
     show GradingForecastApiException;
@@ -26,6 +31,7 @@ class ProcessingScreen extends StatefulWidget {
 
 class _ProcessingScreenState extends State<ProcessingScreen> {
   final _analysisService = GradingForecastAnalysisService();
+  final String _historyRecordKey = newHistoryRecordKey();
 
   bool _isRunning = true;
   String? _errorMessage;
@@ -48,6 +54,7 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
         widget.imageName,
       );
       if (!mounted) return;
+      unawaited(_saveHistory(result));
       Navigator.of(context).pushReplacement(
         MaterialPageRoute<void>(
           builder: (_) => BerryQualityResultScreen(
@@ -68,6 +75,34 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
         _isRunning = false;
         _errorMessage = AppLocalizations.of(context).analyzeFailed;
       });
+    }
+  }
+
+  Future<void> _saveHistory(GradingForecastResult result) async {
+    final repository = HistoryScope.maybeOf(context);
+    if (repository == null) return;
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    final failureMessage = AppLocalizations.of(context).historySaveFailed;
+    try {
+      await repository.saveNew(
+        recordKey: _historyRecordKey,
+        feature: HistoryFeature.gradingForecast,
+        stage: HistoryAnalysisStage.detailed,
+        outcomeCode: switch (result.grading.status) {
+          'ACCEPTED' => 'accepted',
+          'REJECTED' => 'rejected',
+          _ => 'uncertain',
+        },
+        primaryClassCode: result.grading.grade ?? result.grading.decision,
+        imageBytes: widget.imageBytes,
+        resultSchemaVersion: HistoryPayloadCodec.schemaVersion,
+        resultJson: HistoryPayloadCodec.grading(result),
+        localeCode: Localizations.localeOf(context).languageCode,
+      );
+    } catch (_) {
+      if (messenger?.mounted ?? false) {
+        messenger!.showSnackBar(SnackBar(content: Text(failureMessage)));
+      }
     }
   }
 
@@ -108,7 +143,7 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
                                 padding: const EdgeInsets.all(20),
                                 child: CircularProgressIndicator(
                                   strokeWidth: 3,
-                                color: scheme.onPrimaryContainer,
+                                  color: scheme.onPrimaryContainer,
                                 ),
                               ),
                             ),
@@ -123,10 +158,11 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
                             Text(
                               t.phase7ProcessingMessage,
                               textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                color: scheme.onSurfaceVariant,
-                                height: 1.5,
-                              ),
+                              style: Theme.of(context).textTheme.bodyLarge
+                                  ?.copyWith(
+                                    color: scheme.onSurfaceVariant,
+                                    height: 1.5,
+                                  ),
                             ),
                           ],
                         )
@@ -149,10 +185,11 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
                             Text(
                               _errorMessage ?? t.backendError,
                               textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                color: scheme.onSurfaceVariant,
-                                height: 1.5,
-                              ),
+                              style: Theme.of(context).textTheme.bodyLarge
+                                  ?.copyWith(
+                                    color: scheme.onSurfaceVariant,
+                                    height: 1.5,
+                                  ),
                             ),
                             const SizedBox(height: 22),
                             SizedBox(

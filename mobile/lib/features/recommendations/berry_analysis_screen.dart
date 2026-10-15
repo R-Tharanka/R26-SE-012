@@ -5,6 +5,8 @@ import 'package:iconly/iconly.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../shared/class_labels.dart';
+import '../history/history_scope.dart';
+import '../history/serialization/history_payload_codec.dart';
 import 'analysis_ui.dart';
 import 'berry_analysis.dart';
 import 'ai_berry_service.dart';
@@ -16,10 +18,12 @@ import 'remediation_engine.dart';
 class BerryAnalysisScreen extends StatefulWidget {
   final Uint8List imageBytes;
   final Future<BerryAnalysis>? prefetch;
+  final String? historyRecordKey;
   const BerryAnalysisScreen({
     super.key,
     required this.imageBytes,
     this.prefetch,
+    this.historyRecordKey,
   });
 
   @override
@@ -54,6 +58,7 @@ class _BerryAnalysisScreenState extends State<BerryAnalysisScreen> {
         _result = r;
         _loading = false;
       });
+      await _saveHistory(r);
     } catch (e, st) {
       logAiError('berry-analysis', e, st);
       if (!mounted) return;
@@ -61,6 +66,31 @@ class _BerryAnalysisScreenState extends State<BerryAnalysisScreen> {
         _error = friendlyAiMessage(e, AppLocalizations.of(context));
         _loading = false;
       });
+    }
+  }
+
+  Future<void> _saveHistory(BerryAnalysis result) async {
+    final key = widget.historyRecordKey;
+    final repository = HistoryScope.maybeOf(context);
+    if (key == null || repository == null) return;
+    try {
+      final remediation = RemediationEngine.forAnalysis(result, _market);
+      await repository.enrich(
+        recordKey: key,
+        outcomeCode: !result.isBerryCluster
+            ? 'not_target'
+            : result.healthy
+            ? 'healthy'
+            : 'detected',
+        primaryClassCode: result.problemType,
+        resultSchemaVersion: HistoryPayloadCodec.schemaVersion,
+        resultJson: HistoryPayloadCodec.berry(result, remediation, _market),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context).historySaveFailed)),
+      );
     }
   }
 
@@ -230,10 +260,9 @@ class _BerryAnalysisScreenState extends State<BerryAnalysisScreen> {
     underline: const SizedBox.shrink(),
     borderRadius: BorderRadius.circular(12),
     dropdownColor: Theme.of(context).colorScheme.surfaceContainerHigh,
-    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-      color: kText,
-      fontWeight: FontWeight.w700,
-    ),
+    style: Theme.of(
+      context,
+    ).textTheme.titleSmall?.copyWith(color: kText, fontWeight: FontWeight.w700),
     icon: Icon(IconlyLight.arrow_down, size: 18, color: kText),
     onChanged: (m) => setState(() => _market = m ?? _market),
     items: [

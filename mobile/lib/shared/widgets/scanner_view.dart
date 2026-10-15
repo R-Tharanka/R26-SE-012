@@ -12,6 +12,9 @@ import '../../features/recommendations/analysis_ui.dart' show fadeScaleRoute;
 import '../../features/recommendations/berry_analysis_screen.dart';
 import '../../features/recommendations/leaf_analysis_screen.dart';
 import '../../features/recommendations/pest_analysis_screen.dart';
+import '../../features/history/history_scope.dart';
+import '../../features/history/models/history_record.dart';
+import '../../features/history/serialization/history_payload_codec.dart';
 import '../../l10n/app_localizations.dart';
 import '../models/detection.dart';
 import '../models/scanner_model_config.dart';
@@ -81,6 +84,7 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
   /// Set once a photo has been captured and analysed.
   Uint8List? _photo;
   DetectionResult? _result;
+  String? _historyRecordKey;
 
   String? _modelError;
   String? _cameraError;
@@ -176,6 +180,7 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
     _startStatusCycle();
     try {
       final shot = await controller.takePicture();
+      _historyRecordKey = newHistoryRecordKey();
       await _analyzeBytes(await shot.readAsBytes());
     } catch (e, st) {
       _onAnalyzeError(e, st);
@@ -198,6 +203,7 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
         if (!_disposed) setState(() => _analyzing = false);
         return;
       }
+      _historyRecordKey = newHistoryRecordKey();
       await _analyzeBytes(await picked.readAsBytes());
     } catch (e, st) {
       _onAnalyzeError(e, st);
@@ -242,6 +248,39 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
       _result = result;
       _analyzing = false;
     });
+    await _saveDetectionHistory(bytes, result);
+  }
+
+  Future<void> _saveDetectionHistory(
+    Uint8List bytes,
+    DetectionResult result,
+  ) async {
+    final repository = HistoryScope.maybeOf(context);
+    if (repository == null) return;
+    final key = _historyRecordKey ??= newHistoryRecordKey();
+    final primary = _primaryDetection(result);
+    try {
+      await repository.saveNew(
+        recordKey: key,
+        feature: _historyFeature(result),
+        stage: HistoryAnalysisStage.detection,
+        outcomeCode: primary == null
+            ? 'no_detection'
+            : primary.className.toLowerCase().contains('healthy')
+            ? 'healthy'
+            : 'detected',
+        primaryClassCode: primary?.className,
+        imageBytes: bytes,
+        resultSchemaVersion: HistoryPayloadCodec.schemaVersion,
+        resultJson: HistoryPayloadCodec.detection(result),
+        localeCode: Localizations.localeOf(context).languageCode,
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context).historySaveFailed)),
+      );
+    }
   }
 
   /// Cycles [_status] through [_statusMessages] every couple of seconds so the
@@ -279,6 +318,7 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
     setState(() {
       _photo = null;
       _result = null;
+      _historyRecordKey = null;
     });
     // If the camera was torn down (e.g. the app was backgrounded while the
     // result was showing), bring it back so the preview isn't stuck on a
@@ -303,20 +343,31 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
     final Widget page;
     switch (widget.modelConfig.id) {
       case 'berry':
-        page = BerryAnalysisScreen(imageBytes: photo);
+        page = BerryAnalysisScreen(
+          imageBytes: photo,
+          historyRecordKey: _historyRecordKey,
+        );
       case 'pest':
-        page = PestAnalysisScreen(imageBytes: photo);
+        page = PestAnalysisScreen(
+          imageBytes: photo,
+          historyRecordKey: _historyRecordKey,
+        );
       case 'plant':
         page = top != null && AiDetectionService.isPestClass(top.className)
-            ? PestAnalysisScreen(imageBytes: photo)
+            ? PestAnalysisScreen(
+                imageBytes: photo,
+                historyRecordKey: _historyRecordKey,
+              )
             : LeafAnalysisScreen(
                 imageBytes: photo,
                 detectedClass: detectedLeaf,
+                historyRecordKey: _historyRecordKey,
               );
       default:
         page = LeafAnalysisScreen(
           imageBytes: photo,
           detectedClass: detectedLeaf,
+          historyRecordKey: _historyRecordKey,
         );
     }
     Navigator.of(context).push(fadeScaleRoute<void>(page));
@@ -334,6 +385,37 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
     return problems.isNotEmpty
         ? problems.first
         : (dets.isNotEmpty ? dets.first : null);
+  }
+
+  Detection? _primaryDetection(DetectionResult result) {
+    if (result.detections.isEmpty) return null;
+    final sorted = [...result.detections]
+      ..sort((a, b) => b.score.compareTo(a.score));
+    return sorted.first;
+  }
+
+  HistoryFeature _historyFeature(DetectionResult result) {
+    switch (widget.modelConfig.id) {
+      case 'berry':
+        return HistoryFeature.berryDisease;
+      case 'pest':
+        return HistoryFeature.pestDetection;
+      case 'leaf':
+        return HistoryFeature.leafDisease;
+      default:
+        final problems =
+            result.detections
+                .where(
+                  (detection) =>
+                      !detection.className.toLowerCase().contains('healthy'),
+                )
+                .toList()
+              ..sort((a, b) => b.score.compareTo(a.score));
+        return problems.isNotEmpty &&
+                AiDetectionService.isPestClass(problems.first.className)
+            ? HistoryFeature.pestDetection
+            : HistoryFeature.leafDisease;
+    }
   }
 
   @override

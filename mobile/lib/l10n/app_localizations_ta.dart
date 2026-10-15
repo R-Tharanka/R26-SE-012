@@ -137,7 +137,121 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get historyEmptyMessage =>
-      'பாதுகாப்பான வரலாற்றுச் சேமிப்பு சேர்க்கப்பட்ட பிறகு எதிர்கால பகுப்பாய்வுகள் இங்கே தோன்றலாம். போலி மாதிரி முடிவுகள் காட்டப்படாது.';
+      'முடிக்கப்பட்ட பகுப்பாய்வுகள் இங்கே தோன்றி இணையமின்றியும் கிடைக்கும்.';
+
+  @override
+  String get historyIntro =>
+      'சேமித்த பயிர்ச் சோதனைகள் இந்தச் சாதனத்தில் தனிப்பட்ட முறையில் சேமிக்கப்படுகின்றன.';
+
+  @override
+  String get historyAllTypes => 'அனைத்தும்';
+
+  @override
+  String get historyLoadMore => 'மேலும் ஏற்றவும்';
+
+  @override
+  String get historyLoadingMore => 'மேலும் ஏற்றுகிறது…';
+
+  @override
+  String get historySettings => 'வரலாற்று அமைப்புகள்';
+
+  @override
+  String get historyAutoDeleteTitle => '14 நாட்களுக்குப் பிறகு வரலாற்றை நீக்கு';
+
+  @override
+  String get historyAutoDeleteDescription =>
+      'விருப்பத்தேர்வு; இயல்பாக முடக்கப்பட்டுள்ளது. செயலி அடுத்தமுறை திறக்கும்போது அல்லது மீண்டும் செயல்படும்போது காலாவதியான வரலாறு நீக்கப்படும்.';
+
+  @override
+  String get historyClearAll => 'அனைத்து வரலாற்றையும் அழி';
+
+  @override
+  String get historyClearConfirmTitle => 'அனைத்து வரலாற்றையும் அழிக்கவா?';
+
+  @override
+  String get historyClearConfirmMessage =>
+      'சேமித்த எல்லா முடிவுகளும் படங்களும் இந்தச் சாதனத்திலிருந்து நிரந்தரமாக நீக்கப்படும்.';
+
+  @override
+  String get historyCancel => 'ரத்துசெய்';
+
+  @override
+  String get historyClearConfirmAction => 'அனைத்தையும் அழி';
+
+  @override
+  String get historyClearSuccess =>
+      'அனைத்து வரலாறும் சேமித்த படங்களும் நீக்கப்பட்டன.';
+
+  @override
+  String get historyClearPartial =>
+      'சில கோப்புகளை நீக்க முடியவில்லை. செயலி அடுத்தமுறை திறக்கும்போது மீண்டும் முயற்சிக்கப்படும்.';
+
+  @override
+  String get historySaveFailed =>
+      'முடிவு தயாராக உள்ளது, ஆனால் அதை வரலாற்றில் சேமிக்க முடியவில்லை.';
+
+  @override
+  String get historyUnavailableTitle => 'வரலாறு கிடைக்கவில்லை';
+
+  @override
+  String get historyUnavailableMessage =>
+      'உள்ளூர் சேமிப்பைத் திறக்க முடியவில்லை. மற்ற பகுப்பாய்வு அம்சங்கள் தொடர்ந்து செயல்படும்.';
+
+  @override
+  String get historyImageUnavailable => 'சேமித்த படம் கிடைக்கவில்லை';
+
+  @override
+  String get historyResultUnavailable =>
+      'சேமித்த முடிவு விவரங்கள் கிடைக்கவில்லை அல்லது ஆதரிக்கப்படாத பதிப்பில் உள்ளன.';
+
+  @override
+  String get historyDetailsTitle => 'சேமித்த பகுப்பாய்வு';
+
+  @override
+  String get historyRecordedOn => 'பதிவு செய்த நேரம்';
+
+  @override
+  String get historySavedOffline =>
+      'இது சேமித்த முடிவு. இதைத் திறப்பது பகுப்பாய்வையோ இணையத்தையோ பயன்படுத்தாது.';
+
+  @override
+  String get historyDetectedItems => 'கண்டறிந்த உருப்படிகள்';
+
+  @override
+  String get historyNoDetectedItems =>
+      'கண்டறிந்த உருப்படிகள் எதுவும் சேமிக்கப்படவில்லை.';
+
+  @override
+  String get historyLowConfidence => 'குறைந்த நம்பிக்கை கண்டறிதல்';
+
+  @override
+  String get historyDetectionOnly =>
+      'கண்டறிதல் சேமிக்கப்பட்டது. இந்த ஸ்கேனுக்கான விரிவான வழிகாட்டல் திறக்கப்படவில்லை.';
+
+  @override
+  String get historyOutcome => 'முடிவு';
+
+  @override
+  String get historyAccepted => 'ஏற்கப்பட்டது';
+
+  @override
+  String get historyRejected => 'மதிப்பிட முடியவில்லை';
+
+  @override
+  String get historyUncertain => 'நிச்சயமற்ற முடிவு';
+
+  @override
+  String get historyTreatmentAction => 'பரிந்துரைக்கப்பட்ட நடவடிக்கை';
+
+  @override
+  String get historyWarnings => 'முக்கிய குறிப்புகள்';
+
+  @override
+  String get historyPriceSnapshot => 'சேமித்த விலை நோக்கு';
+
+  @override
+  String get historyAutoDeleteUpdated =>
+      'வரலாறு சுத்தப்படுத்தும் அமைப்பு புதுப்பிக்கப்பட்டது.';
 
   @override
   String get guideTitle => 'கொட்டைத் தர வழிகாட்டி';

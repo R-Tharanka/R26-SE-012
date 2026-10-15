@@ -5,6 +5,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../../shared/widgets/farmer_ui.dart';
 import '../../berry_disease/berry_scanner_screen.dart';
 import '../../grading_forecast/screens/berry_capture_screen.dart';
+import '../../history/screens/history_screen.dart';
 import '../../onboarding/language_picker_screen.dart';
 import '../../plant_health/screens/plant_health_scanner_screen.dart';
 
@@ -47,7 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final t = AppLocalizations.of(context);
     final pages = [
       const _Dashboard(),
-      const _HistoryPage(),
+      const HistoryScreen(),
       const _FarmerGuidePage(),
     ];
     final titles = [t.appTitle, t.navHistory, t.navGuide];
@@ -237,7 +238,9 @@ class _FeatureCard extends StatelessWidget {
                     height: 46,
                     decoration: BoxDecoration(
                       color: item.accent.withValues(
-                        alpha: theme.brightness == Brightness.dark ? 0.20 : 0.12,
+                        alpha: theme.brightness == Brightness.dark
+                            ? 0.20
+                            : 0.12,
                       ),
                       borderRadius: BorderRadius.circular(15),
                     ),
@@ -275,20 +278,6 @@ class _FeatureCard extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _HistoryPage extends StatelessWidget {
-  const _HistoryPage();
-
-  @override
-  Widget build(BuildContext context) {
-    final t = AppLocalizations.of(context);
-    return FarmerEmptyState(
-      icon: Icons.history_rounded,
-      title: t.historyEmptyTitle,
-      message: t.historyEmptyMessage,
     );
   }
 }

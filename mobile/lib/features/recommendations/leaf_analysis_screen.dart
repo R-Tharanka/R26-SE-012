@@ -5,6 +5,8 @@ import 'package:iconly/iconly.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../shared/class_labels.dart';
+import '../history/history_scope.dart';
+import '../history/serialization/history_payload_codec.dart';
 import 'analysis_ui.dart';
 import 'ai_errors.dart';
 import 'ai_leaf_service.dart';
@@ -19,12 +21,14 @@ class LeafAnalysisScreen extends StatefulWidget {
   final Uint8List imageBytes;
   final Future<LeafAnalysis>? prefetch;
   final String? detectedClass;
+  final String? historyRecordKey;
 
   const LeafAnalysisScreen({
     super.key,
     required this.imageBytes,
     this.prefetch,
     this.detectedClass,
+    this.historyRecordKey,
   });
 
   @override
@@ -65,6 +69,7 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
         _result = r;
         _loading = false;
       });
+      await _saveHistory(r);
     } catch (e, st) {
       logAiError('leaf-analysis', e, st);
       if (!mounted) return;
@@ -72,6 +77,30 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
         _error = friendlyAiMessage(e, AppLocalizations.of(context));
         _loading = false;
       });
+    }
+  }
+
+  Future<void> _saveHistory(LeafAnalysis result) async {
+    final key = widget.historyRecordKey;
+    final repository = HistoryScope.maybeOf(context);
+    if (key == null || repository == null) return;
+    try {
+      await repository.enrich(
+        recordKey: key,
+        outcomeCode: !result.isPepperLeaf
+            ? 'not_target'
+            : result.healthy
+            ? 'healthy'
+            : 'detected',
+        primaryClassCode: result.diseaseType,
+        resultSchemaVersion: HistoryPayloadCodec.schemaVersion,
+        resultJson: HistoryPayloadCodec.leaf(result),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context).historySaveFailed)),
+      );
     }
   }
 

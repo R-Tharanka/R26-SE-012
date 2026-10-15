@@ -5,6 +5,8 @@ import 'package:iconly/iconly.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../shared/class_labels.dart';
+import '../history/history_scope.dart';
+import '../history/serialization/history_payload_codec.dart';
 import 'analysis_ui.dart';
 import 'ai_errors.dart';
 import 'ai_pest_service.dart';
@@ -17,10 +19,12 @@ import 'remediation_engine.dart' show Market;
 class PestAnalysisScreen extends StatefulWidget {
   final Uint8List imageBytes;
   final Future<PestAnalysis>? prefetch;
+  final String? historyRecordKey;
   const PestAnalysisScreen({
     super.key,
     required this.imageBytes,
     this.prefetch,
+    this.historyRecordKey,
   });
 
   @override
@@ -55,6 +59,7 @@ class _PestAnalysisScreenState extends State<PestAnalysisScreen> {
         _result = r;
         _loading = false;
       });
+      await _saveHistory(r);
     } catch (e, st) {
       logAiError('pest-analysis', e, st);
       if (!mounted) return;
@@ -62,6 +67,31 @@ class _PestAnalysisScreenState extends State<PestAnalysisScreen> {
         _error = friendlyAiMessage(e, AppLocalizations.of(context));
         _loading = false;
       });
+    }
+  }
+
+  Future<void> _saveHistory(PestAnalysis result) async {
+    final key = widget.historyRecordKey;
+    final repository = HistoryScope.maybeOf(context);
+    if (key == null || repository == null) return;
+    try {
+      final treatment = PestTreatmentEngine.forAnalysis(result, _market);
+      await repository.enrich(
+        recordKey: key,
+        outcomeCode: !result.isPepperPlant
+            ? 'not_target'
+            : result.healthy
+            ? 'healthy'
+            : 'detected',
+        primaryClassCode: result.pestType,
+        resultSchemaVersion: HistoryPayloadCodec.schemaVersion,
+        resultJson: HistoryPayloadCodec.pest(result, treatment, _market),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context).historySaveFailed)),
+      );
     }
   }
 
@@ -232,7 +262,9 @@ class _PestAnalysisScreenState extends State<PestAnalysisScreen> {
   Widget _thresholdBadge(bool above) {
     final t = AppLocalizations.of(context);
     final status = AppStatusColors.of(context);
-    final color = above ? status.warning : Theme.of(context).colorScheme.primary;
+    final color = above
+        ? status.warning
+        : Theme.of(context).colorScheme.primary;
     return Container(
       margin: const EdgeInsets.only(top: 18),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -243,7 +275,9 @@ class _PestAnalysisScreenState extends State<PestAnalysisScreen> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: color.withValues(
-            alpha: Theme.of(context).brightness == Brightness.dark ? 0.45 : 0.35,
+            alpha: Theme.of(context).brightness == Brightness.dark
+                ? 0.45
+                : 0.35,
           ),
         ),
       ),
@@ -274,10 +308,9 @@ class _PestAnalysisScreenState extends State<PestAnalysisScreen> {
     underline: const SizedBox.shrink(),
     borderRadius: BorderRadius.circular(12),
     dropdownColor: Theme.of(context).colorScheme.surfaceContainerHigh,
-    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-      color: kText,
-      fontWeight: FontWeight.w700,
-    ),
+    style: Theme.of(
+      context,
+    ).textTheme.titleSmall?.copyWith(color: kText, fontWeight: FontWeight.w700),
     icon: Icon(IconlyLight.arrow_down, size: 18, color: kText),
     onChanged: (m) => setState(() => _market = m ?? _market),
     items: [

@@ -135,7 +135,119 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get historyEmptyMessage =>
-      'Future analyses can appear here after secure history storage is added. No sample results are shown.';
+      'Completed analyses will appear here and remain available offline.';
+
+  @override
+  String get historyIntro =>
+      'Your saved crop checks are stored privately on this device.';
+
+  @override
+  String get historyAllTypes => 'All';
+
+  @override
+  String get historyLoadMore => 'Load more';
+
+  @override
+  String get historyLoadingMore => 'Loading more…';
+
+  @override
+  String get historySettings => 'History settings';
+
+  @override
+  String get historyAutoDeleteTitle => 'Delete history after 14 days';
+
+  @override
+  String get historyAutoDeleteDescription =>
+      'Optional and off by default. Expired history is removed when the app next opens or resumes.';
+
+  @override
+  String get historyClearAll => 'Clear all history';
+
+  @override
+  String get historyClearConfirmTitle => 'Clear all history?';
+
+  @override
+  String get historyClearConfirmMessage =>
+      'This permanently removes every saved result and its stored image from this device.';
+
+  @override
+  String get historyCancel => 'Cancel';
+
+  @override
+  String get historyClearConfirmAction => 'Clear all';
+
+  @override
+  String get historyClearSuccess =>
+      'All history and stored images were removed.';
+
+  @override
+  String get historyClearPartial =>
+      'Some files could not be removed. They will be retried when the app next opens.';
+
+  @override
+  String get historySaveFailed =>
+      'The result is ready, but it could not be saved to History.';
+
+  @override
+  String get historyUnavailableTitle => 'History is unavailable';
+
+  @override
+  String get historyUnavailableMessage =>
+      'Local storage could not be opened. Your other analysis features still work.';
+
+  @override
+  String get historyImageUnavailable => 'Saved image unavailable';
+
+  @override
+  String get historyResultUnavailable =>
+      'Stored result details are unavailable or from an unsupported version.';
+
+  @override
+  String get historyDetailsTitle => 'Saved analysis';
+
+  @override
+  String get historyRecordedOn => 'Recorded on';
+
+  @override
+  String get historySavedOffline =>
+      'This is a saved result. Opening it does not run analysis or use the internet.';
+
+  @override
+  String get historyDetectedItems => 'Detected items';
+
+  @override
+  String get historyNoDetectedItems => 'No detected items were stored.';
+
+  @override
+  String get historyLowConfidence => 'Low-confidence detection';
+
+  @override
+  String get historyDetectionOnly =>
+      'Detection saved. Detailed guidance was not opened for this scan.';
+
+  @override
+  String get historyOutcome => 'Result';
+
+  @override
+  String get historyAccepted => 'Accepted';
+
+  @override
+  String get historyRejected => 'Could not assess';
+
+  @override
+  String get historyUncertain => 'Uncertain result';
+
+  @override
+  String get historyTreatmentAction => 'Recommended action';
+
+  @override
+  String get historyWarnings => 'Important notes';
+
+  @override
+  String get historyPriceSnapshot => 'Saved price outlook';
+
+  @override
+  String get historyAutoDeleteUpdated => 'History cleanup setting updated.';
 
   @override
   String get guideTitle => 'Berry quality guide';

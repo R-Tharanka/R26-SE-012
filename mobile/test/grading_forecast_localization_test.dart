@@ -68,8 +68,10 @@ void main() {
     await tester.tap(card);
     await tester.pumpAndSettle();
 
-    expect(find.text('ගෙඩි ගුණත්වය සහ මිල දැක්ම'), findsOneWidget);
-    await tester.tap(find.text('ගෙඩියේ ගුණත්වය පරීක්ෂා කරන්න'));
+    expect(find.text('ගම්මිරිස් ගුණාත්මකභාවය සහ මිල දැක්ම'), findsOneWidget);
+    await tester.tap(
+      find.text('ගම්මිරිස් නියැදියේ ගුණාත්මකභාවය පරීක්ෂා කරන්න'),
+    );
     await tester.pumpAndSettle();
 
     expect(find.byType(BerryCaptureScreen), findsOneWidget);

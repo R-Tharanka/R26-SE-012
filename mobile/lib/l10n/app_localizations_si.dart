@@ -135,7 +135,119 @@ class AppLocalizationsSi extends AppLocalizations {
 
   @override
   String get historyEmptyMessage =>
-      'ආරක්ෂිත ඉතිහාස ගබඩාව එක් කළ පසු අනාගත විශ්ලේෂණ මෙහි පෙන්විය හැක. ව්‍යාජ නියැදි ප්‍රතිඵල නොපෙන්වයි.';
+      'සම්පූර්ණ කළ විශ්ලේෂණ මෙහි පෙන්වන අතර නොබැඳිවද ලබාගත හැක.';
+
+  @override
+  String get historyIntro =>
+      'ඔබගේ සුරැකි වගා පරීක්ෂණ මෙම උපාංගයේ පෞද්ගලිකව ගබඩා කර ඇත.';
+
+  @override
+  String get historyAllTypes => 'සියල්ල';
+
+  @override
+  String get historyLoadMore => 'තවත් පෙන්වන්න';
+
+  @override
+  String get historyLoadingMore => 'තවත් පූරණය කරමින්…';
+
+  @override
+  String get historySettings => 'ඉතිහාස සැකසුම්';
+
+  @override
+  String get historyAutoDeleteTitle => 'දින 14කට පසු ඉතිහාසය මකන්න';
+
+  @override
+  String get historyAutoDeleteDescription =>
+      'විකල්පයකි සහ පෙරනිමියෙන් අක්‍රියයි. යෙදුම නැවත විවෘත කරන හෝ සක්‍රිය කරන විට කල් ඉකුත් වූ ඉතිහාසය මැකේ.';
+
+  @override
+  String get historyClearAll => 'සියලු ඉතිහාසය මකන්න';
+
+  @override
+  String get historyClearConfirmTitle => 'සියලු ඉතිහාසය මකන්නද?';
+
+  @override
+  String get historyClearConfirmMessage =>
+      'මෙය සුරැකි සියලු ප්‍රතිඵල සහ ඒවායේ ඡායාරූප මෙම උපාංගයෙන් ස්ථිරවම මකයි.';
+
+  @override
+  String get historyCancel => 'අවලංගු කරන්න';
+
+  @override
+  String get historyClearConfirmAction => 'සියල්ල මකන්න';
+
+  @override
+  String get historyClearSuccess => 'සියලු ඉතිහාසය සහ සුරැකි ඡායාරූප මකා ඇත.';
+
+  @override
+  String get historyClearPartial =>
+      'සමහර ගොනු මැකීමට නොහැකි විය. යෙදුම නැවත විවෘත කරන විට නැවත උත්සාහ කරනු ඇත.';
+
+  @override
+  String get historySaveFailed =>
+      'ප්‍රතිඵලය සූදානම්, නමුත් එය ඉතිහාසයට සුරැකීමට නොහැකි විය.';
+
+  @override
+  String get historyUnavailableTitle => 'ඉතිහාසය ලබාගත නොහැක';
+
+  @override
+  String get historyUnavailableMessage =>
+      'දේශීය ගබඩාව විවෘත කළ නොහැකි විය. අනෙකුත් විශ්ලේෂණ විශේෂාංග තවමත් ක්‍රියා කරයි.';
+
+  @override
+  String get historyImageUnavailable => 'සුරැකි ඡායාරූපය ලබාගත නොහැක';
+
+  @override
+  String get historyResultUnavailable =>
+      'සුරැකි ප්‍රතිඵල විස්තර ලබාගත නොහැක හෝ සහාය නොදක්වන අනුවාදයකි.';
+
+  @override
+  String get historyDetailsTitle => 'සුරැකි විශ්ලේෂණය';
+
+  @override
+  String get historyRecordedOn => 'සටහන් කළ දිනය';
+
+  @override
+  String get historySavedOffline =>
+      'මෙය සුරැකි ප්‍රතිඵලයකි. එය විවෘත කිරීමෙන් විශ්ලේෂණයක් හෝ අන්තර්ජාලය භාවිතා නොවේ.';
+
+  @override
+  String get historyDetectedItems => 'හඳුනාගත් අයිතම';
+
+  @override
+  String get historyNoDetectedItems => 'හඳුනාගත් අයිතම කිසිවක් සුරැකී නැත.';
+
+  @override
+  String get historyLowConfidence => 'අඩු විශ්වාසනීය හඳුනාගැනීම';
+
+  @override
+  String get historyDetectionOnly =>
+      'හඳුනාගැනීම සුරැකිණි. මෙම ස්කෑනය සඳහා සවිස්තර මඟපෙන්වීම විවෘත කර නැත.';
+
+  @override
+  String get historyOutcome => 'ප්‍රතිඵලය';
+
+  @override
+  String get historyAccepted => 'පිළිගන්නා ලදී';
+
+  @override
+  String get historyRejected => 'ඇගයීමට නොහැකි විය';
+
+  @override
+  String get historyUncertain => 'අවිනිශ්චිත ප්‍රතිඵලය';
+
+  @override
+  String get historyTreatmentAction => 'නිර්දේශිත ක්‍රියාව';
+
+  @override
+  String get historyWarnings => 'වැදගත් සටහන්';
+
+  @override
+  String get historyPriceSnapshot => 'සුරැකි මිල දැක්ම';
+
+  @override
+  String get historyAutoDeleteUpdated =>
+      'ඉතිහාස පිරිසිදු කිරීමේ සැකසුම යාවත්කාලීන කර ඇත.';
 
   @override
   String get guideTitle => 'වියළි ගම්මිරිස් ගුණාත්මකතා මාර්ගෝපදේශය';

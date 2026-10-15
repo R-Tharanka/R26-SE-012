@@ -337,8 +337,212 @@ abstract class AppLocalizations {
   /// No description provided for @historyEmptyMessage.
   ///
   /// In en, this message translates to:
-  /// **'Future analyses can appear here after secure history storage is added. No sample results are shown.'**
+  /// **'Completed analyses will appear here and remain available offline.'**
   String get historyEmptyMessage;
+
+  /// No description provided for @historyIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Your saved crop checks are stored privately on this device.'**
+  String get historyIntro;
+
+  /// No description provided for @historyAllTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get historyAllTypes;
+
+  /// No description provided for @historyLoadMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Load more'**
+  String get historyLoadMore;
+
+  /// No description provided for @historyLoadingMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading more…'**
+  String get historyLoadingMore;
+
+  /// No description provided for @historySettings.
+  ///
+  /// In en, this message translates to:
+  /// **'History settings'**
+  String get historySettings;
+
+  /// No description provided for @historyAutoDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete history after 14 days'**
+  String get historyAutoDeleteTitle;
+
+  /// No description provided for @historyAutoDeleteDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional and off by default. Expired history is removed when the app next opens or resumes.'**
+  String get historyAutoDeleteDescription;
+
+  /// No description provided for @historyClearAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all history'**
+  String get historyClearAll;
+
+  /// No description provided for @historyClearConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all history?'**
+  String get historyClearConfirmTitle;
+
+  /// No description provided for @historyClearConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This permanently removes every saved result and its stored image from this device.'**
+  String get historyClearConfirmMessage;
+
+  /// No description provided for @historyCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get historyCancel;
+
+  /// No description provided for @historyClearConfirmAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all'**
+  String get historyClearConfirmAction;
+
+  /// No description provided for @historyClearSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'All history and stored images were removed.'**
+  String get historyClearSuccess;
+
+  /// No description provided for @historyClearPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Some files could not be removed. They will be retried when the app next opens.'**
+  String get historyClearPartial;
+
+  /// No description provided for @historySaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The result is ready, but it could not be saved to History.'**
+  String get historySaveFailed;
+
+  /// No description provided for @historyUnavailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'History is unavailable'**
+  String get historyUnavailableTitle;
+
+  /// No description provided for @historyUnavailableMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Local storage could not be opened. Your other analysis features still work.'**
+  String get historyUnavailableMessage;
+
+  /// No description provided for @historyImageUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved image unavailable'**
+  String get historyImageUnavailable;
+
+  /// No description provided for @historyResultUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Stored result details are unavailable or from an unsupported version.'**
+  String get historyResultUnavailable;
+
+  /// No description provided for @historyDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved analysis'**
+  String get historyDetailsTitle;
+
+  /// No description provided for @historyRecordedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded on'**
+  String get historyRecordedOn;
+
+  /// No description provided for @historySavedOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'This is a saved result. Opening it does not run analysis or use the internet.'**
+  String get historySavedOffline;
+
+  /// No description provided for @historyDetectedItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Detected items'**
+  String get historyDetectedItems;
+
+  /// No description provided for @historyNoDetectedItems.
+  ///
+  /// In en, this message translates to:
+  /// **'No detected items were stored.'**
+  String get historyNoDetectedItems;
+
+  /// No description provided for @historyLowConfidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Low-confidence detection'**
+  String get historyLowConfidence;
+
+  /// No description provided for @historyDetectionOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Detection saved. Detailed guidance was not opened for this scan.'**
+  String get historyDetectionOnly;
+
+  /// No description provided for @historyOutcome.
+  ///
+  /// In en, this message translates to:
+  /// **'Result'**
+  String get historyOutcome;
+
+  /// No description provided for @historyAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted'**
+  String get historyAccepted;
+
+  /// No description provided for @historyRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not assess'**
+  String get historyRejected;
+
+  /// No description provided for @historyUncertain.
+  ///
+  /// In en, this message translates to:
+  /// **'Uncertain result'**
+  String get historyUncertain;
+
+  /// No description provided for @historyTreatmentAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended action'**
+  String get historyTreatmentAction;
+
+  /// No description provided for @historyWarnings.
+  ///
+  /// In en, this message translates to:
+  /// **'Important notes'**
+  String get historyWarnings;
+
+  /// No description provided for @historyPriceSnapshot.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved price outlook'**
+  String get historyPriceSnapshot;
+
+  /// No description provided for @historyAutoDeleteUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'History cleanup setting updated.'**
+  String get historyAutoDeleteUpdated;
 
   /// No description provided for @guideTitle.
   ///
