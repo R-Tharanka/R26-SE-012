@@ -3,6 +3,9 @@ import 'package:pepper_care/l10n/app_localizations.dart';
 import 'models/grading_forecast_result.dart';
 import 'services/grading_forecast_api_service.dart';
 
+/// Converts internal backend values into localized farmer-facing text.
+/// Internal enum/category strings remain unchanged for contract validation and
+/// research traceability; only their presentation is translated here.
 extension GradingForecastApiExceptionLocalization
     on GradingForecastApiException {
   String localizedMessage(AppLocalizations t) => switch (kind) {
@@ -115,6 +118,8 @@ String localizedDecisionSummary(
   ),
 };
 
+/// Keeps the project-specific limitations visible in the appropriate UI copy
+/// without presenting the model score as a calibrated probability.
 List<String> localizedResearchLimitations(AppLocalizations t) => [
   t.phase7LimitationProjectGrade,
   t.phase7LimitationResearchOnly,

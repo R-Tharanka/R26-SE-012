@@ -10,6 +10,12 @@ import '../grading_forecast_localizations.dart';
 import '../models/grading_forecast_result.dart';
 import 'price_forecast_screen.dart';
 
+/// Presents the farmer-facing grading outcome without exposing internal
+/// research trace fields as the primary result.
+///
+/// Rejected and uncertain outcomes intentionally have no price action. Only an
+/// accepted response with available, grade-matched market evidence can open the
+/// price-outlook screen.
 class BerryQualityResultScreen extends StatelessWidget {
   const BerryQualityResultScreen({
     super.key,

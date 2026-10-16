@@ -14,6 +14,10 @@ class BerryCaptureScreen extends StatefulWidget {
   State<BerryCaptureScreen> createState() => _BerryCaptureScreenState();
 }
 
+/// Collects one original pepper sample image before backend analysis.
+///
+/// Capture is deliberately separate from inference: the screen only validates
+/// the local file and forwards its bytes to the processing route.
 class _BerryCaptureScreenState extends State<BerryCaptureScreen> {
   final ImagePicker _picker = ImagePicker();
   XFile? _selected;
@@ -33,6 +37,9 @@ class _BerryCaptureScreenState extends State<BerryCaptureScreen> {
         });
         return;
       }
+      // Keep the exact picker output. The backend applies the frozen quality
+      // and model preprocessing rules, so the mobile client must not resize or
+      // recompress the sample first.
       final bytes = await picked.readAsBytes();
       if (!mounted) return;
       if (bytes.isEmpty) {
@@ -69,6 +76,8 @@ class _BerryCaptureScreenState extends State<BerryCaptureScreen> {
     if (selected == null) return;
     if (bytes == null || bytes.isEmpty) return;
 
+    // The processing route owns the asynchronous request and result transition
+    // so this capture screen remains focused on image selection.
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) =>

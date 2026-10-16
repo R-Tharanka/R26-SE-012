@@ -7,6 +7,11 @@ import '../../recommendations/analysis_ui.dart' show FadeSlideIn;
 import '../grading_forecast_localizations.dart';
 import '../models/grading_forecast_result.dart';
 
+/// Shows the frozen, grade-specific EAC farm-gate research outlook.
+///
+/// The forecast date is the target date of the saved forecast record. The
+/// reference date is the latest historical price observation used as context;
+/// neither value represents a live buyer offer or a guaranteed price.
 class PriceForecastScreen extends StatelessWidget {
   const PriceForecastScreen({super.key, required this.result});
 

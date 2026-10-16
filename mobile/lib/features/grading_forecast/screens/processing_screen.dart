@@ -29,6 +29,11 @@ class ProcessingScreen extends StatefulWidget {
   State<ProcessingScreen> createState() => _ProcessingScreenState();
 }
 
+/// Runs one backend analysis and translates its outcome into a result screen.
+///
+/// A successful HTTP response is still subject to strict contract validation in
+/// `GradingForecastResult`; a response that violates rejection-first or
+/// grade-specific routing rules is treated as an error, not displayed.
 class _ProcessingScreenState extends State<ProcessingScreen> {
   final _analysisService = GradingForecastAnalysisService();
   final String _historyRecordKey = newHistoryRecordKey();
@@ -49,11 +54,15 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
     });
 
     try {
+      // The service performs upload validation and parses the frozen Phase 6
+      // contract. No client-side prediction or price calculation is performed.
       final result = await _analysisService.analyzeBytes(
         widget.imageBytes,
         widget.imageName,
       );
       if (!mounted) return;
+      // History is best-effort persistence; failure to save must not turn a
+      // valid analysis into a fabricated error or alter the displayed result.
       unawaited(_saveHistory(result));
       Navigator.of(context).pushReplacement(
         MaterialPageRoute<void>(
