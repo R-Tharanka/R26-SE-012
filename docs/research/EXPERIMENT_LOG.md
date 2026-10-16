@@ -1261,3 +1261,14 @@ Date: 2026-10-16.
 - Cause: both Home cards previously targeted `PlantHealthScannerScreen`, whose local detector is configured with the leaf TFLite model.
 - Boundary: no scanner inference code, model, threshold, preprocessing, recommendation behavior, backend, Berry Disease, or Berry Grading and Export Price Forecasting behavior was changed.
 - Verification: `flutter analyze` passed with no issues; the component integration suite passed 5/5, including independent Pest and Leaf routes and unchanged Berry Disease/grading entry routes; the focused Home/detector suites passed 38/38.
+
+### MOBILE-COMBINED-PLANT-HEALTH-ROUTE-004
+
+Date: 2026-10-16.
+
+- Scope: superseded the independent Pest and Leaf Health dashboard routes with one localized **Leaf Health & Pests** entry that opens `PlantHealthScannerScreen`.
+- Evidence: manual use of the standalone Pest route returned `nothing detected` for a healthy leaf, while the combined plant-health component handled healthy-leaf evidence. This matched the supplied component architecture, which exposes a single combined plant-health capability.
+- Runtime: the combined screen retains merged leaf/pest cloud classification and its existing leaf-model offline fallback. No model, threshold, preprocessing, detector, or recommendation logic was changed.
+- Presentation: the Home dashboard now contains three capability cards: Leaf Health & Pests, Berry Disease, and Berry Grading and Export Price Forecasting. English, Sinhala, and Tamil labels and explanatory text describe the combined scope.
+- Boundary: backend, Berry Disease, Berry Grading and Export Price Forecasting, Phase 6/7 logic, model assets, and research calculations remain unchanged.
+- Verification: localization generation and `flutter analyze` completed successfully; the focused Home/integration tests passed 10/10 and the complete Flutter suite passed 87/87.

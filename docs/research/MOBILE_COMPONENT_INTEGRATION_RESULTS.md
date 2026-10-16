@@ -267,18 +267,22 @@ Updated status:
 
 `IMPLEMENTED; STATIC AND FLUTTER TEST VERIFICATION PASSED; ANDROID BUILD AND LIVE DEVICE/CLOUD ACCEPTANCE PENDING`.
 
-## Pest and leaf route correction (2026-10-16)
+## Combined plant-health route (2026-10-16)
 
-The four-card dashboard now routes the two plant features independently:
+The dashboard exposes one **Leaf Health & Pests** card. It opens
+`PlantHealthScannerScreen`, matching the supplied component's combined
+leaf-disease and pest workflow.
 
-- **Pests** opens `PestScannerScreen`, whose detector configuration uses
-  `assets/models/new_pest_yolo_model_int8.tflite`.
-- **Leaf Health** opens `LeafScannerScreen`, whose detector configuration uses
-  `assets/models/new_leaf_yolo_model_int8.tflite`.
+An intermediate correction briefly routed separate Pest and Leaf Health cards
+to their standalone local TFLite scanners. Manual use showed that the Pest
+scanner could return `nothing detected` for a healthy leaf while the combined
+plant-health workflow correctly handled healthy-leaf evidence. The independent
+routes were therefore superseded rather than changing detector thresholds or
+classification semantics.
 
-Previously, both cards opened `PlantHealthScannerScreen`. That combined screen
-uses the leaf detector for its local TFLite path, so the Pest card could present
-leaf-health behavior. The correction changes only dashboard routing. It does
-not change either detector, model asset, threshold, preprocessing path,
-recommendation behavior, Berry Disease, or Berry Grading and Export Price
-Forecasting.
+`PlantHealthScannerScreen` retains its supplied architecture: Gemini uses the
+merged plant-health vocabulary as the primary path, while the offline local
+fallback uses the leaf TFLite configuration. The UI labels the capability as
+combined so it does not imply that the offline fallback independently covers
+the full pest vocabulary. Berry Disease and Berry Grading and Export Price
+Forecasting remain unchanged.

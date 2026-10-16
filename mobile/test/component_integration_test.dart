@@ -3,8 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pepper_care/features/berry_disease/berry_scanner_screen.dart';
 import 'package:pepper_care/features/grading_forecast/screens/berry_capture_screen.dart';
 import 'package:pepper_care/features/home/screens/home_screen.dart';
-import 'package:pepper_care/features/leaf_disease/screens/leaf_scanner_screen.dart';
-import 'package:pepper_care/features/pest_detection/screens/pest_scanner_screen.dart';
+import 'package:pepper_care/features/plant_health/screens/plant_health_scanner_screen.dart';
 import 'package:pepper_care/l10n/app_localizations.dart';
 
 Widget _app() => const MaterialApp(
@@ -19,7 +18,7 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
   }
 
-  testWidgets('current shell retains all four component entries', (
+  testWidgets('current shell exposes the three intended capability entries', (
     tester,
   ) async {
     await usePhoneViewport(tester);
@@ -27,8 +26,7 @@ void main() {
     await tester.pumpAndSettle();
 
     for (final label in const [
-      'Pests',
-      'Leaf Health',
+      'Leaf Health & Pests',
       'Berry Disease',
       'Quality &\nPrice',
     ]) {
@@ -60,46 +58,29 @@ void main() {
     },
   );
 
-  testWidgets('pest entry reaches the dedicated pest scanner', (tester) async {
-    await usePhoneViewport(tester);
-    await tester.pumpWidget(_app());
-    await tester.pumpAndSettle();
-
-    final pests = find.ancestor(
-      of: find.text('Pests'),
-      matching: find.byType(InkWell),
-    );
-    await tester.ensureVisible(pests);
-    await tester.tap(pests);
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Start scan'));
-    // Scanner camera/progress widgets may keep scheduling frames; pump only
-    // through the route transition instead of waiting for global quiescence.
-    await tester.pump(const Duration(milliseconds: 500));
-
-    expect(find.byType(PestScannerScreen, skipOffstage: false), findsOneWidget);
-    expect(find.byType(LeafScannerScreen, skipOffstage: false), findsNothing);
-  });
-
-  testWidgets('leaf-health entry reaches the dedicated leaf scanner', (
+  testWidgets('leaf-health and pests entry reaches the combined scanner', (
     tester,
   ) async {
     await usePhoneViewport(tester);
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
 
-    final leafHealth = find.ancestor(
-      of: find.text('Leaf Health'),
+    final plantHealth = find.ancestor(
+      of: find.text('Leaf Health & Pests'),
       matching: find.byType(InkWell),
     );
-    await tester.ensureVisible(leafHealth);
-    await tester.tap(leafHealth);
+    await tester.ensureVisible(plantHealth);
+    await tester.tap(plantHealth);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Start scan'));
+    // Scanner camera/progress widgets may keep scheduling frames; pump only
+    // through the route transition instead of waiting for global quiescence.
     await tester.pump(const Duration(milliseconds: 500));
 
-    expect(find.byType(LeafScannerScreen, skipOffstage: false), findsOneWidget);
-    expect(find.byType(PestScannerScreen, skipOffstage: false), findsNothing);
+    expect(
+      find.byType(PlantHealthScannerScreen, skipOffstage: false),
+      findsOneWidget,
+    );
   });
 
   testWidgets('berry-disease entry reaches the imported berry scanner', (

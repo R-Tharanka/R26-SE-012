@@ -31,7 +31,7 @@ class AppLocalizationsSi extends AppLocalizations {
   String get language => 'භාෂාව';
 
   @override
-  String get homeLeafPest => 'කොළ සහ පළිබෝධ';
+  String get homeLeafPest => 'කොළ සෞඛ්‍යය සහ පළිබෝධ';
 
   @override
   String get homeBerryScan => 'ගම්මිරිස් ස්කෑන්';
@@ -79,6 +79,17 @@ class AppLocalizationsSi extends AppLocalizations {
 
   @override
   String get featurePlantHealth => 'ශාක සෞඛ්‍යය';
+
+  @override
+  String get featurePlantTitle => 'කොළ සෞඛ්‍ය සහ පළිබෝධ පරීක්ෂාව';
+
+  @override
+  String get featurePlantCardDescription =>
+      'කොළ රෝග ලක්ෂණ සහ සාමාන්‍ය පළිබෝධ පරීක්ෂා කරන්න';
+
+  @override
+  String get featurePlantDescription =>
+      'ගම්මිරිස් කොළයක හෝ පැළයක පැහැදිලි ඡායාරූපයක් ගෙන පෙනෙන කොළ රෝග ලක්ෂණ සහ සාමාන්‍ය පළිබෝධ පරීක්ෂා කර ප්‍රායෝගික මඟපෙන්වීම ලබාගන්න.';
 
   @override
   String get featureBerryCare => 'කරල් රැකවරණය';

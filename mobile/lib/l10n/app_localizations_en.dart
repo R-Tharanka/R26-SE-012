@@ -31,7 +31,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get language => 'Language';
 
   @override
-  String get homeLeafPest => 'Leaf & Pest';
+  String get homeLeafPest => 'Leaf Health & Pests';
 
   @override
   String get homeBerryScan => 'Berry Scan';
@@ -79,6 +79,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get featurePlantHealth => 'Plant health';
+
+  @override
+  String get featurePlantTitle => 'Leaf Health and Pest Check';
+
+  @override
+  String get featurePlantCardDescription =>
+      'Check leaf health and common pests';
+
+  @override
+  String get featurePlantDescription =>
+      'Take a clear photo of a pepper leaf or plant to check for visible leaf disease signs and common pests, then receive practical guidance.';
 
   @override
   String get featureBerryCare => 'Berry care';
