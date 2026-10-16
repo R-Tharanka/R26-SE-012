@@ -1,3 +1,9 @@
+/// Typed representation of the Phase 6 decision-support response consumed by
+/// the Flutter presentation layer.
+///
+/// The app parses the complete contract before rendering anything. This keeps
+/// research/trace fields available for debugging while allowing the farmer UI
+/// to show only the appropriate grade, rejection, or price-outlook message.
 class GradingForecastResult {
   const GradingForecastResult({
     required this.schemaVersion,
@@ -14,6 +20,8 @@ class GradingForecastResult {
   final Map<String, dynamic> trace;
   final RuntimeResult runtime;
   factory GradingForecastResult.fromJson(Map<String, dynamic> json) {
+    // A schema version prevents a newer or unrelated backend response from
+    // being interpreted as a valid Phase 7 result by an older app build.
     final schemaVersion = _requiredString(json['schema_version'], 'schema_version');
     if (schemaVersion != 'phase6_decision_support_v1') {
       throw const FormatException('Unsupported decision-support schema.');
@@ -33,6 +41,7 @@ class GradingForecastResult {
   }
 }
 
+/// Grading-stage output. A non-accepted status must not be priced.
 class GradingResult {
   const GradingResult({
     required this.status,
@@ -71,6 +80,8 @@ class GradingResult {
   );
 }
 
+/// Diagnostic forecast range supplied by the frozen price evidence.
+/// It is not presented as a calibrated probability interval.
 class ForecastInterval {
   const ForecastInterval({
     required this.lower,
@@ -88,6 +99,10 @@ class ForecastInterval {
       );
 }
 
+/// Grade-specific reference-price and forecast evidence.
+///
+/// `priceGrade` is validated against the grading result below; the client
+/// never swaps Grade 1 and Grade 2 evidence or invents a fallback price.
 class MarketResult {
   const MarketResult({
     required this.status,
@@ -142,6 +157,7 @@ class MarketResult {
   );
 }
 
+/// Phase 6 category and explanation selected by the authoritative engine.
 class DecisionSupportResult {
   const DecisionSupportResult({
     required this.category,
@@ -159,6 +175,8 @@ class DecisionSupportResult {
       );
 }
 
+/// Provenance/runtime labels returned for research diagnostics.
+/// These values are intentionally not used to create a new prediction.
 class RuntimeResult {
   const RuntimeResult({
     required this.grading,
@@ -179,6 +197,8 @@ class RuntimeResult {
 }
 
 void _validateDecisionContract(GradingForecastResult result) {
+  // Keep this validation fail-closed. A malformed response must not become a
+  // plausible-looking grade or market recommendation in the mobile UI.
   const statuses = {'ACCEPTED', 'REJECTED', 'UNCERTAIN'};
   const categories = {
     'REJECT',
@@ -197,6 +217,8 @@ void _validateDecisionContract(GradingForecastResult result) {
   }
 
   final nonAccepted = result.grading.status != 'ACCEPTED';
+  // Rejected and uncertain samples stop before pricing. The backend contract
+  // must therefore contain no market output for either state.
   if (nonAccepted &&
       (result.market.isAvailable ||
           result.market.priceGrade != null ||
@@ -216,6 +238,8 @@ void _validateDecisionContract(GradingForecastResult result) {
     throw const FormatException('Uncertain grading has an invalid category.');
   }
   if (result.market.isAvailable) {
+    // Price evidence is routed strictly by the project V3 grade. Grade 1 and
+    // Grade 2 are never averaged, discounted, or used interchangeably.
     final expectedPriceGrade = switch (result.grading.grade) {
       'V3 Grade 1' => 'Grade 1',
       'V3 Grade 2' => 'Grade 2',
