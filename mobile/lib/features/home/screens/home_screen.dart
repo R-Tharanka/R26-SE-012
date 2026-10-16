@@ -123,13 +123,24 @@ class _Dashboard extends StatelessWidget {
     final dark = theme.brightness == Brightness.dark;
     final features = [
       _FeatureItem(
+        icon: Icons.bug_report_outlined,
+        accent: dark ? const Color(0xFFFFA184) : const Color(0xFFA64128),
+        eyebrow: t.featurePlantHealth,
+        title: t.featurePestTitle,
+        cardTitle: t.homePests,
+        cardDescription: t.featurePestCardDescription,
+        description: t.featurePestDescription,
+        actionLabel: t.startScan,
+        destination: const PlantHealthScannerScreen(),
+      ),
+      _FeatureItem(
         icon: Icons.health_and_safety_outlined,
         accent: status.success,
         eyebrow: t.featurePlantHealth,
-        title: t.featurePlantTitle,
-        cardTitle: t.homeLeafPest,
-        cardDescription: t.featurePlantCardDescription,
-        description: t.featurePlantDescription,
+        title: t.featureLeafTitle,
+        cardTitle: t.homeLeafHealth,
+        cardDescription: t.featureLeafCardDescription,
+        description: t.featureLeafDescription,
         actionLabel: t.startScan,
         destination: const PlantHealthScannerScreen(),
       ),

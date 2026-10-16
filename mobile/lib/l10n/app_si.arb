@@ -9,7 +9,7 @@
   "languageTamil": "தமிழ்",
   "language": "භාෂාව",
 
-  "homeLeafPest": "කොළ සෞඛ්‍යය සහ පළිබෝධ",
+  "homeLeafPest": "කොළ සහ පළිබෝධ",
   "homeBerryScan": "ගම්මිරිස් ස්කෑන්",
   "homeGradingForecast": "ශ්‍රේණිගත කිරීම සහ පුරෝකථනය",
   "homePests": "පළිබෝධ",
@@ -25,9 +25,6 @@
   "homeWelcomeSubtitle": "ඔබට අවශ්‍ය කාර්යය තෝරන්න. ඡායාරූපය සහ ප්‍රතිඵල සඳහා අපි මඟ පෙන්වන්නෙමු.",
   "homeChooseTaskHint": "නිවැරදි වගා පරීක්ෂාව භාවිතා කිරීමට, ඡායාරූපයක් ගැනීමට පෙර කාර්යයක් තෝරන්න.",
   "featurePlantHealth": "ශාක සෞඛ්‍යය",
-  "featurePlantTitle": "කොළ සෞඛ්‍ය සහ පළිබෝධ පරීක්ෂාව",
-  "featurePlantCardDescription": "කොළ රෝග ලක්ෂණ සහ සාමාන්‍ය පළිබෝධ පරීක්ෂා කරන්න",
-  "featurePlantDescription": "ගම්මිරිස් කොළයක හෝ පැළයක පැහැදිලි ඡායාරූපයක් ගෙන පෙනෙන කොළ රෝග ලක්ෂණ සහ සාමාන්‍ය පළිබෝධ පරීක්ෂා කර ප්‍රායෝගික මඟපෙන්වීම ලබාගන්න.",
   "featureBerryCare": "කරල් රැකවරණය",
   "featureQualityAndPrice": "ගුණත්වය සහ මිල",
   "featurePestTitle": "පළිබෝධ හඳුනාගැනීම",

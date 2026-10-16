@@ -9,7 +9,7 @@
   "languageTamil": "தமிழ்",
   "language": "Language",
 
-  "homeLeafPest": "Leaf Health & Pests",
+  "homeLeafPest": "Leaf & Pest",
   "homeBerryScan": "Berry Scan",
   "homeGradingForecast": "Grading & Forecast",
   "homePests": "Pests",
@@ -25,9 +25,6 @@
   "homeWelcomeSubtitle": "Choose the task you need. We will guide you through the photo and results.",
   "homeChooseTaskHint": "Choose a task before taking a photo so the app can use the right crop check.",
   "featurePlantHealth": "Plant health",
-  "featurePlantTitle": "Leaf Health and Pest Check",
-  "featurePlantCardDescription": "Check leaf health and common pests",
-  "featurePlantDescription": "Take a clear photo of a pepper leaf or plant to check for visible leaf disease signs and common pests, then receive practical guidance.",
   "featureBerryCare": "Berry care",
   "featureQualityAndPrice": "Quality and price",
   "featurePestTitle": "Pest Detection",

@@ -145,7 +145,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeLeafPest.
   ///
   /// In en, this message translates to:
-  /// **'Leaf Health & Pests'**
+  /// **'Leaf & Pest'**
   String get homeLeafPest;
 
   /// No description provided for @homeBerryScan.
@@ -237,24 +237,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Plant health'**
   String get featurePlantHealth;
-
-  /// No description provided for @featurePlantTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Leaf Health and Pest Check'**
-  String get featurePlantTitle;
-
-  /// No description provided for @featurePlantCardDescription.
-  ///
-  /// In en, this message translates to:
-  /// **'Check leaf health and common pests'**
-  String get featurePlantCardDescription;
-
-  /// No description provided for @featurePlantDescription.
-  ///
-  /// In en, this message translates to:
-  /// **'Take a clear photo of a pepper leaf or plant to check for visible leaf disease signs and common pests, then receive practical guidance.'**
-  String get featurePlantDescription;
 
   /// No description provided for @featureBerryCare.
   ///

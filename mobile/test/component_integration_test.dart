@@ -18,7 +18,7 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
   }
 
-  testWidgets('current shell exposes the three intended capability entries', (
+  testWidgets('current shell retains all four component entries', (
     tester,
   ) async {
     await usePhoneViewport(tester);
@@ -26,7 +26,8 @@ void main() {
     await tester.pumpAndSettle();
 
     for (final label in const [
-      'Leaf Health & Pests',
+      'Pests',
+      'Leaf Health',
       'Berry Disease',
       'Quality &\nPrice',
     ]) {
@@ -58,19 +59,19 @@ void main() {
     },
   );
 
-  testWidgets('leaf-health and pests entry reaches the combined scanner', (
+  testWidgets('pest and leaf entries retain the combined plant-health route', (
     tester,
   ) async {
     await usePhoneViewport(tester);
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
 
-    final plantHealth = find.ancestor(
-      of: find.text('Leaf Health & Pests'),
+    final pests = find.ancestor(
+      of: find.text('Pests'),
       matching: find.byType(InkWell),
     );
-    await tester.ensureVisible(plantHealth);
-    await tester.tap(plantHealth);
+    await tester.ensureVisible(pests);
+    await tester.tap(pests);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Start scan'));
     // Scanner camera/progress widgets may keep scheduling frames; pump only
@@ -100,9 +101,6 @@ void main() {
     await tester.tap(find.text('Start scan'));
     await tester.pump(const Duration(milliseconds: 500));
 
-    expect(
-      find.byType(BerryScannerScreen, skipOffstage: false),
-      findsOneWidget,
-    );
+    expect(find.byType(BerryScannerScreen, skipOffstage: false), findsOneWidget);
   });
 }

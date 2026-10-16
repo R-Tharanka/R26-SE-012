@@ -31,7 +31,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get language => 'மொழி';
 
   @override
-  String get homeLeafPest => 'இலை ஆரோக்கியம் மற்றும் பூச்சிகள்';
+  String get homeLeafPest => 'இலை & பூச்சி';
 
   @override
   String get homeBerryScan => 'மிளகு ஸ்கேன்';
@@ -79,17 +79,6 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get featurePlantHealth => 'தாவர ஆரோக்கியம்';
-
-  @override
-  String get featurePlantTitle => 'இலை ஆரோக்கியம் மற்றும் பூச்சிச் சோதனை';
-
-  @override
-  String get featurePlantCardDescription =>
-      'இலை நோய் அறிகுறிகளையும் பொதுவான பூச்சிகளையும் சோதிக்கவும்';
-
-  @override
-  String get featurePlantDescription =>
-      'காணக்கூடிய இலை நோய் அறிகுறிகள் மற்றும் பொதுவான மிளகுப் பூச்சிகளைச் சரிபார்த்து நடைமுறை வழிகாட்டலைப் பெற மிளகுச் செடி அல்லது இலையின் தெளிவான படத்தை எடுக்கவும்.';
 
   @override
   String get featureBerryCare => 'கொட்டை பராமரிப்பு';

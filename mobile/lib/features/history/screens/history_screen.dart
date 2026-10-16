@@ -156,58 +156,70 @@ class _HistoryScreenState extends State<HistoryScreen> {
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setDialogState) {
           final t = AppLocalizations.of(context);
-          return AlertDialog(
-            title: Text(t.historySettings),
-            content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SwitchListTile.adaptive(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(t.historyAutoDeleteTitle),
-                    subtitle: Text(t.historyAutoDeleteDescription),
-                    value: autoDeleteEnabled,
-                    onChanged: (enabled) async {
-                      setDialogState(() => autoDeleteEnabled = enabled);
-                      await _setAutoDelete(enabled);
-                    },
-                  ),
-                  const Divider(),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton.icon(
-                      key: const ValueKey('historyClearAllButton'),
-                      style: FilledButton.styleFrom(
-                        minimumSize: const Size.fromHeight(52),
-                        backgroundColor: Theme.of(
-                          context,
-                        ).colorScheme.errorContainer,
-                        foregroundColor: Theme.of(
-                          context,
-                        ).colorScheme.onErrorContainer,
-                      ),
-                      onPressed: _clearing
-                          ? null
-                          : () {
-                              Navigator.of(dialogContext).pop();
-                              WidgetsBinding.instance.addPostFrameCallback((_) {
-                                if (mounted) unawaited(_clearAll());
-                              });
-                            },
-                      icon: const Icon(Icons.delete_forever_outlined),
-                      label: Text(t.historyClearAll),
+          final appTheme = Theme.of(context);
+          final lightDialogScheme = ColorScheme.fromSeed(
+            seedColor: appTheme.colorScheme.primary,
+            brightness: Brightness.light,
+          );
+          return Theme(
+            data: appTheme.copyWith(colorScheme: lightDialogScheme),
+            child: AlertDialog(
+              backgroundColor: Colors.white,
+              surfaceTintColor: Colors.transparent,
+              title: Text(t.historySettings),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SwitchListTile.adaptive(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(t.historyAutoDeleteTitle),
+                      subtitle: Text(t.historyAutoDeleteDescription),
+                      value: autoDeleteEnabled,
+                      onChanged: (enabled) async {
+                        setDialogState(() => autoDeleteEnabled = enabled);
+                        await _setAutoDelete(enabled);
+                      },
                     ),
-                  ),
-                ],
+                    const Divider(),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton.icon(
+                        key: const ValueKey('historyClearAllButton'),
+                        style: FilledButton.styleFrom(
+                          minimumSize: const Size.fromHeight(52),
+                          backgroundColor: Theme.of(
+                            context,
+                          ).colorScheme.errorContainer,
+                          foregroundColor: Theme.of(
+                            context,
+                          ).colorScheme.onErrorContainer,
+                        ),
+                        onPressed: _clearing
+                            ? null
+                            : () {
+                                Navigator.of(dialogContext).pop();
+                                WidgetsBinding.instance.addPostFrameCallback((
+                                  _,
+                                ) {
+                                  if (mounted) unawaited(_clearAll());
+                                });
+                              },
+                        icon: const Icon(Icons.delete_forever_outlined),
+                        label: Text(t.historyClearAll),
+                      ),
+                    ),
+                  ],
+                ),
               ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: Text(t.historyCancel),
+                ),
+              ],
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(dialogContext).pop(),
-                child: Text(t.historyCancel),
-              ),
-            ],
           );
         },
       ),
