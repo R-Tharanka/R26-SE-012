@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../models/grading_forecast_result.dart';
 
+/// Safe, typed errors exposed to the UI instead of raw provider/network text.
 class GradingForecastApiException implements Exception {
   const GradingForecastApiException(
     this.message, {
@@ -35,6 +36,11 @@ enum GradingForecastApiErrorKind {
   analysisFailed,
 }
 
+/// Sends the original selected image to the Phase 7 backend.
+///
+/// Grading runs through the frozen backend ONNX pipeline. There is no local
+/// prediction fallback here, because a fallback could silently change the
+/// approved preprocessing, thresholds, model, or Phase 6 decision semantics.
 class GradingForecastApiService {
   GradingForecastApiService({String? baseUrlOverride, http.Client? client})
     : _baseUrl = _resolveBaseUrl(baseUrlOverride),
@@ -46,6 +52,9 @@ class GradingForecastApiService {
   final http.Client _client;
   final bool _ownsClient;
   String get baseUrl => _baseUrl;
+
+  /// Validates the upload locally, then strictly parses the complete response
+  /// contract returned by the backend.
   Future<GradingForecastResult> analyzeBytes(
     Uint8List bytes,
     String filename,
@@ -72,6 +81,8 @@ class GradingForecastApiService {
         kind: GradingForecastApiErrorKind.invalidBackendAddress,
       );
     }
+    // Multipart upload preserves the image bytes selected by the user. The
+    // backend owns quality gates, preprocessing, ONNX inference, and routing.
     final request = http.MultipartRequest('POST', endpoint)
       ..files.add(
         http.MultipartFile.fromBytes('image', bytes, filename: filename),
@@ -91,6 +102,8 @@ class GradingForecastApiService {
           }
         }
       }
+      // HTTP failures are mapped to safe, localized UI messages below; raw
+      // backend details are never displayed as an untrusted fallback.
       if (response.statusCode < 200 || response.statusCode >= 300) {
         final detail = _responseDetail(decoded);
         throw GradingForecastApiException(
@@ -140,6 +153,8 @@ class GradingForecastApiService {
   }
 
   static String? _responseDetail(Object? decoded) {
+    // Validation details are accepted only as a short backend-provided string;
+    // structured error lists receive a generic message to keep the UI stable.
     if (decoded is! Map) return null;
     final detail = decoded['detail'];
     if (detail is String && detail.trim().isNotEmpty) return detail;
@@ -172,6 +187,8 @@ class GradingForecastApiService {
       };
 
   static String _resolveBaseUrl(String? override) {
+    // Build-time configuration is preferred. Platform defaults are local
+    // development addresses only and are not claims about a hosted service.
     if (override != null && override.trim().isNotEmpty) {
       return override.replaceAll(RegExp(r'/$'), '');
     }

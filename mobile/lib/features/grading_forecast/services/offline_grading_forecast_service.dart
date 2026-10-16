@@ -6,6 +6,8 @@ import '../models/grading_forecast_result.dart';
 /// The bundled legacy MobileNet TFLite model is not the frozen V3 YOLO model
 /// and must not be used for Phase 7 decisions.
 class OfflineGradingForecastService {
+  /// Always fails explicitly so the legacy APK model cannot be mistaken for
+  /// the frozen V3 ONNX grading model used by the research workflow.
   Future<GradingForecastResult> analyzeBytes(
     Uint8List _,
     String __,
