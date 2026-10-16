@@ -3,7 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pepper_care/features/berry_disease/berry_scanner_screen.dart';
 import 'package:pepper_care/features/grading_forecast/screens/berry_capture_screen.dart';
 import 'package:pepper_care/features/home/screens/home_screen.dart';
-import 'package:pepper_care/features/plant_health/screens/plant_health_scanner_screen.dart';
+import 'package:pepper_care/features/leaf_disease/screens/leaf_scanner_screen.dart';
+import 'package:pepper_care/features/pest_detection/screens/pest_scanner_screen.dart';
 import 'package:pepper_care/l10n/app_localizations.dart';
 
 Widget _app() => const MaterialApp(
@@ -59,9 +60,7 @@ void main() {
     },
   );
 
-  testWidgets('pest and leaf entries retain the combined plant-health route', (
-    tester,
-  ) async {
+  testWidgets('pest entry reaches the dedicated pest scanner', (tester) async {
     await usePhoneViewport(tester);
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
@@ -78,10 +77,29 @@ void main() {
     // through the route transition instead of waiting for global quiescence.
     await tester.pump(const Duration(milliseconds: 500));
 
-    expect(
-      find.byType(PlantHealthScannerScreen, skipOffstage: false),
-      findsOneWidget,
+    expect(find.byType(PestScannerScreen, skipOffstage: false), findsOneWidget);
+    expect(find.byType(LeafScannerScreen, skipOffstage: false), findsNothing);
+  });
+
+  testWidgets('leaf-health entry reaches the dedicated leaf scanner', (
+    tester,
+  ) async {
+    await usePhoneViewport(tester);
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+
+    final leafHealth = find.ancestor(
+      of: find.text('Leaf Health'),
+      matching: find.byType(InkWell),
     );
+    await tester.ensureVisible(leafHealth);
+    await tester.tap(leafHealth);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Start scan'));
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(find.byType(LeafScannerScreen, skipOffstage: false), findsOneWidget);
+    expect(find.byType(PestScannerScreen, skipOffstage: false), findsNothing);
   });
 
   testWidgets('berry-disease entry reaches the imported berry scanner', (
@@ -101,6 +119,9 @@ void main() {
     await tester.tap(find.text('Start scan'));
     await tester.pump(const Duration(milliseconds: 500));
 
-    expect(find.byType(BerryScannerScreen, skipOffstage: false), findsOneWidget);
+    expect(
+      find.byType(BerryScannerScreen, skipOffstage: false),
+      findsOneWidget,
+    );
   });
 }

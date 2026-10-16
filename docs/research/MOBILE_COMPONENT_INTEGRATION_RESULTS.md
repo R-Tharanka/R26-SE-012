@@ -266,3 +266,19 @@ remain outside this update.
 Updated status:
 
 `IMPLEMENTED; STATIC AND FLUTTER TEST VERIFICATION PASSED; ANDROID BUILD AND LIVE DEVICE/CLOUD ACCEPTANCE PENDING`.
+
+## Pest and leaf route correction (2026-10-16)
+
+The four-card dashboard now routes the two plant features independently:
+
+- **Pests** opens `PestScannerScreen`, whose detector configuration uses
+  `assets/models/new_pest_yolo_model_int8.tflite`.
+- **Leaf Health** opens `LeafScannerScreen`, whose detector configuration uses
+  `assets/models/new_leaf_yolo_model_int8.tflite`.
+
+Previously, both cards opened `PlantHealthScannerScreen`. That combined screen
+uses the leaf detector for its local TFLite path, so the Pest card could present
+leaf-health behavior. The correction changes only dashboard routing. It does
+not change either detector, model asset, threshold, preprocessing path,
+recommendation behavior, Berry Disease, or Berry Grading and Export Price
+Forecasting.

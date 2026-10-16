@@ -6,8 +6,9 @@ import '../../../shared/widgets/farmer_ui.dart';
 import '../../berry_disease/berry_scanner_screen.dart';
 import '../../grading_forecast/screens/berry_capture_screen.dart';
 import '../../history/screens/history_screen.dart';
+import '../../leaf_disease/screens/leaf_scanner_screen.dart';
 import '../../onboarding/language_picker_screen.dart';
-import '../../plant_health/screens/plant_health_scanner_screen.dart';
+import '../../pest_detection/screens/pest_scanner_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -131,7 +132,7 @@ class _Dashboard extends StatelessWidget {
         cardDescription: t.featurePestCardDescription,
         description: t.featurePestDescription,
         actionLabel: t.startScan,
-        destination: const PlantHealthScannerScreen(),
+        destination: const PestScannerScreen(),
       ),
       _FeatureItem(
         icon: Icons.health_and_safety_outlined,
@@ -142,7 +143,7 @@ class _Dashboard extends StatelessWidget {
         cardDescription: t.featureLeafCardDescription,
         description: t.featureLeafDescription,
         actionLabel: t.startScan,
-        destination: const PlantHealthScannerScreen(),
+        destination: const LeafScannerScreen(),
       ),
       _FeatureItem(
         icon: Icons.grain_rounded,

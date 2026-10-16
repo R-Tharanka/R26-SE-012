@@ -1251,3 +1251,13 @@ Date: 2026-10-15.
 - Verification: direct Dart analysis and official `flutter analyze` passed; new focused tests passed 5/5; focused scanner/navigation/Phase 7 tests passed 56/56; the complete Flutter suite passed 80/80 after synchronizing generated Sinhala localization from the existing ARB catalog; the unchanged Phase 7 backend integration suite passed 11/11.
 - Build boundary: a credential-free debug APK build entered Gradle but remained silent past the bounded window and was stopped. No build, emulator, device, or live-provider pass is claimed.
 - Remaining acceptance: manually verify all three outsourced camera/gallery and recommendation paths with authorized keys and fallback mode, then rerun the five established Phase 7 grading cases on the packaged application.
+
+### MOBILE-PEST-LEAF-ROUTING-CORRECTION-003
+
+Date: 2026-10-16.
+
+- Scope: corrected the four-card dashboard so Pest and Leaf Health open their dedicated scanner implementations rather than sharing the combined plant-health route.
+- Routing: Pest now opens `PestScannerScreen` with the pest TFLite configuration; Leaf Health now opens `LeafScannerScreen` with the leaf TFLite configuration.
+- Cause: both Home cards previously targeted `PlantHealthScannerScreen`, whose local detector is configured with the leaf TFLite model.
+- Boundary: no scanner inference code, model, threshold, preprocessing, recommendation behavior, backend, Berry Disease, or Berry Grading and Export Price Forecasting behavior was changed.
+- Verification: `flutter analyze` passed with no issues; the component integration suite passed 5/5, including independent Pest and Leaf routes and unchanged Berry Disease/grading entry routes; the focused Home/detector suites passed 38/38.
