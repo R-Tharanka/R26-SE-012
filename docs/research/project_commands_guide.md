@@ -136,15 +136,26 @@ Important for PP2 V2:
 
 ### 3.1 Validate berry labels + images
 
+This validator no longer selects the historical V1 label CSV implicitly. Pass
+the intended manifest and output path explicitly. For the prepared V2 manifest:
+
 ```powershell
-python ml\grading_forecast\berry_grading\preprocessing\validate_dataset.py
+python ml\grading_forecast\berry_grading\preprocessing\validate_dataset.py --labels data\annotations\grading_forecast\berry_grading_labels_v2.csv --out data\processed\grading_forecast\berry_dataset_v2_validation_summary.json
 ```
+
+This command is a validation utility only. It is not the current V3 YOLO
+dataset preparation workflow and should not be used to regenerate frozen V3
+artifacts.
 
 ### 3.2 Create processed training images (224×224 letterbox)
 
 ```powershell
 python ml\grading_forecast\berry_grading\preprocessing\prepare_training_images.py
 ```
+
+This is a legacy MobileNet/V1-style preprocessing command. Run it only when
+intentionally reproducing that historical pipeline; it is not part of the
+current V3 YOLO workflow.
 
 ### 3.3 Clean price dataset
 

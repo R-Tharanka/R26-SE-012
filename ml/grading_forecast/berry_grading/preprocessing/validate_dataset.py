@@ -115,12 +115,17 @@ def validate_labels_csv(labels_csv: Path, summary_json: Path, repo_root: Path) -
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Validate berry grading dataset labels and images.")
-    parser.add_argument("--labels", type=Path, default=None, help="Path to berry_grading_labels.csv.")
+    parser.add_argument(
+        "--labels",
+        type=Path,
+        required=True,
+        help="Explicit path to the labels CSV; no historical dataset is selected implicitly.",
+    )
     parser.add_argument("--out", type=Path, default=None, help="Output summary JSON path.")
     args = parser.parse_args(argv)
 
     repo_root = _repo_root()
-    labels_csv = args.labels or (repo_root / "data" / "annotations" / "grading_forecast" / "berry_grading_labels.csv")
+    labels_csv = args.labels
     out_json = (
         args.out
         or (repo_root / "data" / "processed" / "grading_forecast" / "berry_dataset_validation_summary.json")
