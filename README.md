@@ -128,7 +128,7 @@ Phase 7 backend ONNX integration used by Flutter. Older MobileNetV2, V1, and V2
 files are retained as historical evidence or backend fallback artifacts; they
 must not be mistaken for the selected V3 research workflow.
 
-See [Repository Inventory](docs/repository_inventory.md) for the active,
+See [Repository Inventory](docs/guides/repository_inventory.md) for the active,
 historical, generated, ignored-local, and protected artifact boundaries.
 
 ### Key Implementation Areas

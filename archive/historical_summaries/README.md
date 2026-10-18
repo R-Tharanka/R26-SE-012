@@ -8,7 +8,7 @@ evidence but no longer describe the selected workflow.
   workflow became authoritative.
 
 Historical claims must be read in their original date context. Current workflow
-ownership and protected artifacts are documented in `docs/repository_inventory.md`.
+ownership and protected artifacts are documented in `docs/guides/repository_inventory.md`.
 
 Preserved SHA-256 for `details_2026-09-01.md`:
 

@@ -282,4 +282,4 @@ Before distributing the APK, test on a physical device:
 - App behavior without cloud keys
 - Railway backend unavailable/timeout behavior
 
-The repository’s longer command reference is in [PHASE7_APPLICATION_RUN_GUIDE.md](research/guides/PHASE7_APPLICATION_RUN_GUIDE.md).
+The repository’s longer command reference is in [PHASE7_APPLICATION_RUN_GUIDE.md](PHASE7_APPLICATION_RUN_GUIDE.md).
