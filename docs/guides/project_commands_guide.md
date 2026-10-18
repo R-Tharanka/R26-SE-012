@@ -1,679 +1,265 @@
-# Project Commands Guide (Backend + PP2 Model Phases)
+# Current Project Commands Guide
 
-This guide is a **PowerShell-first** reference for running the backend, rebuilding datasets, training real models, and verifying everything works.
+Status basis: repository source and tests inspected on 2026-10-18.
 
-PP2 status update, 2026-08-31:
+This is the command reference for the current combined research and Flutter
+application repository. The active berry workflow is:
 
-- Berry V2 MobileNetV2 baseline training, test evaluation, and ONNX export are complete.
-- Use explicit V2 paths for any Berry V2 command.
-- Bare no-argument berry commands may target historical V1 artifacts.
-- Price Forecasting V2 baseline training/evaluation is complete; Naive Persistence outperformed RandomForest on the V2 test period.
-- Phase 4 limited improvement is complete; use explicit `v2_phase4` paths to reproduce it.
-- Phase 5 backend integration validation is complete with runtime limitations.
-- Phase 6 evidence documentation is complete.
-- Phase 13 offline mobile TFLite fallback and grade-aware predicted-market-price display are implemented, but Flutter build/device validation is still pending.
+```text
+V3 Phase 3 follow-up YOLO model (frozen ONNX)
+    -> Phase 6 rejection-first decision engine
+    -> approved, grade-specific frozen Phase 5 forecast record
+    -> FastAPI Phase 7 POST /analyze
+    -> Flutter grading and price-outlook screens
+```
 
----
+Normal application use does **not** train a model, export ONNX, regenerate a
+dataset, or create a new price forecast. Older V1/V2 commands and results are
+research history, not the current runtime procedure.
 
-## Where to run commands
+## 1. Command locations and environments
 
-- **Repo root**:
-  - `D:\work\Year - 4\pepper\project\multimodal-pepper-ai-decision-support`
-- Unless explicitly noted, run commands from **repo root** in **PowerShell**.
-
----
-
-## 0) One-time PowerShell setup (only if activation is blocked)
-
-Run this in the same PowerShell window you’ll use:
+Unless a section says otherwise, run commands from the repository root:
 
 ```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
+cd "D:\work\Year - 4\pepper\project\multimodal-pepper-ai-decision-support"
 ```
 
-Use this only when `Activate.ps1` is blocked.
+Use the existing environments when they are available:
 
----
+- `.venv` - backend, tests, and general Python tools.
+- `.venv-yolo` - YOLO training/evaluation only.
 
-## 1) Backend environment + run API (FastAPI)
-
-### 1.1 Activate your backend venv
-
-From repo root:
+Do not delete either environment if you want to avoid downloading its packages
+again. Install requirements only when an environment is missing or incomplete:
 
 ```powershell
-.\.venv\Scripts\Activate.ps1
+.\.venv\Scripts\python.exe -m pip install -r backend\requirements.txt
 ```
 
-Run this whenever you open a new terminal and want to work on backend/testing.
+## 2. Run the current backend
 
-### 1.2 Upgrade pip
+Start FastAPI from the repository root:
 
 ```powershell
-python -m pip install --upgrade pip
+.\.venv\Scripts\python.exe -m uvicorn app.main:app `
+  --app-dir backend `
+  --host 0.0.0.0 `
+  --port 8000
 ```
 
-Run this once per venv (or when installs act weird).
+The application loads the Phase 7 ONNX runtime and frozen forecast evidence at
+startup. A startup failure is intentional fail-closed behavior.
 
-### 1.3 Install backend requirements
-
-Option A (from repo root):
+Check liveness and readiness in a second terminal:
 
 ```powershell
-python -m pip install -r backend\requirements.txt
+Invoke-RestMethod `
+  "http://127.0.0.1:8000/api/v1/grading-forecast/health" |
+  ConvertTo-Json -Depth 10
+
+Invoke-RestMethod `
+  "http://127.0.0.1:8000/api/v1/grading-forecast/ready" |
+  ConvertTo-Json -Depth 10
 ```
 
-Option B (cd into backend):
+`/health` proves that the process answers HTTP. `/ready` is stronger: it must
+return HTTP 200 with `status: ready`, `runtime: backend_onnx_runtime`, and
+`price_strategy: frozen_phase5_forecast_records`.
+
+FastAPI documentation is at `http://127.0.0.1:8000/docs`.
+
+## 3. Use the current API
+
+The only analysis endpoint is:
+
+```text
+POST /api/v1/grading-forecast/analyze
+multipart field: image
+accepted formats: single-frame JPEG, PNG, or WEBP
+maximum upload: 10 MB
+```
+
+Example using a controlled repository image:
 
 ```powershell
-cd backend
-python -m pip install -r requirements.txt
-cd ..
+curl.exe -X POST `
+  "http://127.0.0.1:8000/api/v1/grading-forecast/analyze" `
+  -F "image=@data/raw/Pepper Berry Grading V3.yolov8/test/images/20260508_160550_jpg.rf.BUF1sZWo8GvE4UCSfj74.jpg"
 ```
 
-### 1.4 Start the backend server
+Rejected or uncertain grading must not produce market output. Accepted Grade 1
+and Grade 2 results may retrieve only the matching approved frozen forecast
+record. The response is research decision support, not a live market quote or
+financial recommendation.
 
-Option A (recommended, from repo root):
+These pre-Phase-7 endpoints are intentionally retired and return HTTP 410:
+
+```text
+POST /api/v1/grading-forecast/grade-only
+GET  /api/v1/grading-forecast/price-forecast
+POST /api/v1/grading-forecast/recommend
+```
+
+Use `docs/api/grading_forecast_postman_collection.json` for the maintained
+Postman requests.
+
+## 4. Run focused backend tests
+
+The current Phase 7 application boundary is covered by these three files:
 
 ```powershell
-python -m uvicorn app.main:app --reload --app-dir backend
+.\.venv\Scripts\python.exe -m pytest -q `
+  --basetemp=.\backend\pytest-cache-files-phase7 `
+  backend\tests\test_main_startup.py `
+  backend\tests\test_phase7_integration.py `
+  backend\tests\test_phase7_text_integrity.py
 ```
 
-Option B (cd into backend):
+The latest recorded local run on 2026-10-18 passed all 15 tests. This focused
+run checks startup wiring, route/error behavior, rejection-first routing, and
+CRLF/LF-safe frozen-text integrity. It does not retrain models or overwrite
+frozen results.
+
+The repository-level `pytest.ini` disables pytest's normal cache provider. The
+explicit `--basetemp` path avoids known Windows temporary-directory permission
+problems in this checkout.
+
+The remaining backend tests include legacy/fallback-service coverage. Run the
+entire suite only when changing those services, and interpret failures by
+component rather than treating them automatically as a Phase 7 regression:
 
 ```powershell
-cd backend
-python -m uvicorn app.main:app --reload
+.\.venv\Scripts\python.exe -m pytest -q `
+  --basetemp=.\backend\pytest-cache-files-all
 ```
 
-### 1.5 (Optional) PYTHONPATH env var
+## 5. Run the Flutter application
 
-Usually not needed because `pytest.ini` already sets `pythonpath=backend`. If you still want it:
+From `mobile/`, use the installed Flutter SDK:
 
 ```powershell
-$env:PYTHONPATH = "backend"
+cd mobile
+$flutter = "C:\test-by-me\flutter\flutter\bin\flutter.bat"
+& $flutter devices
 ```
 
----
-
-## 2) Run backend tests (pytest)
-
-### 2.1 Run all backend tests (recommended)
-
-From repo root:
+Dependency resolution can download packages. Skip `flutter pub get` when the
+existing cache and lockfile already support the build; run it only when Flutter
+reports missing dependencies:
 
 ```powershell
-python -m pytest -q
+& $flutter pub get
 ```
 
-### 2.2 Run only backend tests folder
-
-From repo root:
+Browser with a local backend:
 
 ```powershell
-python -m pytest -q backend\tests
+& $flutter run -d chrome `
+  --dart-define=PEPPER_API_BASE_URL=http://127.0.0.1:8000
 ```
 
-If you want to force `PYTHONPATH` anyway:
+Android emulator with a local backend:
 
 ```powershell
-$env:PYTHONPATH = "backend"
-python -m pytest -q backend\tests
+& $flutter run -d emulator-5554 `
+  --dart-define=PEPPER_API_BASE_URL=http://10.0.2.2:8000
 ```
 
----
-
-## 3) Phase 2 — (Re)build datasets (only if you need to regenerate inputs)
-
-Run these if you changed raw data or need to recreate processed CSVs/processed images.
-
-Important for PP2 V2:
-
-- Do not rerun dataset-generation commands unless you intentionally want to rebuild inputs.
-- The current V2 berry dataset and sample-level split are already prepared.
-- The current V2 price cleaned data and chronological split are already prepared.
-- The commands below are legacy/V1-oriented unless they are explicitly parameterized.
-
-### 3.1 Validate berry labels + images
-
-This validator no longer selects the historical V1 label CSV implicitly. Pass
-the intended manifest and output path explicitly. For the prepared V2 manifest:
+Physical Android device over USB:
 
 ```powershell
-python ml\grading_forecast\berry_grading\preprocessing\validate_dataset.py --labels data\annotations\grading_forecast\berry_grading_labels_v2.csv --out data\processed\grading_forecast\berry_dataset_v2_validation_summary.json
+$adb = "$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe"
+& $adb reverse tcp:8000 tcp:8000
+& $flutter run -d YOUR_DEVICE_ID `
+  --dart-define=PEPPER_API_BASE_URL=http://127.0.0.1:8000
 ```
 
-This command is a validation utility only. It is not the current V3 YOLO
-dataset preparation workflow and should not be used to regenerate frozen V3
-artifacts.
+`PEPPER_API_BASE_URL` is a build-time value. Without it, the client uses local
+development defaults: `127.0.0.1:8000` for web/desktop and `10.0.2.2:8000` for
+Android.
 
-### 3.2 Create processed training images (224×224 letterbox)
+The optional ignored `mobile/.env` may provide restricted development cloud
+keys for the pest, leaf, and berry-disease features. Phase 7 berry grading does
+not require Gemini or Anthropic keys. Never distribute an APK or web bundle
+containing unrestricted provider keys.
+
+## 6. Flutter validation and History
+
+Run from `mobile/`:
 
 ```powershell
-python ml\grading_forecast\berry_grading\preprocessing\prepare_training_images.py
+& $flutter analyze
+& $flutter test
 ```
 
-This is a legacy MobileNet/V1-style preprocessing command. Run it only when
-intentionally reproducing that historical pipeline; it is not part of the
-current V3 YOLO workflow.
+These commands validate source and widget/unit behavior. They do not prove a
+successful Android build, device installation, hosted backend, or field
+performance.
 
-### 3.3 Clean price dataset
+The current app stores completed analyses and the original selected image in
+local History storage. Opening a saved History detail reconstructs the stored
+snapshot and must not rerun inference or call an API. Clearing History removes
+the app's local database records and saved image copies; it does not delete
+source images outside the app's private storage.
+
+## 7. Build a local Android release candidate
+
+The Android project still uses `com.example.mobile` and signs release builds
+with the debug key. The resulting APK is suitable only for controlled local
+testing:
 
 ```powershell
-python ml\grading_forecast\price_forecasting\data\clean_price_data.py
+& $flutter build apk --release `
+  --dart-define=PEPPER_API_BASE_URL=https://YOUR_PHASE7_BACKEND
 ```
 
-### 3.4 Prepare baseline forecast series (National + Grade 1 + average)
+Output: `mobile/build/app/outputs/flutter-apk/app-release.apk`.
+
+Before public distribution, choose a permanent application ID, configure a
+private release keystore outside Git, use an authenticated HTTPS backend, and
+remove client-side permanent cloud secrets. See `build_guide.md` for the full
+release checklist.
+
+## 8. Research artifact verification
+
+The authoritative current paths are listed in `repository_inventory.md`.
+Read-only checks that are safe during routine cleanup include:
 
 ```powershell
-python ml\grading_forecast\price_forecasting\data\prepare_forecast_training_data.py
+git diff --check
+git status --short --untracked-files=all
+Get-FileHash -Algorithm SHA256 `
+  ml\grading_forecast\berry_grading\models\v3_phase3_followup\best.pt, `
+  ml\grading_forecast\berry_grading\models\v3_phase3_followup\best.onnx, `
+  ml\grading_forecast\berry_grading\evaluation\v3_phase3_followup\decision_config_frozen.json, `
+  ml\grading_forecast\price_forecasting\phase5\models\selected_model_spec.json
 ```
 
-### 3.5 Create chronological train/test split
-
-```powershell
-python ml\grading_forecast\price_forecasting\data\create_forecast_split.py
-```
-
----
-
-## 4) Phase 3 — Real model training (run exactly in this order)
-
-### 4.1 Install training dependencies (in your training venv)
-
-Activate venv first, then:
-
-```powershell
-python -m pip install -U pip setuptools wheel
-pip install -r ml\grading_forecast\requirements-training.txt
-```
-
-### 4.2 Berry grading model, PP2 V2 baseline
-
-The PP2 V2 baseline has already been trained and evaluated. Do not rerun this command unless you are intentionally reproducing the same baseline.
-
-Training command used:
-
-```powershell
-.\.venv\Scripts\python.exe ml/grading_forecast/berry_grading/training/train_berry_classifier.py --train-dir data/processed/grading_forecast/berry_split_v2/train --val-dir data/processed/grading_forecast/berry_split_v2/val --output-dir ml/grading_forecast/berry_grading/models/v2 --model-filename berry_mobilenetv2_v2_best.keras --metadata-version v2 --batch-size 16 --stage1-epochs 15 --stage2-epochs 5 --stage1-lr 1e-3 --stage2-lr 1e-5 --patience 3
-```
-
-Expected V2 outputs in `ml\grading_forecast\berry_grading\models\v2\`:
-
-- `berry_mobilenetv2_v2_best.keras`
-- `class_names.json`
-- `training_history.json`
-- `berry_model_metadata.json`
-
-### 4.3 Evaluate berry model on V2 test split
-
-```powershell
-.\.venv\Scripts\python.exe ml/grading_forecast/berry_grading/training/evaluate_berry_classifier.py --model ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.keras --models-dir ml/grading_forecast/berry_grading/models/v2 --data-dir data/processed/grading_forecast/berry_split_v2/test --output-dir ml/grading_forecast/berry_grading/evaluation/_outputs/v2 --use-full-data-dir --split-name test
-```
-
-Expected:
-
-- `ml\grading_forecast\berry_grading\models\v2\berry_classifier_metrics.json`
-- `ml\grading_forecast\berry_grading\evaluation\_outputs\v2\confusion_matrix.png`
-- `ml\grading_forecast\berry_grading\evaluation\_outputs\v2\training_curves.png`
-
-Completed V2 test result:
-
-- Accuracy: 0.8073
-- Weighted F1: 0.8076
-- Grade 2 precision/recall/F1: 0.7805 / 0.8889 / 0.8312
-
-### 4.4 Export berry V2 model to ONNX
-
-```powershell
-.\.venv\Scripts\python.exe ml/grading_forecast/berry_grading/training/export_berry_model.py --model ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.keras --out ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.onnx --metadata-out ml/grading_forecast/berry_grading/models/v2/onnx_metadata.json
-```
-
-Expected:
-
-- `ml\grading_forecast\berry_grading\models\v2\berry_mobilenetv2_v2_best.onnx`
-- `ml\grading_forecast\berry_grading\models\v2\onnx_metadata.json`
-
-### 4.5 Test real berry inference with V2 model (CLI)
-
-```powershell
-.\.venv\Scripts\python.exe ml/grading_forecast/berry_grading/inference/predict_berry_grade.py path\to\test.jpg --model ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.keras --class-names ml/grading_forecast/berry_grading/models/v2/class_names.json
-```
-
-Historical V1 artifacts remain in `ml\grading_forecast\berry_grading\models\`. Do not overwrite them when working with V2.
-
-### 4.5.1 Export berry V2 model to TFLite for mobile offline mode
-
-This converts the existing selected V2 Keras model. It does not train or evaluate a model.
-
-```powershell
-.\.venv\Scripts\python.exe ml/grading_forecast/berry_grading/training/export_berry_tflite_model.py
-```
-
-Expected:
-
-- `mobile\assets\models\berry_mobilenetv2_v2_best.tflite`
-- `mobile\assets\models\berry_mobilenetv2_v2_best_metadata.json`
-
-Expected tensor contract:
-
-- Input: `[1, 224, 224, 3]` float32 RGB `0..255`.
-- Output: `[1, 3]` float32 class probabilities.
-
-### 4.6 Train forecast model, PP2 V2 RandomForest
-
-```powershell
-.\.venv\Scripts\python.exe ml/grading_forecast/price_forecasting/training/train_forecast_model.py --train-csv data/processed/grading_forecast/price_v2/forecast_train.csv --validation-csv data/processed/grading_forecast/price_v2/forecast_validation.csv --test-csv data/processed/grading_forecast/price_v2/forecast_test.csv --target-csv data/processed/grading_forecast/price_v2/national_grade1_average_weekly.csv --models-dir ml/grading_forecast/price_forecasting/models/v2 --dataset-version v2 --artifact-version v2 --seed 42 --n-estimators 400 --min-samples-leaf 1 --n-jobs -1 --require-v2-paths
-```
-
-Expected V2 outputs in `ml\grading_forecast\price_forecasting\models\v2\`:
-
-- `forecast_model.joblib`
-- `forecast_features.json`
-- `forecast_metrics.json`
-- `forecast_model_metadata.json`
-
-Important: this is the Phase 3 command that was used. Rerun it only if you intentionally want to reproduce the same V2 baseline.
-
-Completed Phase 3 V2 result:
-
-- Naive Persistence MAE/RMSE/MAPE/R2: 16.4094 / 22.5208 / 0.8539 / 0.9045
-- RandomForest MAE/RMSE/MAPE/R2: 82.4179 / 88.4452 / 4.1679 / -0.4736
-- Decision: Naive Persistence is the stronger forecasting baseline for the V2 test period.
-
-### 4.7 Evaluate forecast model, PP2 V2 same test timestamps
-
-```powershell
-.\.venv\Scripts\python.exe ml/grading_forecast/price_forecasting/training/evaluate_forecast_model.py --target-csv data/processed/grading_forecast/price_v2/national_grade1_average_weekly.csv --test-csv data/processed/grading_forecast/price_v2/forecast_test.csv --models-dir ml/grading_forecast/price_forecasting/models/v2 --output-dir ml/grading_forecast/price_forecasting/evaluation/_outputs/v2 --split-name test --require-v2-paths
-```
-
-Expected:
-
-- Updated `ml\grading_forecast\price_forecasting\models\v2\forecast_metrics.json`
-- `ml\grading_forecast\price_forecasting\models\v2\naive_persistence_metrics.json`
-- Plots under `ml\grading_forecast\price_forecasting\evaluation\_outputs\v2\`
-
-This evaluation is prepared to compare actual prices, naive persistence predictions, and RandomForest predictions on the same 36 V2 test timestamps.
-
-### 4.8 Test real forecast inference (CLI)
-
-```powershell
-.\.venv\Scripts\python.exe ml/grading_forecast/price_forecasting/inference/predict_future_price.py --data-csv data/processed/grading_forecast/price_v2/national_grade1_average_weekly.csv --models-dir ml/grading_forecast/price_forecasting/models/v2 --require-v2-paths
-```
-
-### 4.9 Phase 4 - Berry limited improvement
-
-Selected change:
-
-- Dropout changed from 0.25 to 0.35.
-- Same V2 sample-level train/validation/test split as Phase 2.
-- Do not use this command for Phase 2 baseline reproduction; it writes to `v2_phase4`.
-
-Training reproduction command:
-
-```powershell
-.\.venv\Scripts\python.exe ml/grading_forecast/berry_grading/training/train_berry_classifier.py --train-dir data/processed/grading_forecast/berry_split_v2/train --val-dir data/processed/grading_forecast/berry_split_v2/val --output-dir ml/grading_forecast/berry_grading/models/v2_phase4 --model-filename berry_mobilenetv2_v2_phase4_best.keras --metadata-version v2_phase4 --batch-size 16 --stage1-epochs 15 --stage2-epochs 5 --stage1-lr 1e-3 --stage2-lr 1e-5 --patience 3 --dropout 0.35
-```
-
-Evaluation command used during Phase 4 finalization:
-
-```powershell
-.\.venv\Scripts\python.exe ml/grading_forecast/berry_grading/training/evaluate_berry_classifier.py --model ml/grading_forecast/berry_grading/models/v2_phase4/berry_mobilenetv2_v2_phase4_best.keras --models-dir ml/grading_forecast/berry_grading/models/v2_phase4 --data-dir data/processed/grading_forecast/berry_split_v2/test --output-dir ml/grading_forecast/berry_grading/evaluation/_outputs/v2_phase4 --use-full-data-dir --split-name test
-```
-
-Completed Phase 4 berry result:
-
-- Accuracy: 0.8073
-- Macro F1: 0.8068
-- Weighted F1: 0.8076
-- Grade 2 precision/recall/F1: 0.7805 / 0.8889 / 0.8312
-- Decision: dropout 0.35 did not improve the saved headline metrics compared with Phase 2.
-
-### 4.10 Phase 4 - Forecasting limited improvement
-
-Selected change:
-
-- Add `lag_4`, `lag_8`, and `lag_12`.
-- Same V2 National Grade 1 average weekly target and same 36 test timestamps as Phase 3.
-- Do not rerun this unless intentionally reproducing Phase 4; it writes to `v2_phase4`.
-
-Training command used:
-
-```powershell
-.\.venv\Scripts\python.exe ml/grading_forecast/price_forecasting/training/train_forecast_model_phase4.py --train-csv data/processed/grading_forecast/price_v2/forecast_train.csv --validation-csv data/processed/grading_forecast/price_v2/forecast_validation.csv --test-csv data/processed/grading_forecast/price_v2/forecast_test.csv --target-csv data/processed/grading_forecast/price_v2/national_grade1_average_weekly.csv --models-dir ml/grading_forecast/price_forecasting/models/v2_phase4 --dataset-version v2 --artifact-version v2_phase4 --seed 42 --n-estimators 400 --min-samples-leaf 1 --n-jobs -1 --require-v2-paths
-```
-
-Evaluation command used:
-
-```powershell
-.\.venv\Scripts\python.exe ml/grading_forecast/price_forecasting/training/evaluate_forecast_model_phase4.py --target-csv data/processed/grading_forecast/price_v2/national_grade1_average_weekly.csv --test-csv data/processed/grading_forecast/price_v2/forecast_test.csv --models-dir ml/grading_forecast/price_forecasting/models/v2_phase4 --phase3-models-dir ml/grading_forecast/price_forecasting/models/v2 --output-dir ml/grading_forecast/price_forecasting/evaluation/_outputs/v2_phase4 --split-name test --require-v2-paths
-```
-
-Completed Phase 4 forecasting result:
-
-- Naive Persistence MAE/RMSE/MAPE/R2: 16.4094 / 22.5208 / 0.8539 / 0.9045
-- Phase 3 RF MAE/RMSE/MAPE/R2: 82.4179 / 88.4452 / 4.1679 / -0.4736
-- Phase 4 extended-lag RF MAE/RMSE/MAPE/R2: 78.1641 / 84.8622 / 3.9482 / -0.3566
-- Decision: extended lags improved over Phase 3 RF, but Naive Persistence remained stronger.
-
----
-
-## 5) Start backend with REAL models (after artifacts exist)
-
-### 5.1 Ensure real models are not disabled
-
-```powershell
-Remove-Item Env:GRADING_FORECAST_DISABLE_REAL_MODELS -ErrorAction SilentlyContinue
-```
-
-### 5.2 Start server (repo root recommended)
-
-```powershell
-python -m uvicorn app.main:app --reload --app-dir backend
-```
-
-### 5.3 Confirm backend is using real models
-
-- Berry grading response includes model evidence for `BERRY-V2-MNV2`.
-- Forecast response has `forecast.model == "naive_persistence"` in the current Phase 9+ backend runtime.
-
-If you ever need to force fallback mode for debugging/tests:
-
-```powershell
-$env:GRADING_FORECAST_DISABLE_REAL_MODELS = "1"
-```
-
-### 5.4 Verify real models via API calls
-
-Assuming `uvicorn` is running on `http://127.0.0.1:8000`.
-
-This section includes:
-
-- HTTP method + endpoint path
-- Example `curl.exe` calls (PowerShell / Windows)
-- Example JSON responses (what to look for)
-
-Health check:
-
-```powershell
-curl.exe http://127.0.0.1:8000/api/v1/grading-forecast/health
-```
-
-Price forecasting (real model check):
-
-```powershell
-curl.exe http://127.0.0.1:8000/api/v1/grading-forecast/price-forecast
-```
-
-Verify in the JSON response:
-
-- `forecast.model` is `naive_persistence` in the current Phase 9+ runtime.
-- The runtime reads `data/processed/grading_forecast/price_v2/national_grade1_average_weekly.csv`.
-- If the forecast data is missing or malformed, the service reports `forecast_unavailable` instead of fabricating demo values.
-
-Berry quality detection model (Berry Grading) endpoints are available under the same component prefix:
-
-- ` /api/v1/grading-forecast/grade-only` (berry grading only)
-- ` /api/v1/grading-forecast/analyze` (berry grading + price forecast + recommendation + storage result)
-
-Berry grading only (real ONNX check):
-
-```powershell
-curl.exe -X POST -F "image=@path\\to\\test.jpg" http://127.0.0.1:8000/api/v1/grading-forecast/grade-only
-```
-
-Verify in the JSON response:
-
-- `grading.explanation` identifies real ONNX grading when these exist:
-  - `ml/grading_forecast/berry_grading/models/v2/berry_mobilenetv2_v2_best.onnx`
-  - `ml/grading_forecast/berry_grading/models/v2/class_names.json`
-- If selected V2 artifacts are missing in the current hardened backend, grading fails explicitly instead of silently using the legacy/root ONNX model.
-- Also verify core outputs are present and valid:
-  - `grading.predicted_grade` is one of `Grade 1 | Grade 2 | Grade 3`
-  - `grading.quality_score` is `0..100`
-  - `grading.confidence` is `0..1`
-
-Implementation note (important for correct ONNX results):
-
-- The exported ONNX graph includes MobileNetV2 preprocessing, so ONNX inference feeds **raw 0..255 float32 RGB** into the model (do not pre-scale to `[-1, 1]`).
-
-Full analyze endpoint (grading + forecast + recommendation):
-
-```powershell
-curl.exe -X POST -F "image=@path\\to\\test.jpg" http://127.0.0.1:8000/api/v1/grading-forecast/analyze
-```
-
-Verify in the JSON response:
-
-- Berry model:
-  - Same checks as `grade-only` for `grading.*`
-- Forecast model:
-  - `forecast.model` is `naive_persistence` in the current Phase 9+ runtime.
-- End-to-end:
-  - Response contains `grading`, `forecast`, `recommendation`, and `storage`
-
-### 5.5 Endpoint reference (HTTP methods + sample JSON)
-
-#### `GET /api/v1/grading-forecast/health`
-
-Purpose: quick service availability check.
-
-Example response:
-
-```json
-{
-  "status": "ok",
-  "component": "berry_grading_export_price_forecasting"
-}
-```
-
-#### `GET /api/v1/grading-forecast/price-forecast`
-
-Purpose: run **price forecasting** using the current Phase 9+ `naive_persistence` runtime.
-
-Example response (real model):
-
-```json
-{
-  "status": "success",
-  "component": "berry_grading_export_price_forecasting",
-  "forecast": {
-    "model": "naive_persistence",
-    "current_price_lkr_per_kg": 1886,
-    "predicted_price_lkr_per_kg": 1886,
-    "trend": "stable",
-    "forecast_period": "next_period",
-    "metrics": { "mae": null, "rmse": null }
-  }
-}
-```
-
-What to verify:
-
-- `forecast.model == "naive_persistence"` indicates the backend loaded the V2 National Grade 1 average weekly series and the saved naive metrics.
-- `forecast.trend` is one of: `upward | downward | stable`.
-
-#### `POST /api/v1/grading-forecast/grade-only` (multipart upload)
-
-Purpose: run **berry quality grading** only (uses ONNX if exported; otherwise heuristic fallback).
-
-Request (multipart form-data):
-
-```powershell
-curl.exe -X POST -F "image=@path\\to\\test.jpg" http://127.0.0.1:8000/api/v1/grading-forecast/grade-only
-```
-
-Example response (real model):
-
-```json
-{
-  "status": "success",
-  "component": "berry_grading_export_price_forecasting",
-  "grading": {
-    "predicted_grade": "Grade 2",
-    "quality_score": 70.8,
-    "confidence": 0.9,
-    "visual_features": {
-      "color_uniformity_score": 0.72,
-      "dark_berry_ratio": 0.62,
-      "light_berry_ratio": 0.18,
-      "texture_score": 0.68,
-      "defect_ratio": 0.1,
-      "cleanliness_score": 0.9
-    },
-    "supporting_labels": {
-      "size_quality": "medium",
-      "color_quality": "medium",
-      "texture_quality": "medium",
-      "broken_level": "low",
-      "light_berry_level": "medium",
-      "pinhead_level": "medium",
-      "foreign_matter_visible": false,
-      "mould_visible": false,
-      "insect_damage_visible": false
-    },
-    "explanation": [
-      "Real grading model (ONNX) was used for predicted grade."
-    ],
-    "limitation": "Camera-based visual estimate only. Chemical requirements and bulk density are not measured."
-  }
-}
-```
-
-What to verify:
-
-- `grading.predicted_grade` is one of `Grade 1 | Grade 2 | Grade 3`.
-- `grading.explanation` contains `Real grading model (ONNX) was used for predicted grade.` when ONNX artifacts exist.
-
-#### `POST /api/v1/grading-forecast/analyze` (multipart upload)
-
-Purpose: full pipeline (image analysis + grading + forecast + recommendation + storage result).
-
-Request (multipart form-data):
-
-```powershell
-curl.exe -X POST -F "image=@path\\to\\test.jpg" http://127.0.0.1:8000/api/v1/grading-forecast/analyze
-```
-
-Example response shape (fields abbreviated):
-
-```json
-{
-  "status": "success",
-  "component": "berry_grading_export_price_forecasting",
-  "image_analysis": {
-    "image_id": "test.jpg",
-    "processed": true,
-    "note": "Camera-based visual analysis only"
-  },
-  "grading": { "predicted_grade": "Grade 2", "quality_score": 70.8, "confidence": 0.9 },
-  "forecast": { "model": "naive_persistence", "trend": "stable" },
-  "recommendation": { "decision": "WAIT_SHORTLY", "urgency_level": "LOW" },
-  "storage": { "saved_to_firebase": false, "document_id": null }
-}
-```
-
-What to verify:
-
-- `grading.*` and `forecast.*` indicate real model usage as described above.
-- Response includes all of: `grading`, `forecast`, `recommendation`, `storage`.
-
-#### `POST /api/v1/grading-forecast/recommend` (JSON body)
-
-Purpose: request a recommendation directly if you already have `grade` and `trend` (and optionally prices).
-
-Request (JSON):
-
-```powershell
-curl.exe -X POST ^
-  -H "Content-Type: application/json" ^
-  -d "{\"grade\":\"Grade 2\",\"trend\":\"upward\",\"quality_score\":70.8,\"current_price_lkr_per_kg\":2027,\"predicted_price_lkr_per_kg\":2068}" ^
-  http://127.0.0.1:8000/api/v1/grading-forecast/recommend
-```
-
-Example response shape:
-
-```json
-{
-  "status": "success",
-  "component": "berry_grading_export_price_forecasting",
-  "recommendation": {
-    "decision": "WAIT_SHORTLY",
-    "message": "…",
-    "explanation": ["…"],
-    "urgency_level": "LOW",
-    "suggested_action": "…",
-    "limitation_note": "Camera-based visual estimate only. Laboratory tests are required for full official quality certification."
-  }
-}
-```
-
-## 6) Flutter offline/API mode
-
-Run these from `mobile\`.
-
-Offline mode is the default for grading-forecast analysis:
-
-```powershell
-flutter run
-```
-
-Explicit offline mode:
-
-```powershell
-flutter run --dart-define=PEPPER_ANALYSIS_MODE=offline
-```
-
-Hosted/backend API mode:
-
-```powershell
-flutter run --dart-define=PEPPER_ANALYSIS_MODE=api --dart-define=PEPPER_API_BASE_URL=https://r26-se-012-production.up.railway.app --dart-define=PEPPER_API_FALLBACK_BASE_URL=http://10.0.2.2:8000
-```
-
-Release APK using offline mode:
-
-```powershell
-flutter build apk --release --dart-define=PEPPER_ANALYSIS_MODE=offline
-```
-
-Release APK using hosted backend API mode:
-
-```powershell
-flutter build apk --release --dart-define=PEPPER_ANALYSIS_MODE=api --dart-define=PEPPER_API_BASE_URL=https://r26-se-012-production.up.railway.app
-```
-
-Current validation note:
-
-- Phase 13 Flutter formatter/analyzer/build validation is still pending because the local Flutter/Dart toolchain timed out during attempted validation.
-- Offline mode does not call Railway, Hugging Face, local FastAPI, or Firebase.
-- API mode still uses the configured backend URL and can be affected by network, Railway, backend startup, Hugging Face artifact loading, or rate limiting.
-- The price page shows one `Predicted market price` for the model-predicted grade. It does not provide manual grade selection.
-- Grade 2 uses the documented 100 LKR/kg market-gap adjustment. Grade 3 shows price unavailable because Grade 3 historical price data is unavailable.
-
----
-
-## 7) Git hygiene
-
-Quick check before committing:
-
-```powershell
-git status
-```
-
-Do **not** commit:
-
-- `*.keras`
-- Anything under `*_outputs\` plot folders
-
-Do commit selected runtime artifacts when the project intentionally needs bundled fallback/offline behavior:
-
-- `ml\grading_forecast\berry_grading\models\v2\berry_mobilenetv2_v2_best.onnx`
-- `ml\grading_forecast\price_forecasting\models\v2\forecast_model.joblib`
-- `mobile\assets\models\berry_mobilenetv2_v2_best.tflite`
-
-Do commit:
-
-- scripts
-- JSON metrics/metadata (small files)
-- docs
-- configs
+Do not run training, export, dataset preparation, Phase 5 experiment runners,
+or integrity/evaluation generators merely to check a documentation or cleanup
+change. Several research scripts write result files. Run them only as part of
+an explicitly planned experiment with protected outputs and a recorded reason.
+
+## 9. Historical workflows
+
+- The byte-preserved V1 label generator and artifacts are under
+  `archive/legacy_v1/`.
+- V1/V2/PP2 status and evidence documents are under
+  `docs/research/historical/`.
+- V2 MobileNetV2 and forecasting implementations remain as legacy/fallback
+  research code, but they do not define the active Phase 7 `/analyze` path.
+- Current V3 and Phase 4-7 evidence remains under `docs/research/`.
+
+Historical commands may be useful for reproduction, but do not run them against
+current data or model paths without first reviewing every input and output.
+
+## 10. Repository safety rules
+
+- Do not use `git clean -fdX`.
+- Do not delete `.venv` or `.venv-yolo` if package re-downloads must be avoided.
+- Do not delete raw data, trained models, frozen results, manifests, or
+  provenance because they are ignored or appear unreferenced.
+- Do not normalize Phase 5/6 text files; configured integrity hashes use
+  canonical LF content while Windows working-tree bytes may use CRLF.
+- Do not stage, commit, reset, or rewrite history as part of routine cleanup.

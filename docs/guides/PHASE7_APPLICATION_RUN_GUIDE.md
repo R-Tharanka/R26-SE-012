@@ -1,5 +1,8 @@
 # Phase 7 Application Run, Test, and Android Release Guide
 
+Status basis: current route, mobile client, and focused tests inspected through
+2026-10-18.
+
 This is the operational guide for the Phase 7 integrated pipeline:
 
 ```text
@@ -9,9 +12,10 @@ Flutter web / Android emulator / Android device
         Gemini/Claude analysis
 ```
 
-It is intentionally separate from the older `project_commands_guide.md`, which
-contains legacy pre-Phase-7 commands and retired endpoint descriptions. Use this
-document for the current rejection-first Phase 7 workflow.
+Use this detailed guide for the rejection-first Phase 7 workflow. Use
+`project_commands_guide.md` as the shorter current command index. Historical
+V1/V2/PP2 procedures are retained under `docs/research/historical/`, not mixed
+into either active guide.
 
 ## 1. Scope and limits
 
@@ -99,6 +103,9 @@ Install backend requirements once if needed:
 .\.venv\Scripts\python.exe -m pip install -r backend\requirements.txt
 ```
 
+This command can download packages. Skip it when the existing `.venv` already
+contains the backend requirements.
+
 Start the backend. `0.0.0.0` is required for an Android emulator or a physical
 device to reach the Windows host:
 
@@ -130,6 +137,10 @@ This removes the Flutter client from the diagnosis if an issue appears:
 curl.exe -X POST "http://127.0.0.1:8000/api/v1/grading-forecast/analyze" `
   -F "image=@data/raw/Pepper Berry Grading V3.yolov8/test/images/20260508_160550_jpg.rf.BUF1sZWo8GvE4UCSfj74.jpg"
 ```
+
+The pre-Phase-7 `/grade-only`, `/price-forecast`, and `/recommend` routes are
+retired and intentionally return HTTP 410. They are not alternative smoke-test
+paths.
 
 ## 4. Controlled Phase 7 test images
 
@@ -384,6 +395,19 @@ deployment target.
 
 ## 9. Verification checklist
 
+Before manual client checks, the focused non-generating backend suite is:
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest -q `
+  --basetemp=.\backend\pytest-cache-files-phase7 `
+  backend\tests\test_main_startup.py `
+  backend\tests\test_phase7_integration.py `
+  backend\tests\test_phase7_text_integrity.py
+```
+
+The recorded 2026-10-18 run passed all 15 tests. This does not replace the
+manual browser/emulator/device checks below.
+
 For each client path, retain only screenshots/log excerpts that do not expose
 personal images or sensitive details.
 
@@ -442,6 +466,11 @@ from the already frozen inference/decision behavior:
   grading page appears.
 - Home, History, and Guide work. History shows an honest empty state and Guide
   contains photo, grade, price, retry, and limitation guidance.
+- A completed analysis is saved locally with the original selected image.
+  Opening its History detail displays the stored snapshot without rerunning
+  inference or calling the backend.
+- History filtering, load-more, optional 14-day cleanup, and clear-all work.
+  Clear-all removes only the app's private History records and saved copies.
 - Repeat the flow in English, Sinhala, and Tamil and check for clipped text on a
   small phone screen and with increased system font size.
 - Accepted grading leads with Berry Grade 1 or Berry Grade 2. Uncertain and

@@ -1,4 +1,10 @@
-You can run the app against the hosted Railway backend immediately. The important distinction is:
+# Flutter Build and Distribution Guide
+
+Status basis: repository configuration inspected on 2026-10-18. The Railway
+URL below is the currently configured deployment target, but its live
+availability must be checked before each run.
+
+The important distinction is:
 
 - A release APK for your own testing can be built now.
 - A public/Play Store release still needs a private release signing key and secure handling of Gemini/Anthropic credentials.
@@ -14,12 +20,18 @@ $flutter = "C:\test-by-me\flutter\flutter\bin\flutter.bat"
 $adb = "$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe"
 ```
 
-Check the toolchain and install dependencies:
+Check the toolchain and installed devices:
 
 ```powershell
 & $flutter doctor
-& $flutter pub get
 & $flutter devices
+```
+
+`flutter pub get` may download packages. If this checkout already has a usable
+package cache, run it only when Flutter reports missing dependencies:
+
+```powershell
+& $flutter pub get
 ```
 
 Do not run multiple Flutter build/test commands simultaneously. The first Android build can take several minutes while Gradle prepares dependencies.
@@ -34,7 +46,10 @@ Invoke-RestMethod `
   "https://r26-se-012-production-7883.up.railway.app/api/v1/grading-forecast/ready"
 ```
 
-Both should return successful responses before testing grading.
+Both should return successful responses before testing grading. `/health`
+checks liveness; `/ready` must report `status: ready` and is the required gate.
+The bare Railway domain may return 404; that does not replace these endpoint
+checks.
 
 ## 3. Run on the Android emulator
 
@@ -128,7 +143,9 @@ Install it on a connected device:
 & $adb install -r "build\app\outputs\flutter-apk\app-release.apk"
 ```
 
-If Android reports a signing conflict with an existing installation, uninstall the existing development version first. This removes that app’s local data:
+If Android reports a signing conflict with an existing installation, uninstall
+the existing development version first. This removes that app's local data,
+including its saved History:
 
 ```powershell
 & $adb uninstall com.example.mobile
@@ -281,5 +298,11 @@ Before distributing the APK, test on a physical device:
 - Camera and gallery permissions
 - App behavior without cloud keys
 - Railway backend unavailable/timeout behavior
+- History saves the completed result and original selected image locally
+- Opening a History detail does not rerun inference or call the backend
+- Clear-all removes the app's saved History records and image copies
 
-The repository’s longer command reference is in [PHASE7_APPLICATION_RUN_GUIDE.md](PHASE7_APPLICATION_RUN_GUIDE.md).
+The detailed application procedure is in
+[PHASE7_APPLICATION_RUN_GUIDE.md](PHASE7_APPLICATION_RUN_GUIDE.md). The concise
+current command index is in
+[project_commands_guide.md](project_commands_guide.md).

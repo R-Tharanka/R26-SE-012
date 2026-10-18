@@ -1,5 +1,7 @@
 # Repository Inventory
 
+Status basis: repository source inspected on 2026-10-18.
+
 This inventory distinguishes current application/runtime files from research
 evidence, historical material, generated outputs, and ignored local files. It
 is a cleanup boundary, not a claim that every retained historical artifact is
@@ -9,7 +11,7 @@ used at runtime.
 
 | Path | Role | Cleanup boundary |
 |---|---|---|
-| `backend/` | FastAPI application, Phase 7 boundary, fallback services, schemas, and tests | Keep active code and fallback artifacts. |
+| `backend/` | FastAPI application, active Phase 7 boundary, retained legacy/fallback services, schemas, and tests | Keep active code and separately classified fallback artifacts. |
 | `data/` | Raw sources, manifests, controlled negatives, and processed evidence | Do not delete raw data, frozen inputs, provenance, or tracked research evidence. |
 | `docs/` | Current guidance and dated research records | Preserve dated evidence; V1/V2/PP2 records are separated under `docs/research/historical/`. |
 | `ml/` | Training, evaluation, models, Phase 5 forecasting, and Phase 6/7 runtime | Protect selected models, configurations, metrics, decisions, and integrity evidence. |
@@ -47,6 +49,8 @@ used at runtime.
   `backend/app/api/routes/grading_forecast.py`
 - Flutter client:
   `mobile/lib/features/grading_forecast/`
+- Local-first Flutter History:
+  `mobile/lib/features/history/`
 
 The Phase 7 price path retrieves approved frozen Phase 5 forecast records. An
 image request does not retrain or generate a new market forecast.
@@ -67,10 +71,29 @@ paths are part of the recorded research chronology.
 
 ## Retained fallback and historical artifacts
 
-The backend still references the V2 MobileNetV2 ONNX model, class mapping,
-forecast model, metrics, and price series through its fallback services. Those
-files remain protected. The older V1 label manifest and generator are preserved
+V2 MobileNetV2, price-forecast, recommendation, and storage implementations
+remain in the repository as legacy/fallback services with their own tests. The
+active route imports `phase7_service.py`; it does not call those services, and
+the old `/grade-only`, `/price-forecast`, and `/recommend` endpoints return HTTP
+410. Their models and data remain protected until the retained fallback scope is
+reviewed separately. The older V1 label manifest and generator are preserved
 under `archive/legacy_v1/`; active validation requires an explicit input path.
+
+## Current verification boundary
+
+The focused backend check is:
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest -q `
+  --basetemp=.\backend\pytest-cache-files-phase7 `
+  backend\tests\test_main_startup.py `
+  backend\tests\test_phase7_integration.py `
+  backend\tests\test_phase7_text_integrity.py
+```
+
+The recorded 2026-10-18 run passed 15 tests. This establishes the active Phase
+7 startup, route, rejection-first, and text-integrity boundary; it does not
+convert legacy/fallback test failures into current Phase 7 failures.
 
 ## Ignored local files
 
