@@ -247,8 +247,10 @@ an explicitly planned experiment with protected outputs and a recorded reason.
   `archive/legacy_v1/`.
 - V1/V2/PP2 status and evidence documents are under
   `docs/research/historical/`.
-- V2 MobileNetV2 and forecasting implementations remain as legacy/fallback
-  research code, but they do not define the active Phase 7 `/analyze` path.
+- Superseded V1/V2 ML implementations are under
+  `ml/archive/grading_forecast/legacy_v1_v2/`. The two V2 model directories
+  still referenced by dormant backend fallback services remain in the active
+  tree as compatibility holds; none define the Phase 7 `/analyze` path.
 - Current V3 and Phase 4-7 evidence remains under `docs/research/`.
 
 Historical commands may be useful for reproduction, but do not run them against

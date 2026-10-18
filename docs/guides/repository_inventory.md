@@ -14,7 +14,7 @@ used at runtime.
 | `backend/` | FastAPI application, active Phase 7 boundary, retained legacy/fallback services, schemas, and tests | Keep active code and separately classified fallback artifacts. |
 | `data/` | Raw sources, manifests, controlled negatives, and processed evidence | Do not delete raw data, frozen inputs, provenance, or tracked research evidence. |
 | `docs/` | Current guidance and dated research records | Preserve dated evidence; V1/V2/PP2 records are separated under `docs/research/historical/`. |
-| `ml/` | Training, evaluation, models, Phase 5 forecasting, and Phase 6/7 runtime | Protect selected models, configurations, metrics, decisions, and integrity evidence. |
+| `ml/` | Current V3/Phase 4-7 workflow plus a separated V1/V2 archive | Protect selected models, configurations, metrics, decisions, and integrity evidence. Superseded implementations live under `ml/archive/`. |
 | `mobile/` | Current Flutter application and declared assets | Preserve application code and all referenced model/data assets. |
 | `archive/` | Byte-preserved superseded material | Do not treat archived material as the current workflow. |
 | `notebooks/` | Empty historical scaffolding | No implementation was present at cleanup time. |
@@ -78,6 +78,13 @@ the old `/grade-only`, `/price-forecast`, and `/recommend` endpoints return HTTP
 410. Their models and data remain protected until the retained fallback scope is
 reviewed separately. The older V1 label manifest and generator are preserved
 under `archive/legacy_v1/`; active validation requires an explicit input path.
+
+Superseded ML scripts, generated diagnostics, root-era model artifacts, and V2
+Phase 4 variants are separated under
+`ml/archive/grading_forecast/legacy_v1_v2/`. Historical documents may retain
+their original paths as chronology. The active tree keeps
+`berry_grading/models/v2/` and `price_forecasting/models/v2/` temporarily
+because dormant backend fallback services still reference those exact paths.
 
 ## Current verification boundary
 
