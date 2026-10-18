@@ -243,7 +243,7 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
         const SizedBox(height: 18),
         AnimatedBar(fraction: sev / 100, color: accent),
       ],
-    
+
       // =====================================================
       // AFFECTED REGIONS
       // =====================================================
