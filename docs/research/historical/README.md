@@ -12,5 +12,5 @@ The documents are preserved as research provenance. References inside them may
 retain their original repository paths because they describe the repository at
 the time the evidence was recorded. For the current workflow, start with
 `../FULL_COMPONENT_PROGRESS_REPORT_2026-10-10.md`,
-`../project_commands_guide.md`, and the V3/Phase 4-7 result documents.
+`../guides/project_commands_guide.md`, and the V3/Phase 4-7 result documents.
 

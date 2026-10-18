@@ -54,7 +54,8 @@ image request does not retrain or generate a new market forecast.
 ## Research documentation
 
 Current V3 and Phase 4-7 guidance and evidence remain directly under
-`docs/research/`. Superseded V1/V2/PP2 documents are retained under:
+`docs/research/`. Operational guides are grouped under
+`docs/research/guides/`. Superseded V1/V2/PP2 documents are retained under:
 
 - `docs/research/historical/status/` for dated plans, checklists, status
   snapshots, and progress reports.
