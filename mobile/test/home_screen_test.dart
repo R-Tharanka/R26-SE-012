@@ -12,9 +12,15 @@ Widget wrap(Widget child, {Locale locale = const Locale('en')}) => MaterialApp(
 
 void main() {
   group('HomeScreen', () {
+    Future<void> usePhoneViewport(WidgetTester tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 1000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+    }
+
     testWidgets('renders the combined plant card and protected features', (
       tester,
     ) async {
+      await usePhoneViewport(tester);
       await tester.pumpWidget(wrap(const HomeScreen()));
 
       expect(find.text('Leaf & Pest'), findsOneWidget);
@@ -25,6 +31,7 @@ void main() {
     });
 
     testWidgets('every card is tappable', (tester) async {
+      await usePhoneViewport(tester);
       await tester.pumpWidget(wrap(const HomeScreen()));
 
       for (final label in const [
@@ -39,13 +46,26 @@ void main() {
       }
     });
 
-    testWidgets('lays the cards out in a two-column grid', (tester) async {
+    testWidgets('lays the feature cards out in one vertical column', (
+      tester,
+    ) async {
+      await usePhoneViewport(tester);
       await tester.pumpWidget(wrap(const HomeScreen()));
 
-      final grid = tester.widget<GridView>(find.byType(GridView));
-      final delegate =
-          grid.gridDelegate as SliverGridDelegateWithFixedCrossAxisCount;
-      expect(delegate.crossAxisCount, 2);
+      expect(find.byType(GridView), findsNothing);
+      Rect cardRect(String label) => tester.getRect(
+        find.ancestor(of: find.text(label), matching: find.byType(Card)).first,
+      );
+      final plant = cardRect('Leaf & Pest');
+      final berry = cardRect('Berry Disease');
+      final grading = cardRect('Quality &\nPrice');
+
+      expect(plant.left, closeTo(berry.left, 0.01));
+      expect(berry.left, closeTo(grading.left, 0.01));
+      expect(plant.right, closeTo(berry.right, 0.01));
+      expect(berry.right, closeTo(grading.right, 0.01));
+      expect(plant.top, lessThan(berry.top));
+      expect(berry.top, lessThan(grading.top));
     });
 
     testWidgets('removes fabricated status, recent results and capture CTA', (
@@ -82,8 +102,7 @@ void main() {
     testWidgets('all feature cards open a consistent information sheet', (
       tester,
     ) async {
-      await tester.binding.setSurfaceSize(const Size(800, 1000));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
+      await usePhoneViewport(tester);
       await tester.pumpWidget(wrap(const HomeScreen()));
 
       for (final pair in const [

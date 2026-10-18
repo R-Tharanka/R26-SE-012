@@ -167,30 +167,13 @@ class _Dashboard extends StatelessWidget {
             subtitle: t.homeWelcomeSubtitle,
           ),
           const SizedBox(height: 28),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final textScale = MediaQuery.textScalerOf(context).scale(1);
-              final columns = constraints.maxWidth < 350 || textScale > 1.25
-                  ? 1
-                  : 2;
-              final ratio = columns == 1 ? 1.9 : 0.85;
-              return GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: features.length,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: columns,
-                  crossAxisSpacing: 14,
-                  mainAxisSpacing: 14,
-                  childAspectRatio: ratio,
-                ),
-                itemBuilder: (context, index) => _FeatureCard(
-                  item: features[index],
-                  onTap: () => state._showFeature(features[index]),
-                ),
-              );
-            },
-          ),
+          for (var index = 0; index < features.length; index++) ...[
+            _FeatureCard(
+              item: features[index],
+              onTap: () => state._showFeature(features[index]),
+            ),
+            if (index < features.length - 1) const SizedBox(height: 14),
+          ],
           const SizedBox(height: 20),
           FarmerNoticeCard(
             icon: Icons.tips_and_updates_outlined,
@@ -243,7 +226,7 @@ class _FeatureCard extends StatelessWidget {
                   ),
                 ],
               ),
-              const Spacer(),
+              const SizedBox(height: 18),
               Text(
                 item.cardTitle,
                 maxLines: 3,
