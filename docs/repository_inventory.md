@@ -11,7 +11,7 @@ used at runtime.
 |---|---|---|
 | `backend/` | FastAPI application, Phase 7 boundary, fallback services, schemas, and tests | Keep active code and fallback artifacts. |
 | `data/` | Raw sources, manifests, controlled negatives, and processed evidence | Do not delete raw data, frozen inputs, provenance, or tracked research evidence. |
-| `docs/` | Current guidance and dated research records | Preserve dated evidence; historical references may name original paths. |
+| `docs/` | Current guidance and dated research records | Preserve dated evidence; V1/V2/PP2 records are separated under `docs/research/historical/`. |
 | `ml/` | Training, evaluation, models, Phase 5 forecasting, and Phase 6/7 runtime | Protect selected models, configurations, metrics, decisions, and integrity evidence. |
 | `mobile/` | Current Flutter application and declared assets | Preserve application code and all referenced model/data assets. |
 | `archive/` | Byte-preserved superseded material | Do not treat archived material as the current workflow. |
@@ -50,6 +50,19 @@ used at runtime.
 
 The Phase 7 price path retrieves approved frozen Phase 5 forecast records. An
 image request does not retrain or generate a new market forecast.
+
+## Research documentation
+
+Current V3 and Phase 4-7 guidance and evidence remain directly under
+`docs/research/`. Superseded V1/V2/PP2 documents are retained under:
+
+- `docs/research/historical/status/` for dated plans, checklists, status
+  snapshots, and progress reports.
+- `docs/research/historical/evidence/` for historical dataset, model,
+  limitation, integration, and PP2 result evidence.
+
+Historical documents may retain references to their original paths when those
+paths are part of the recorded research chronology.
 
 ## Retained fallback and historical artifacts
 

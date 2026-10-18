@@ -741,7 +741,7 @@ The Phase 5 validator was not rerun because its implementation rewrites the vers
 ### Priority 6 — Final documentation reconciliation
 
 - Make this report or an updated successor the primary status document.
-- Mark the older `FULL_PROGRESS_REPORT.md` as an October 6 snapshot so its statement that V3 was untrained is not mistaken for current status.
+- Treat `historical/status/FULL_PROGRESS_REPORT.md` as an October 6 snapshot so its statement that V3 was untrained is not mistaken for current status.
 - Keep the experiment log, phase reports, README, limitations, architecture, and presentation consistent.
 - Use “complete with limitations,” “controlled integration,” and “field validation pending” consistently.
 
