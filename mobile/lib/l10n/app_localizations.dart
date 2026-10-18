@@ -238,6 +238,24 @@ abstract class AppLocalizations {
   /// **'Plant health'**
   String get featurePlantHealth;
 
+  /// No description provided for @featurePlantTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Leaf Health & Pest Check'**
+  String get featurePlantTitle;
+
+  /// No description provided for @featurePlantCardDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Check for leaf disease and pepper pests'**
+  String get featurePlantCardDescription;
+
+  /// No description provided for @featurePlantDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a clear photo of a pepper leaf, stem or berry area to check for visible leaf disease and common pepper pests, then receive practical guidance.'**
+  String get featurePlantDescription;
+
   /// No description provided for @featureBerryCare.
   ///
   /// In en, this message translates to:

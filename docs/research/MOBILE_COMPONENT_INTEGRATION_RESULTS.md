@@ -31,10 +31,13 @@ were not copied.
 
 ## Component inventory
 
-Pest and leaf health use the combined `PlantHealthScannerScreen`, shared
-`ScannerView`, `YoloDetector`, Gemini detection service, Claude crop refinement,
-and pest/leaf recommendation screens. Berry disease uses the corresponding
-berry scanner and berry recommendation flow through the same shared runtime.
+Pest and leaf health use one combined `PlantHealthScannerScreen`, matching the
+imported application's public entry point. It uses the shared `ScannerView`,
+Gemini detection service, Claude crop refinement, and pest/leaf recommendation
+screens. The cloud-failure path now runs both supplied local TFLite models
+(`new_leaf_yolo_model_int8.tflite` and `new_pest_yolo_model_int8.tflite`) and
+merges their detections. Berry disease uses the corresponding berry scanner and
+berry recommendation flow through the same shared runtime.
 
 The current Phase 7 grading feature continues to use its existing capture,
 strict response model, API service, result screen, frozen forecast presentation,
@@ -42,8 +45,9 @@ and backend URL configuration.
 
 ## Conflicts resolved
 
-- The imported three-card home screen was not used. Its locale selector was
-  adapted into the current four-feature dashboard.
+- The imported screen styling was not used. Its combined Leaf & Pest entry was
+  adapted into the current dashboard UI, alongside Berry Disease and the
+  protected Berry Grading and Price Forecasting entry.
 - The imported `berry_disease/screens` path was adapted to the existing
   `berry_disease/berry_scanner_screen.dart` path, avoiding duplicate screens.
 - Imported background-isolate inference was retained on native targets. A
@@ -72,6 +76,8 @@ and backend URL configuration.
   crop preparation for native mobile targets.
 - Added imported Gemini structured-response handling and Claude crop refinement.
 - Preserved safe TFLite fallback when cloud configuration is absent or fails.
+  The combined plant scanner loads and runs both original leaf and pest models;
+  it does not silently degrade to leaf-only classification.
 - Added the imported source directory to `.gitignore`; it remains untouched as
   a local comparison source and is not part of the built app.
 

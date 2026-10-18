@@ -12,11 +12,14 @@ Widget wrap(Widget child, {Locale locale = const Locale('en')}) => MaterialApp(
 
 void main() {
   group('HomeScreen', () {
-    testWidgets('renders a card for each of the four features', (tester) async {
+    testWidgets('renders the combined plant card and protected features', (
+      tester,
+    ) async {
       await tester.pumpWidget(wrap(const HomeScreen()));
 
-      expect(find.text('Pests'), findsOneWidget);
-      expect(find.text('Leaf Health'), findsOneWidget);
+      expect(find.text('Leaf & Pest'), findsOneWidget);
+      expect(find.text('Pests'), findsNothing);
+      expect(find.text('Leaf Health'), findsNothing);
       expect(find.text('Berry Disease'), findsOneWidget);
       expect(find.text('Quality &\nPrice'), findsOneWidget);
     });
@@ -25,8 +28,7 @@ void main() {
       await tester.pumpWidget(wrap(const HomeScreen()));
 
       for (final label in const [
-        'Pests',
-        'Leaf Health',
+        'Leaf & Pest',
         'Berry Disease',
         'Quality &\nPrice',
       ]) {
@@ -85,8 +87,7 @@ void main() {
       await tester.pumpWidget(wrap(const HomeScreen()));
 
       for (final pair in const [
-        ('Pests', 'Pest Detection'),
-        ('Leaf Health', 'Leaf Health Check'),
+        ('Leaf & Pest', 'Leaf Health & Pest Check'),
         ('Berry Disease', 'Berry Disease Check'),
         ('Quality &\nPrice', 'Berry Quality and Price Outlook'),
       ]) {

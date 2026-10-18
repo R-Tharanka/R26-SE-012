@@ -81,6 +81,17 @@ class AppLocalizationsTa extends AppLocalizations {
   String get featurePlantHealth => 'தாவர ஆரோக்கியம்';
 
   @override
+  String get featurePlantTitle => 'இலை ஆரோக்கியம் மற்றும் பூச்சி சோதனை';
+
+  @override
+  String get featurePlantCardDescription =>
+      'இலை நோய்கள் மற்றும் மிளகு பூச்சிகளைச் சோதிக்கவும்';
+
+  @override
+  String get featurePlantDescription =>
+      'தென்படும் இலை நோய்களையும் பொதுவான மிளகு பூச்சிகளையும் சோதித்து நடைமுறை வழிகாட்டலைப் பெற இலை, தண்டு அல்லது காய் பகுதியின் தெளிவான படத்தை எடுக்கவும்.';
+
+  @override
   String get featureBerryCare => 'கொட்டை பராமரிப்பு';
 
   @override

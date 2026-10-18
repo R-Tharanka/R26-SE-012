@@ -81,6 +81,17 @@ class AppLocalizationsSi extends AppLocalizations {
   String get featurePlantHealth => 'ශාක සෞඛ්‍යය';
 
   @override
+  String get featurePlantTitle => 'කොළ සෞඛ්‍ය සහ පළිබෝධ පරීක්ෂාව';
+
+  @override
+  String get featurePlantCardDescription =>
+      'කොළ රෝග සහ ගම්මිරිස් පළිබෝධ පරීක්ෂා කරන්න';
+
+  @override
+  String get featurePlantDescription =>
+      'පෙනෙන කොළ රෝග සහ සාමාන්‍ය ගම්මිරිස් පළිබෝධ පරීක්ෂා කර ප්‍රායෝගික මඟපෙන්වීම ලබාගැනීමට කොළයක, කඳක හෝ කරල් ප්‍රදේශයක පැහැදිලි ඡායාරූපයක් ගන්න.';
+
+  @override
   String get featureBerryCare => 'කරල් රැකවරණය';
 
   @override

@@ -5,6 +5,7 @@ import 'package:pepper_care/features/grading_forecast/screens/berry_capture_scre
 import 'package:pepper_care/features/home/screens/home_screen.dart';
 import 'package:pepper_care/features/plant_health/screens/plant_health_scanner_screen.dart';
 import 'package:pepper_care/l10n/app_localizations.dart';
+import 'package:pepper_care/shared/widgets/scanner_view.dart';
 
 Widget _app() => const MaterialApp(
   localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -18,7 +19,7 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
   }
 
-  testWidgets('current shell retains all four component entries', (
+  testWidgets('current shell retains the combined imported plant entry', (
     tester,
   ) async {
     await usePhoneViewport(tester);
@@ -26,8 +27,7 @@ void main() {
     await tester.pumpAndSettle();
 
     for (final label in const [
-      'Pests',
-      'Leaf Health',
+      'Leaf & Pest',
       'Berry Disease',
       'Quality &\nPrice',
     ]) {
@@ -59,19 +59,19 @@ void main() {
     },
   );
 
-  testWidgets('pest and leaf entries retain the combined plant-health route', (
+  testWidgets('combined plant entry loads leaf and pest local fallbacks', (
     tester,
   ) async {
     await usePhoneViewport(tester);
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
 
-    final pests = find.ancestor(
-      of: find.text('Pests'),
+    final plant = find.ancestor(
+      of: find.text('Leaf & Pest'),
       matching: find.byType(InkWell),
     );
-    await tester.ensureVisible(pests);
-    await tester.tap(pests);
+    await tester.ensureVisible(plant);
+    await tester.tap(plant);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Start scan'));
     // Scanner camera/progress widgets may keep scheduling frames; pump only
@@ -81,6 +81,18 @@ void main() {
     expect(
       find.byType(PlantHealthScannerScreen, skipOffstage: false),
       findsOneWidget,
+    );
+    final scanner = tester.widget<ScannerView>(
+      find.byType(ScannerView, skipOffstage: false),
+    );
+    expect(
+      scanner.modelConfig.assetPath,
+      'assets/models/new_leaf_yolo_model_int8.tflite',
+    );
+    expect(scanner.additionalFallbackConfigs, hasLength(1));
+    expect(
+      scanner.additionalFallbackConfigs.single.assetPath,
+      'assets/models/new_pest_yolo_model_int8.tflite',
     );
   });
 
@@ -101,6 +113,9 @@ void main() {
     await tester.tap(find.text('Start scan'));
     await tester.pump(const Duration(milliseconds: 500));
 
-    expect(find.byType(BerryScannerScreen, skipOffstage: false), findsOneWidget);
+    expect(
+      find.byType(BerryScannerScreen, skipOffstage: false),
+      findsOneWidget,
+    );
   });
 }

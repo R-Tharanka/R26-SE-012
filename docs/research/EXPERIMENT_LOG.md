@@ -1251,3 +1251,14 @@ Date: 2026-10-15.
 - Verification: direct Dart analysis and official `flutter analyze` passed; new focused tests passed 5/5; focused scanner/navigation/Phase 7 tests passed 56/56; the complete Flutter suite passed 80/80 after synchronizing generated Sinhala localization from the existing ARB catalog; the unchanged Phase 7 backend integration suite passed 11/11.
 - Build boundary: a credential-free debug APK build entered Gradle but remained silent past the bounded window and was stopped. No build, emulator, device, or live-provider pass is claimed.
 - Remaining acceptance: manually verify all three outsourced camera/gallery and recommendation paths with authorized keys and fallback mode, then rerun the five established Phase 7 grading cases on the packaged application.
+
+### MOBILE-COMBINED-PLANT-FALLBACK-003
+
+Date: 2026-10-18.
+
+- Scope: corrected the dashboard integration to expose the imported component's single combined Leaf Health & Pests entry instead of two labels leading to the same scanner.
+- Cloud runtime: retained the supplied combined `plant` Gemini/Claude classification path and its leaf/pest recommendation routing.
+- Local fallback: retained the original leaf and pest TFLite model contracts and now runs both when serving the combined scanner. Their class names, confidence thresholds, preprocessing, and model binaries were not changed; detections are merged for presentation and routing.
+- Failure behavior: both fallback models are required to load for the combined scanner. A pest-model load failure is surfaced instead of silently presenting leaf-only fallback as combined coverage.
+- Protected boundary: Berry Disease, Berry Grading and Export Price Forecasting, backend APIs, Phase 6/7 logic, models, research data, and forecast evidence were unchanged.
+- Verification: localization generation completed; `flutter analyze` passed with no issues; 12/12 focused tests passed; the complete Flutter suite passed 89/89; and the Android debug APK built successfully. Emulator/device checks with cloud keys configured and absent remain manual acceptance work.

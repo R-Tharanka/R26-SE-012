@@ -29,11 +29,13 @@ import 'scan_result_view.dart';
 /// matters because it occupies the UI isolate (see [YoloDetector]).
 class ScannerView extends StatefulWidget {
   final ScannerModelConfig modelConfig;
+  final List<ScannerModelConfig> additionalFallbackConfigs;
   final String title;
 
   const ScannerView({
     super.key,
     required this.modelConfig,
+    this.additionalFallbackConfigs = const [],
     required this.title,
   });
 
@@ -44,6 +46,7 @@ class ScannerView extends StatefulWidget {
 class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
   CameraController? _controller;
   final YoloDetector _detector = YoloDetector(); // kept as offline fallback
+  late final List<YoloDetector> _additionalFallbackDetectors;
   final AiDetectionService _aiDetector = AiDetectionService();
   bool _disposed = false;
 
@@ -103,6 +106,10 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    _additionalFallbackDetectors = List.generate(
+      widget.additionalFallbackConfigs.length,
+      (_) => YoloDetector(),
+    );
     WidgetsBinding.instance.addObserver(this);
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     _bootstrap();
@@ -141,6 +148,12 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
       if (_disposed) return;
       await _detector.load(widget.modelConfig);
       if (_disposed) return;
+      for (var i = 0; i < _additionalFallbackDetectors.length; i++) {
+        await _additionalFallbackDetectors[i].load(
+          widget.additionalFallbackConfigs[i],
+        );
+        if (_disposed) return;
+      }
       AiDetectionService.warmUp(widget.modelConfig.id);
       setState(() {});
     } on CameraException catch (e) {
@@ -212,15 +225,26 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
 
   /// Shared detection path for both camera capture and gallery pick.
   Future<void> _analyzeBytes(Uint8List bytes) async {
-    // The local detector and Gemini run concurrently. The same future supplies
-    // Claude's prior and the fail-closed local fallback, avoiding duplicate
-    // inference when the cloud path is unavailable.
-    final Future<DetectionResult?> yoloFuture = _detector.isReady
-        ? _detector
-              .detectJpeg(bytes, 0)
-              .then<DetectionResult?>((result) => result)
-              .catchError((_) => null)
-        : Future<DetectionResult?>.value(null);
+    // All configured local detectors and Gemini run concurrently. Most
+    // scanners have one local model; the combined plant scanner adds the
+    // original pest model beside the original leaf model. The merged future is
+    // shared with Claude's priors and the cloud-failure fallback, so no model is
+    // run twice.
+    final localDetectors = [_detector, ..._additionalFallbackDetectors];
+    final Future<DetectionResult?> yoloFuture =
+        Future.wait(
+          localDetectors.map(
+            (detector) => detector.isReady
+                ? detector
+                      .detectJpeg(bytes, 0)
+                      .then<DetectionResult?>((result) => result)
+                      .catchError((_) => null)
+                : Future<DetectionResult?>.value(null),
+          ),
+        ).then((results) {
+          final available = results.whereType<DetectionResult>().toList();
+          return available.isEmpty ? null : mergeDetectionResults(available);
+        });
 
     // Primary path: AI detection (multi-object, higher accuracy), informed by
     // the trained model's priors. Falls back to the YOLO result on failure.
@@ -446,6 +470,9 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
     SystemChrome.setPreferredOrientations(_defaultOrientations);
     _controller?.dispose();
     _detector.dispose();
+    for (final detector in _additionalFallbackDetectors) {
+      detector.dispose();
+    }
     super.dispose();
   }
 
@@ -628,6 +655,45 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
       ),
     );
   }
+}
+
+/// Combines independent local-model outputs for a shared scanner.
+///
+/// Each detection keeps the class name, score, box, and color produced by its
+/// source model. The models run in parallel, so the combined duration is the
+/// longest individual duration rather than their sum. A relaxed match from
+/// either model keeps the combined result marked low-confidence.
+@visibleForTesting
+DetectionResult mergeDetectionResults(List<DetectionResult> results) {
+  if (results.isEmpty) {
+    return const DetectionResult([], Size.zero, 0);
+  }
+
+  var frameSize = Size.zero;
+  var inferenceMs = 0;
+  var thresholdUsed = double.infinity;
+  var lowConfidence = false;
+  final detections = <Detection>[];
+
+  for (final result in results) {
+    detections.addAll(result.detections);
+    if (frameSize == Size.zero && result.frameSize != Size.zero) {
+      frameSize = result.frameSize;
+    }
+    if (result.inferenceMs > inferenceMs) inferenceMs = result.inferenceMs;
+    if (result.thresholdUsed > 0 && result.thresholdUsed < thresholdUsed) {
+      thresholdUsed = result.thresholdUsed;
+    }
+    lowConfidence = lowConfidence || result.lowConfidence;
+  }
+
+  return DetectionResult(
+    detections,
+    frameSize,
+    inferenceMs,
+    thresholdUsed: thresholdUsed.isFinite ? thresholdUsed : 0,
+    lowConfidence: lowConfidence,
+  );
 }
 
 /// Localized "how to scan" guide shown in a bottom sheet before the user starts.

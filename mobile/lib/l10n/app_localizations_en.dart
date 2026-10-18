@@ -81,6 +81,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get featurePlantHealth => 'Plant health';
 
   @override
+  String get featurePlantTitle => 'Leaf Health & Pest Check';
+
+  @override
+  String get featurePlantCardDescription =>
+      'Check for leaf disease and pepper pests';
+
+  @override
+  String get featurePlantDescription =>
+      'Take a clear photo of a pepper leaf, stem or berry area to check for visible leaf disease and common pepper pests, then receive practical guidance.';
+
+  @override
   String get featureBerryCare => 'Berry care';
 
   @override
