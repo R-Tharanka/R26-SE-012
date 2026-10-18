@@ -35,6 +35,7 @@ class LeafAnalysisScreen extends StatefulWidget {
   State<LeafAnalysisScreen> createState() => _LeafAnalysisScreenState();
 }
 
+// Holds and manages the changing state of the analysis screen
 class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
   final _service = AiLeafService();
   late Future<LeafAnalysis>? _pending = widget.prefetch;
@@ -42,12 +43,14 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
   LeafAnalysis? _result;
   String? _error;
 
+  // Starts the leaf analysis as soon as the screen state is initialized.
   @override
   void initState() {
     super.initState();
     _run();
   }
 
+  // Runs the AI analysis and updates the UI with its result or an error.
   Future<void> _run() async {
     setState(() {
       _loading = true;
@@ -114,6 +117,7 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
     );
   }
 
+  // Selects the appropriate content for the current loading, error, or result state.
   List<Widget> _body() {
     final t = AppLocalizations.of(context);
     if (_loading) {
@@ -125,6 +129,7 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
     return _result == null ? const [] : _resultBody(_result!);
   }
 
+  // Builds the appropriate result widgets from the completed leaf analysis.
   List<Widget> _resultBody(LeafAnalysis r) {
     final t = AppLocalizations.of(context);
     if (!r.isPepperLeaf) {
@@ -143,6 +148,7 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
     final sev = r.severityPercentage ?? 0;
     final infoColor = AppStatusColors.of(context).info;
 
+    // Assemble the diagnosis summary and supporting detail sections.
     return [
       // headline
       Row(
@@ -237,7 +243,12 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
         const SizedBox(height: 18),
         AnimatedBar(fraction: sev / 100, color: accent),
       ],
+    
+      // =====================================================
+      // AFFECTED REGIONS
+      // =====================================================
 
+      // Display where the AI detected visible symptoms
       if (r.affectedRegions.isNotEmpty)
         SectionCard(
           icon: IconlyBold.show,
@@ -249,6 +260,12 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
             ).textTheme.bodyMedium?.copyWith(color: kTextSub, height: 1.48),
           ),
         ),
+
+      // =====================================================
+      // TREATMENT RECOMMENDATIONS
+      // =====================================================
+
+      // Display treatment suggestions only when treatments exist
 
       if (r.treatments.isNotEmpty)
         SectionCard(

@@ -1,6 +1,12 @@
+// Used for handling image data as bytes.
+
 import 'dart:typed_data';
 
+
+// Flutter Material UI package.
 import 'package:flutter/material.dart';
+
+// Icon library used throughout the UI.
 import 'package:iconly/iconly.dart';
 
 import '../../l10n/app_localizations.dart';
@@ -8,7 +14,11 @@ import '../../shared/class_labels.dart';
 import '../history/history_scope.dart';
 import '../history/serialization/history_payload_codec.dart';
 import 'analysis_ui.dart';
+
+// Handles and converts AI-related errors into user-friendly messages.
 import 'ai_errors.dart';
+
+// AI service responsible for analysing the pest image.
 import 'ai_pest_service.dart';
 import 'pest_analysis.dart';
 import 'pest_treatment_engine.dart';

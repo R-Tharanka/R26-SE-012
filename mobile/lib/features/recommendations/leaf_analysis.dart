@@ -34,6 +34,7 @@ class LeafAnalysis {
   /// One-line plain-language summary for the farmer.
   final String summary;
 
+// Constructor used to create a LeafAnalysis object with all required analysis values
   const LeafAnalysis({
     required this.isPepperLeaf,
     required this.healthy,
@@ -46,11 +47,13 @@ class LeafAnalysis {
     required this.summary,
   });
 
+  /// A disease is valid only when the image contains a pepper leaf that is not healthy.
   bool get diseaseDetected => isPepperLeaf && !healthy;
 
   factory LeafAnalysis.fromJson(Map<String, dynamic> j) {
     double? asDouble(Object? v) =>
         v == null ? null : (v is num ? v.toDouble() : double.tryParse('$v'));
+    // Converts the AI response into a typed analysis with safe fallback values.
     return LeafAnalysis(
       isPepperLeaf: j['is_pepper_leaf'] == true,
       healthy: j['healthy'] == true,
