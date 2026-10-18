@@ -1,10 +1,16 @@
+"""Stable API contract for the frozen Phase 7 decision-support workflow.
+
+The enums and validators in this module are intentionally stricter than the
+retired legacy response models below. An invalid or internally inconsistent
+integrated result must be withheld instead of being presented as advice.
+"""
+
 from __future__ import annotations
 
 from enum import Enum
 from typing import Literal
 
 from pydantic import BaseModel, Field, model_validator
-
 
 class Phase7GradingStatus(str, Enum):
     accepted = "ACCEPTED"
@@ -62,6 +68,7 @@ class Phase7ForecastInterval(BaseModel):
 
     @model_validator(mode="after")
     def validate_bounds(self) -> "Phase7ForecastInterval":
+        """Reject reversed ranges and any claim of calibrated probability."""
         if self.lower > self.upper:
             raise ValueError("Forecast interval lower bound exceeds upper bound")
         if self.probability_claim:
@@ -117,6 +124,13 @@ class Phase7AnalyzeResponse(BaseModel):
 
     @model_validator(mode="after")
     def validate_rejection_first_contract(self) -> "Phase7AnalyzeResponse":
+        """Enforce Phase 6 semantics at the API boundary.
+
+        Rejected or uncertain grading stops before pricing, and accepted
+        market evidence must use the exact Grade 1 or Grade 2 route selected by
+        the frozen research workflow. This protects clients from accidental
+        schema drift or a wrong-grade price response.
+        """
         category = self.decision_support.category
         unavailable_values = (
             self.market.price_grade,
@@ -155,6 +169,7 @@ class Phase7AnalyzeResponse(BaseModel):
 
 
 class GradeEnum(str, Enum):
+    """Legacy model vocabulary retained only for retired endpoints."""
     grade_1 = "Grade 1"
     grade_2 = "Grade 2"
     grade_3 = "Grade 3"

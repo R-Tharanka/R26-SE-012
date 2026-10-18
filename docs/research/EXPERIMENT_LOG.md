@@ -1197,3 +1197,68 @@ Date: 2026-10-08.
 - Flutter: local empty/10-MB validation, validated backend URL, full request/response timeout, explicit HTTP error mapping, strict schema parsing, and client-side rejection-first/grade-route enforcement. No fallback prediction is generated.
 - Verification: 15/15 focused backend tests passed, including the real Grade 1 API path. Direct Dart static analysis of the changed Flutter feature and focused tests reported no issues. Four Flutter API tests and two parser/invariant tests were added, but the Flutter test runner produced no output and was stopped without claiming test execution. The full legacy backend suite was not used as the Phase 7 gate because it includes retired pre-Phase-7 endpoint expectations and sandbox-dependent temporary-write tests.
 - Scientific boundary: this is integration/reliability evidence only. It adds no predictive accuracy, field robustness, confidence calibration, forecast reliability, or economic evidence.
+
+### MOBILE-FOUR-COMPONENT-INTEGRATION-001
+
+Date: 2026-10-08.
+
+- Scope: integrated the separately supplied pest, leaf-disease, and berry-disease Flutter implementation into the current mobile application while retaining the current shell and authoritative Phase 7 grading/forecast feature.
+- Authority: imported behavior was used for the three outsourced domains and their shared scanner/AI runtime. No imported `grading_forecast` source was copied; the existing Phase 7 mobile source has zero diff.
+- Runtime: added native background TFLite/JPEG preparation, imported Gemini structured detection, Anthropic v7 Claude Haiku crop refinement, on-demand recommendations, scanner lifecycle recovery, and a direct-execution web fallback.
+- Localization: added persisted English/Sinhala/Tamil selection and localized the application shell plus pest/leaf/berry-disease presentation. Phase 7 scientific screens remain on their current wording; unused legacy grading strings are not referenced.
+- Assets: 37 overlapping imported pest/leaf/berry assets were byte-identical to the current copies. No model or reference asset was replaced.
+- Dependencies: added Flutter localization, `intl`, and `shared_preferences`; updated the Anthropic SDK contract and aligned the image package. Current Android SDK settings and theme were retained.
+- Verification: direct Dart analysis reported no issues; the focused Phase 7 backend/API/startup gate passed 15/15; the grading mobile source remained unchanged; important `.pt`, ONNX, and TFLite hashes were recorded in `MOBILE_COMPONENT_INTEGRATION_RESULTS.md`.
+- Unverified boundary: `flutter test` and the bounded debug APK build produced no output while the local Flutter/Dart/Gradle toolchain remained occupied and were stopped. Emulator/physical-device scanner, live provider, localization, and five-case Phase 7 regression checks remain manual acceptance work.
+- Security: build-time Gemini/Anthropic keys remain recoverable from a distributed client. This preserves the supplied architecture for controlled development but is not acceptable secret management for uncontrolled public distribution.
+- Scientific boundary: this is software integration evidence only; it adds no predictive accuracy, field robustness, model calibration, forecast reliability, or user-benefit evidence.
+
+### PHASE7-GRADING-FORECAST-LOCALIZATION-001
+
+Date: 2026-10-08.
+
+- Scope: added English, Sinhala, and Tamil presentation support to the current Phase 7 Berry Grading and Export Price Forecasting Flutter workflow.
+- Boundary: localization is applied after strict Phase 6 response parsing. Internal categories, decisions, grade-price routes, trace values, models, thresholds, price records, and backend schemas were not changed.
+- Coverage: component home, capture validation, processing, safe API errors, rejection/uncertainty reasons, accepted grading result, frozen market outlook, limitations, disclaimer, and trace heading.
+- Terminology: V3 grades remain project-specific; model scores remain non-probabilistic; EAC prices remain reference prices; frozen forecasts remain research evidence rather than live offers or trading instructions.
+- Verification: Flutter localization generation completed; direct Dart analysis reported no issues; 12/12 focused localization, API-client, and strict Phase 7 contract tests passed.
+- Limitation: independent Sinhala/Tamil linguistic review and emulator/physical-device layout acceptance remain pending. This is deployment/accessibility engineering and adds no predictive or field evidence.
+
+### MOBILE-FARMER-UI-UX-REFINEMENT-001
+
+Date: 2026-10-08.
+
+- Scope: presentation-only Flutter refinement across the integrated pest, leaf-disease, berry-disease, and Berry Grading and Export Price Forecasting experiences. Backend contracts, models, preprocessing, thresholds, Phase 6/7 logic, and price evidence were unchanged.
+- Navigation: replaced the redundant Home/Capture/History bar with Home/History/Guide; History is an honest empty state, capture remains task-specific, and focused result routes provide clear Back/Home exits.
+- Dashboard: retained exactly four feature cards, consolidated the duplicated Pepper Care identity, removed fabricated farm status/mock recent results/standalone Take Photo, and standardized all four entries on one explanatory bottom-sheet pattern.
+- Grading: removed the obsolete intermediate grading landing page from the flow. Accepted results now lead with the farmer-readable grade; rejection and `UNCERTAIN_GRADE` remain fail-closed and provide capture guidance without exposing internal categories as primary UI text.
+- Price: the frozen forecast price is visually dominant, with plain direction/uncertainty and compact grade/date/reference context. Raw interval, Ridge/persistence, internal series, Phase terminology, and trace remain available in the API but are not shown to normal users.
+- Guide and localization: added practical grading/photo/price guidance and localized all new presentation in English, Sinhala, and Tamil. No legacy scientific behavior was introduced.
+- Verification: official `flutter analyze` reported no issues and the complete Flutter suite passed 75/75 tests. A diff boundary check showed no backend, ML, model, or data changes.
+- Build boundary: a hosted-backend debug APK build reached Gradle but produced no completion/error within the bounded run and was stopped. No newly built APK or emulator/device UI acceptance is claimed.
+- Interpretation: deployment/usability engineering only; no new predictive accuracy, field robustness, confidence calibration, price reliability, or farmer-benefit evidence.
+
+### MOBILE-OUTSOURCED-COMPONENT-UPDATE-002
+
+Date: 2026-10-15.
+
+- Scope: merged the newer supplied Pest Detection, Leaf Disease Detection, and Berry Disease Detection inference/recommendation behavior into the current Flutter shell. This is deployment integration, not model training or predictive evaluation.
+- Authority: the imported project governed the three outsourced component behaviors; the current project remained authoritative for UI/UX, navigation, accessibility, localization, browser support, and Berry Grading and Export Price Forecasting.
+- Runtime: added parallel TFLite/Gemini execution, reference warm-up/cache, expanded exemplar limits, corrected imported leaf-reference mapping, updated visual prompts, evidence-aware Claude refinement, detected-class recommendation anchoring, a reusable Anthropic client, and a bounded provider timeout. The current web-safe direct fallback was preserved.
+- Evidence safety: an unsupported positive Claude label now becomes the existing `Uncertain` verdict and abstains. It is not silently rewritten as `None`, healthy, or pest-free. The shared scanner schema has no dedicated insufficient-evidence row, which remains a documented presentation limitation.
+- Assets: imported 209 JPG/JPEG/PNG references byte-for-byte (183 new paths and 26 replacements), retained six current-only variants, and excluded secrets, caches, archives, and generated build products. The resulting 215-image reference set occupies approximately 44.95 MB before APK packaging. Outsourced TFLite binaries were unchanged.
+- Protected boundary: no backend, ML, Phase 6, Phase 7 grading source, grading model, threshold, API contract, forecast evidence, or price route changed. Frozen PT/ONNX and four TFLite hashes remained stable.
+- Verification: direct Dart analysis and official `flutter analyze` passed; new focused tests passed 5/5; focused scanner/navigation/Phase 7 tests passed 56/56; the complete Flutter suite passed 80/80 after synchronizing generated Sinhala localization from the existing ARB catalog; the unchanged Phase 7 backend integration suite passed 11/11.
+- Build boundary: a credential-free debug APK build entered Gradle but remained silent past the bounded window and was stopped. No build, emulator, device, or live-provider pass is claimed.
+- Remaining acceptance: manually verify all three outsourced camera/gallery and recommendation paths with authorized keys and fallback mode, then rerun the five established Phase 7 grading cases on the packaged application.
+
+### MOBILE-COMBINED-PLANT-FALLBACK-003
+
+Date: 2026-10-18.
+
+- Scope: corrected the dashboard integration to expose the imported component's single combined Leaf Health & Pests entry instead of two labels leading to the same scanner.
+- Cloud runtime: retained the supplied combined `plant` Gemini/Claude classification path and its leaf/pest recommendation routing.
+- Local fallback: retained the original leaf and pest TFLite model contracts and now runs both when serving the combined scanner. Their class names, confidence thresholds, preprocessing, and model binaries were not changed; detections are merged for presentation and routing.
+- Failure behavior: both fallback models are required to load for the combined scanner. A pest-model load failure is surfaced instead of silently presenting leaf-only fallback as combined coverage.
+- Protected boundary: Berry Disease, Berry Grading and Export Price Forecasting, backend APIs, Phase 6/7 logic, models, research data, and forecast evidence were unchanged.
+- Verification: localization generation completed; `flutter analyze` passed with no issues; 12/12 focused tests passed; the complete Flutter suite passed 89/89; and the Android debug APK built successfully. Emulator/device checks with cloud keys configured and absent remain manual acceptance work.

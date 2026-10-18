@@ -5,19 +5,42 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../models/grading_forecast_result.dart';
 
+/// Safe, typed errors exposed to the UI instead of raw provider/network text.
 class GradingForecastApiException implements Exception {
   const GradingForecastApiException(
     this.message, {
+    this.kind = GradingForecastApiErrorKind.analysisFailed,
     this.statusCode,
     this.cause,
   });
   final String message;
+  final GradingForecastApiErrorKind kind;
   final int? statusCode;
   final Object? cause;
   @override
   String toString() => 'GradingForecastApiException($statusCode): $message';
 }
 
+enum GradingForecastApiErrorKind {
+  emptyImage,
+  imageTooLarge,
+  invalidBackendAddress,
+  invalidImage,
+  unsupportedImage,
+  malformedRequest,
+  serviceBusy,
+  serviceUnavailable,
+  timeout,
+  unreachable,
+  malformedResponse,
+  analysisFailed,
+}
+
+/// Sends the original selected image to the Phase 7 backend.
+///
+/// Grading runs through the frozen backend ONNX pipeline. There is no local
+/// prediction fallback here, because a fallback could silently change the
+/// approved preprocessing, thresholds, model, or Phase 6 decision semantics.
 class GradingForecastApiService {
   GradingForecastApiService({String? baseUrlOverride, http.Client? client})
     : _baseUrl = _resolveBaseUrl(baseUrlOverride),
@@ -29,16 +52,23 @@ class GradingForecastApiService {
   final http.Client _client;
   final bool _ownsClient;
   String get baseUrl => _baseUrl;
+
+  /// Validates the upload locally, then strictly parses the complete response
+  /// contract returned by the backend.
   Future<GradingForecastResult> analyzeBytes(
     Uint8List bytes,
     String filename,
   ) async {
     if (bytes.isEmpty) {
-      throw const GradingForecastApiException('The selected image is empty.');
+      throw const GradingForecastApiException(
+        'The selected image is empty.',
+        kind: GradingForecastApiErrorKind.emptyImage,
+      );
     }
     if (bytes.length > maxImageBytes) {
       throw const GradingForecastApiException(
         'The selected image exceeds the 10 MB upload limit.',
+        kind: GradingForecastApiErrorKind.imageTooLarge,
         statusCode: 413,
       );
     }
@@ -48,16 +78,15 @@ class GradingForecastApiService {
         (endpoint.scheme != 'http' && endpoint.scheme != 'https')) {
       throw const GradingForecastApiException(
         'The research backend address is invalid.',
+        kind: GradingForecastApiErrorKind.invalidBackendAddress,
       );
     }
-    final request =
-        http.MultipartRequest(
-            'POST',
-            endpoint,
-          )
-          ..files.add(
-            http.MultipartFile.fromBytes('image', bytes, filename: filename),
-          );
+    // Multipart upload preserves the image bytes selected by the user. The
+    // backend owns quality gates, preprocessing, ONNX inference, and routing.
+    final request = http.MultipartRequest('POST', endpoint)
+      ..files.add(
+        http.MultipartFile.fromBytes('image', bytes, filename: filename),
+      );
     try {
       final streamed = await _client.send(request).timeout(requestTimeout);
       final response = await http.Response.fromStream(
@@ -73,15 +102,21 @@ class GradingForecastApiService {
           }
         }
       }
+      // HTTP failures are mapped to safe, localized UI messages below; raw
+      // backend details are never displayed as an untrusted fallback.
       if (response.statusCode < 200 || response.statusCode >= 300) {
         final detail = _responseDetail(decoded);
         throw GradingForecastApiException(
           detail ?? _messageForStatus(response.statusCode),
+          kind: _kindForStatus(response.statusCode),
           statusCode: response.statusCode,
         );
       }
       if (decoded is! Map) {
-        throw const GradingForecastApiException('Unexpected response format.');
+        throw const GradingForecastApiException(
+          'Unexpected response format.',
+          kind: GradingForecastApiErrorKind.malformedResponse,
+        );
       }
       return GradingForecastResult.fromJson(decoded.cast<String, dynamic>());
     } on GradingForecastApiException {
@@ -89,21 +124,25 @@ class GradingForecastApiService {
     } on TimeoutException catch (e) {
       throw GradingForecastApiException(
         'Analysis timed out. Please retry.',
+        kind: GradingForecastApiErrorKind.timeout,
         cause: e,
       );
     } on SocketException catch (e) {
       throw GradingForecastApiException(
         'Cannot reach the research backend.',
+        kind: GradingForecastApiErrorKind.unreachable,
         cause: e,
       );
     } on http.ClientException catch (e) {
       throw GradingForecastApiException(
         'Cannot reach the research backend.',
+        kind: GradingForecastApiErrorKind.unreachable,
         cause: e,
       );
     } on FormatException catch (e) {
       throw GradingForecastApiException(
         'Backend returned malformed data.',
+        kind: GradingForecastApiErrorKind.malformedResponse,
         cause: e,
       );
     }
@@ -114,6 +153,8 @@ class GradingForecastApiService {
   }
 
   static String? _responseDetail(Object? decoded) {
+    // Validation details are accepted only as a short backend-provided string;
+    // structured error lists receive a generic message to keep the UI stable.
     if (decoded is! Map) return null;
     final detail = decoded['detail'];
     if (detail is String && detail.trim().isNotEmpty) return detail;
@@ -134,7 +175,20 @@ class GradingForecastApiService {
     _ => 'Analysis failed on the research backend.',
   };
 
+  static GradingForecastApiErrorKind _kindForStatus(int statusCode) =>
+      switch (statusCode) {
+        400 => GradingForecastApiErrorKind.invalidImage,
+        413 => GradingForecastApiErrorKind.imageTooLarge,
+        415 => GradingForecastApiErrorKind.unsupportedImage,
+        422 => GradingForecastApiErrorKind.malformedRequest,
+        429 => GradingForecastApiErrorKind.serviceBusy,
+        502 || 503 || 504 => GradingForecastApiErrorKind.serviceUnavailable,
+        _ => GradingForecastApiErrorKind.analysisFailed,
+      };
+
   static String _resolveBaseUrl(String? override) {
+    // Build-time configuration is preferred. Platform defaults are local
+    // development addresses only and are not claims about a hosted service.
     if (override != null && override.trim().isNotEmpty) {
       return override.replaceAll(RegExp(r'/$'), '');
     }

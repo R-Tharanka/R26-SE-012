@@ -1,4 +1,10 @@
-"""Backend boundary for the frozen Phase 7 integrated research pipeline."""
+"""Backend boundary for the frozen Phase 7 integrated research pipeline.
+
+This module deliberately stays thin: the deployment implementation owns the
+frozen ONNX grading runtime, recorded Phase 5 forecast lookup, and Phase 6
+decision rules. The FastAPI layer calls this boundary instead of duplicating
+any model or pricing logic.
+"""
 
 from __future__ import annotations
 
@@ -22,11 +28,17 @@ from ml.grading_forecast.deployment.phase7.integrated_service import analyze_ima
 
 
 def analyze(image_bytes: bytes, analysis_id: str) -> dict:
+    """Analyze one validated image using the frozen integrated runtime.
+
+    The timestamp is generated server-side for traceability; it does not alter
+    the model, forecast record, grade routing, or decision category.
+    """
     timestamp = datetime.now(timezone.utc).isoformat()
     return analyze_image_bytes(image_bytes, analysis_id, timestamp_utc=timestamp)
 
 
 def initialize_phase7_runtime() -> None:
+    """Fail startup/readiness unless ONNX and forecast evidence are valid."""
     initialize_onnx_runtime()
     validate_frozen_forecast_source()
 

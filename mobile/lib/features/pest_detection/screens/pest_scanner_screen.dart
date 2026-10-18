@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 
-// Imports the model configuration class used to configure the scanner model
+import '../../../l10n/app_localizations.dart';
 import '../../../shared/models/scanner_model_config.dart';
 
 // Imports the reusable scanner UI that performs the scanning process
@@ -43,6 +43,9 @@ class PestScannerScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const ScannerView(modelConfig: _pestConfig, title: 'Pest Scan');
+    return ScannerView(
+      modelConfig: _pestConfig,
+      title: AppLocalizations.of(context).homePests,
+    );
   }
 }

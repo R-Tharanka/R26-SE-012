@@ -18,6 +18,8 @@ from app.services.grading_forecast.phase7_service import (
 
 router = APIRouter(prefix="/api/v1/grading-forecast", tags=["grading-forecast"])
 LOGGER = logging.getLogger(__name__)
+# These limits protect the API before image decoding or model execution. They
+# are validation safeguards, not changes to the frozen model preprocessing.
 MAX_IMAGE_UPLOAD_BYTES = 10 * 1024 * 1024
 UPLOAD_READ_CHUNK_BYTES = 1024 * 1024
 MAX_DECODED_IMAGE_PIXELS = 50_000_000
@@ -29,6 +31,12 @@ async def _read_valid_image_upload(
     image: UploadFile | None,
     analysis_id: str,
 ) -> tuple[bytes, str]:
+    """Read and validate one bounded, single-frame image upload.
+
+    The route verifies bytes and decoded dimensions before handing the original
+    image to the frozen grading runtime. Uploaded contents and filenames are
+    intentionally excluded from logs.
+    """
     if image is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -114,6 +122,12 @@ async def _read_valid_image_upload(
 
 
 def _safe_analysis(image_bytes: bytes, analysis_id: str) -> dict:
+    """Translate internal Phase 7 failures into safe HTTP responses.
+
+    Runtime, forecast-integrity, routing, and unexpected failures are kept
+    distinct for operations while avoiding model details or uploaded data in
+    the client response.
+    """
     try:
         return analyze_phase7(image_bytes, analysis_id)
     except GradingRuntimeError as exc:
@@ -156,6 +170,7 @@ def _safe_analysis(image_bytes: bytes, analysis_id: str) -> dict:
 
 @router.get("/health")
 def health() -> dict[str, str]:
+    """Liveness endpoint; it does not claim that artifacts are ready."""
     return {
         "status": "ok",
         "component": "phase7_grade_price_decision_support",
@@ -164,6 +179,7 @@ def health() -> dict[str, str]:
 
 @router.get("/ready")
 def ready(response: Response) -> dict[str, object]:
+    """Readiness endpoint for both ONNX grading and frozen price evidence."""
     try:
         initialize_phase7_runtime()
         readiness = "ready"
@@ -180,6 +196,12 @@ def ready(response: Response) -> dict[str, object]:
 
 @router.post("/analyze", response_model=Phase7AnalyzeResponse)
 async def analyze(image: UploadFile | None = None) -> Phase7AnalyzeResponse:
+    """Run the rejection-first grading → price-decision workflow.
+
+    Response validation occurs after the integrated service returns. Invalid
+    output is withheld with HTTP 500 rather than converted into a partial or
+    fabricated forecast.
+    """
     analysis_id = str(uuid.uuid4())
     try:
         image_bytes, _ = await _read_valid_image_upload(image, analysis_id)
@@ -218,4 +240,5 @@ async def analyze(image: UploadFile | None = None) -> Phase7AnalyzeResponse:
 @router.api_route("/price-forecast", methods=["GET"], status_code=status.HTTP_410_GONE)
 @router.api_route("/recommend", methods=["POST"], status_code=status.HTTP_410_GONE)
 def retired_legacy_endpoint() -> dict[str, str]:
+    """Keep pre-Phase-7 routes explicit and prevent accidental legacy use."""
     return {"detail": "Retired in Phase 7; use POST /api/v1/grading-forecast/analyze."}
