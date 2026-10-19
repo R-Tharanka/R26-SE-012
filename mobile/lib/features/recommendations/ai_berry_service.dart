@@ -52,7 +52,7 @@ class AiBerryService {
             '${currentPromptLanguage()}. Keep problem_type exactly as the '
             'allowed English values.',
           ),
-          DataPart('image/jpeg', jpegBytes),
+          DataPart('image/jpeg', jpegBytes), // PASSED THE IMAGE TO THE LLM
         ]),
       ]);
     } on Exception catch (e) {
