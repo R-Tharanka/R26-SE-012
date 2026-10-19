@@ -64,7 +64,7 @@ class AiBerryService {
       throw LeafAnalysisException('AI returned no result.');
     }
     try {
-      return BerryAnalysis.fromJson(jsonDecode(text) as Map<String, dynamic>);
+      return BerryAnalysis.fromJson(jsonDecode(text) as Map<String, dynamic>); //Severity passed to the berry_analysis.dart as severity_percentage
     } catch (_) {
       throw LeafAnalysisException('Could not parse AI response:\n$text');
     }
