@@ -138,7 +138,7 @@ class _BerryAnalysisScreenState extends State<BerryAnalysisScreen> {
       ];
     }
 
-    final rem = RemediationEngine.forAnalysis(r, _market);
+    final rem = RemediationEngine.forAnalysis(r, _market); //Passing severity_percentage to the remediation_engine.dart
     final accent = r.healthy
         ? Theme.of(context).colorScheme.primary
         : bandColor(context, r.severityBand);
