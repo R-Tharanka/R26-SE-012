@@ -207,6 +207,21 @@ flutter test
 Static analysis and widget/unit tests do not replace an Android build,
 installation, live backend check, or manual device acceptance.
 
+### CI/CD workflow
+
+The [GitHub Actions workflow](.github/workflows/ci-cd.yml) runs on pull requests
+and pushes targeting `integration` or `main`, and can also be started manually.
+It performs the focused Phase 7 backend tests plus `flutter analyze` and
+`flutter test`. After both jobs pass on a branch push, it publishes a
+14-day `phase7-backend-<commit>` delivery artifact containing the tracked
+FastAPI and ML runtime source.
+
+The workflow does not automatically deploy to Railway or another production
+environment because no deployment target or credentials are defined. It also
+does not publish an APK: the three current pest/leaf/berry-disease TFLite assets
+are intentionally local/ignored in this checkout, so a GitHub-built APK would
+not contain the complete mobile runtime.
+
 ## Important limitations
 
 - V3 Grade 1 and Grade 2 are project-specific visual labels, not official SLS,

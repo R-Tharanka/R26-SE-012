@@ -1,0 +1,113 @@
+name: CI/CD
+
+on:
+  push:
+    branches:
+      - main
+      - integration
+  pull_request:
+    branches:
+      - main
+      - integration
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-cd-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Phase 7 backend
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r backend/requirements.txt
+
+      - name: Run focused Phase 7 tests
+        run: |
+          python -m pytest -q \
+            --basetemp=./backend/pytest-cache-files-phase7 \
+            backend/tests/test_main_startup.py \
+            backend/tests/test_phase7_integration.py \
+            backend/tests/test_phase7_text_integrity.py
+
+  mobile:
+    name: Flutter checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: mobile
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+          cache-dependency-path: |
+            mobile/android/**/*.gradle*
+            mobile/android/gradle/wrapper/gradle-wrapper.properties
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: "3.41.9"
+          cache: true
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      - name: Analyze Flutter source
+        run: flutter analyze
+
+      - name: Run Flutter tests
+        run: flutter test
+
+  deliver:
+    name: Package Phase 7 backend
+    if: github.event_name != 'pull_request'
+    needs:
+      - backend
+      - mobile
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Assemble deployable source bundle
+        run: |
+          mkdir -p dist/phase7-backend
+          cp -R backend ml requirements.txt README.md dist/phase7-backend/
+
+      - name: Upload backend delivery artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: phase7-backend-${{ github.sha }}
+          path: dist/phase7-backend
+          if-no-files-found: error
+          retention-days: 14
