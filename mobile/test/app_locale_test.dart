@@ -1,9 +1,14 @@
+// =============================================================================
+// File: app_locale_test.dart
+// Purpose: Verifies the app locale test behavior.
+// =============================================================================
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pepper_care/core/locale/app_locale.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  // Register the tests defined in this file.
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     await loadSavedLocale();

@@ -1,3 +1,7 @@
+// =============================================================================
+// File: remediation_engine.dart
+// Purpose: Implements the remediation engine part of the mobile application.
+// =============================================================================
 import 'berry_analysis.dart';
 
 /// Export destination — decides which actives are legal and their residue rules.
@@ -62,6 +66,7 @@ class RemediationEngine {
       'residues clear — confirm the exact days with your agri authority.';
 
   static Remediation forAnalysis(BerryAnalysis a, Market market) {
+    // Create guidance for the supplied analysis result.
     if (!a.isBerryCluster) {
       return const Remediation(
         action: 'No advice — the image is not a berry cluster.',
@@ -167,6 +172,7 @@ class RemediationEngine {
   }
 
   static String _exportNote(BerryAnalysis a, Market market, {required bool treated}) {
+    // Create the export-market note for this result.
     final base =
         'Grading for ${market.label}: ~${a.severityPercentage.toStringAsFixed(0)}% '
         'of the spike shows damage.';

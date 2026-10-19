@@ -1,3 +1,7 @@
+// =============================================================================
+// File: pest_recommendation_flow_test.dart
+// Purpose: Verifies the pest recommendation flow test behavior.
+// =============================================================================
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -19,6 +23,7 @@ const _pterolopha = Detection(
   color: Colors.purple,
 );
 
+// Create a sample analysis response for this test.
 Map<String, dynamic> _analysisJson({
   bool isPepperPlant = true,
   bool healthy = false,
@@ -36,6 +41,7 @@ Map<String, dynamic> _analysisJson({
 };
 
 void main() {
+  // Register the tests defined in this file.
   test('normal-confidence pest detection is passed to recommendations', () {
     expect(
       detectedPestForRecommendations(_pterolopha, lowConfidence: false),

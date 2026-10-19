@@ -1,3 +1,7 @@
+// =============================================================================
+// File: offline_grading_forecast_service.dart
+// Purpose: Provides the offline grading forecast service application service.
+// =============================================================================
 import 'dart:typed_data';
 import '../models/grading_forecast_result.dart';
 
@@ -16,5 +20,6 @@ class OfflineGradingForecastService {
       'Phase 7 uses verified backend ONNX inference; V3 TFLite is unavailable.',
     ),
   );
+  // Release controllers, listeners, and other owned resources.
   Future<void> dispose() async {}
 }

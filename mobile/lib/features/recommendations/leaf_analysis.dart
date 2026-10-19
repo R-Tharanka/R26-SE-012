@@ -1,3 +1,7 @@
+// =============================================================================
+// File: leaf_analysis.dart
+// Purpose: Implements the leaf analysis part of the mobile application.
+// =============================================================================
 /// Structured result of an AI leaf-disease analysis.
 ///
 /// Mirrors the spec's output contract but adds the fields that make the result
@@ -51,6 +55,8 @@ class LeafAnalysis {
   bool get diseaseDetected => isPepperLeaf && !healthy;
 
   factory LeafAnalysis.fromJson(Map<String, dynamic> j) {
+    // Read a numeric JSON value as a decimal number.
+    // Parse and validate one object from an API JSON response.
     double? asDouble(Object? v) =>
         v == null ? null : (v is num ? v.toDouble() : double.tryParse('$v'));
     // Converts the AI response into a typed analysis with safe fallback values.

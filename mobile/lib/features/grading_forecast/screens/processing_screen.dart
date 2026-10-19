@@ -1,3 +1,7 @@
+// =============================================================================
+// File: processing_screen.dart
+// Purpose: Presents the processing screen mobile interface and user flow.
+// =============================================================================
 import 'dart:async';
 import 'dart:typed_data';
 
@@ -26,6 +30,7 @@ class ProcessingScreen extends StatefulWidget {
   final String imageName;
 
   @override
+  // Create the mutable state object for this widget.
   State<ProcessingScreen> createState() => _ProcessingScreenState();
 }
 
@@ -43,11 +48,13 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
 
   @override
   void initState() {
+    // Initialize controllers, listeners, and first-load state.
     super.initState();
     _start();
   }
 
   Future<void> _start() async {
+    // Start the start for this flow.
     setState(() {
       _isRunning = true;
       _errorMessage = null;
@@ -88,6 +95,7 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
   }
 
   Future<void> _saveHistory(GradingForecastResult result) async {
+    // Save this completed analysis to local history.
     final repository = HistoryScope.maybeOf(context);
     if (repository == null) return;
     final messenger = ScaffoldMessenger.maybeOf(context);
@@ -117,12 +125,14 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
 
   @override
   void dispose() {
+    // Release controllers, listeners, and other owned resources.
     _analysisService.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     final t = AppLocalizations.of(context);
     final scheme = Theme.of(context).colorScheme;
     return Scaffold(

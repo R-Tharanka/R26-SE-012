@@ -1,3 +1,7 @@
+// =============================================================================
+// File: history_image_store.dart
+// Purpose: Supports the local-first history image store history workflow.
+// =============================================================================
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -24,6 +28,7 @@ class HistoryImageStore {
   final Directory rootDirectory;
 
   static Future<HistoryImageStore> openDefault() async {
+    // Open the default for this flow.
     final support = await getApplicationSupportDirectory();
     final root = Directory(p.join(support.path, 'pepper_care', 'history'));
     await root.create(recursive: true);
@@ -36,6 +41,7 @@ class HistoryImageStore {
     required Uint8List bytes,
     DateTime? createdAtUtc,
   }) async {
+    // Write write for this flow.
     if (bytes.isEmpty) throw const FileSystemException('Image is empty.');
     final created = (createdAtUtc ?? DateTime.now().toUtc()).toUtc();
     final format = _imageFormat(bytes);
@@ -69,6 +75,7 @@ class HistoryImageStore {
   }
 
   File resolve(String relativePath) {
+    // Resolve resolve for this flow.
     final normalized = p.normalize(relativePath);
     if (p.isAbsolute(normalized) ||
         normalized == '..' ||
@@ -84,6 +91,7 @@ class HistoryImageStore {
   }
 
   Future<bool> delete(String relativePath) async {
+    // Delete the delete for this flow.
     final file = resolve(relativePath);
     try {
       if (await file.exists()) await file.delete();
@@ -94,6 +102,7 @@ class HistoryImageStore {
   }
 
   Future<void> reconcile(Set<String> referencedPaths) async {
+    // Reconcile reconcile for this flow.
     final imageRoot = Directory(p.join(rootDirectory.path, 'images'));
     if (!await imageRoot.exists()) return;
     final cutoff = DateTime.now().toUtc().subtract(const Duration(hours: 1));
@@ -119,6 +128,7 @@ class _ImageFormat {
 }
 
 _ImageFormat _imageFormat(Uint8List bytes) {
+  // Process image format for this flow.
   if (bytes.length >= 3 &&
       bytes[0] == 0xff &&
       bytes[1] == 0xd8 &&

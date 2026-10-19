@@ -1,3 +1,7 @@
+// =============================================================================
+// File: berry_quality_result_screen.dart
+// Purpose: Presents the berry quality result screen mobile interface and user flow.
+// =============================================================================
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -28,6 +32,7 @@ class BerryQualityResultScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     final t = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final status = AppStatusColors.of(context);

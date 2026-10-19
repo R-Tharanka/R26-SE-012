@@ -1,3 +1,7 @@
+// =============================================================================
+// File: history_screen.dart
+// Purpose: Presents the history screen mobile interface and user flow.
+// =============================================================================
 import 'dart:async';
 import 'dart:io';
 
@@ -16,6 +20,7 @@ class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
 
   @override
+  // Create the mutable state object for this widget.
   State<HistoryScreen> createState() => _HistoryScreenState();
 }
 
@@ -32,6 +37,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   @override
   void didChangeDependencies() {
+    // Refresh inherited dependencies when they change.
     super.didChangeDependencies();
     final repository = HistoryScope.maybeOf(context);
     if (identical(repository, _repository)) return;
@@ -43,17 +49,20 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   @override
   void dispose() {
+    // Release controllers, listeners, and other owned resources.
     _repository?.removeListener(_repositoryChanged);
     super.dispose();
   }
 
   void _repositoryChanged() {
+    // Process repository changed for this flow.
     if (mounted && !_loading && !_loadingMore && !_clearing) {
       unawaited(_refresh());
     }
   }
 
   Future<void> _refresh({bool runMaintenance = false}) async {
+    // Process refresh for this flow.
     final repository = _repository;
     if (repository == null) {
       if (mounted) setState(() => _loading = false);
@@ -85,6 +94,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   Future<void> _loadMore() async {
+    // Load the more for this flow.
     final repository = _repository;
     final cursor = _nextCursor;
     if (repository == null || cursor == null || _loadingMore) return;
@@ -115,12 +125,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   Future<void> _setFilter(HistoryFeature? value) async {
+    // Update the filter for this flow.
     if (_filter == value) return;
     setState(() => _filter = value);
     await _refresh();
   }
 
   Future<void> _setAutoDelete(bool enabled) async {
+    // Update the auto delete for this flow.
     final repository = _repository;
     if (repository == null) return;
     try {
@@ -148,6 +160,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   Future<void> _showHistoryManagement() async {
+    // Show the history management for this flow.
     final repository = _repository;
     if (repository == null) return;
     var autoDeleteEnabled = repository.autoDeleteEnabled;
@@ -227,6 +240,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   Future<void> _clearAll() async {
+    // Clear the all for this flow.
     final repository = _repository;
     if (repository == null || _clearing) return;
     final t = AppLocalizations.of(context);
@@ -272,6 +286,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     final t = AppLocalizations.of(context);
     final repository = _repository;
     if (repository == null) {
@@ -366,6 +381,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
+  // Process filter menu for this flow.
   Widget _filterMenu(AppLocalizations t) => PopupMenuButton<String>(
     key: const ValueKey('historyFilterButton'),
     tooltip: t.historyFilter,
@@ -394,6 +410,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     ),
   );
 
+  // Process error card for this flow.
   Widget _errorCard(AppLocalizations t) => Card(
     child: Padding(
       padding: const EdgeInsets.all(22),
@@ -427,6 +444,7 @@ class _FilterMenuItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     return Row(
       children: [
         SizedBox(
@@ -459,6 +477,7 @@ class _HistoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     final t = AppLocalizations.of(context);
     final locale = Localizations.localeOf(context).toLanguageTag();
     final date = DateFormat.yMMMd(

@@ -1,3 +1,7 @@
+// =============================================================================
+// File: home_screen.dart
+// Purpose: Presents the home screen mobile interface and user flow.
+// =============================================================================
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_theme.dart';
@@ -13,6 +17,7 @@ class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
+  // Create the mutable state object for this widget.
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
@@ -20,10 +25,12 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
   void _push(Widget page) {
+    // Process push for this flow.
     Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => page));
   }
 
   void _showFeature(_FeatureItem item) {
+    // Show the feature for this flow.
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -45,6 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     final t = AppLocalizations.of(context);
     final pages = [
       const _Dashboard(),
@@ -116,6 +124,7 @@ class _Dashboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     final state = context.findAncestorStateOfType<_HomeScreenState>()!;
     final t = AppLocalizations.of(context);
     final theme = Theme.of(context);
@@ -193,6 +202,7 @@ class _FeatureCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     final theme = Theme.of(context);
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -259,6 +269,7 @@ class _FarmerGuidePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     final t = AppLocalizations.of(context);
     return SafeArea(
       top: false,
@@ -346,6 +357,7 @@ class _AppLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     return ClipRRect(
       borderRadius: BorderRadius.circular(size * 0.24),
       child: Image.asset(

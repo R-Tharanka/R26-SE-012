@@ -1,3 +1,7 @@
+// =============================================================================
+// File: pest_scanner_screen.dart
+// Purpose: Presents the pest scanner screen mobile interface and user flow.
+// =============================================================================
 // Imports Flutter Material package for UI components
 
 import 'package:flutter/material.dart';
@@ -43,6 +47,7 @@ class PestScannerScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     return ScannerView(
       modelConfig: _pestConfig,
       title: AppLocalizations.of(context).homePests,

@@ -1,3 +1,7 @@
+// =============================================================================
+// File: history_database.dart
+// Purpose: Supports the local-first history database history workflow.
+// =============================================================================
 import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 
@@ -7,6 +11,7 @@ class HistoryDatabase {
   static const int schemaVersion = 1;
 
   static Future<Database> open({String? databasePath}) async {
+    // Open the open for this flow.
     final path =
         databasePath ??
         p.join(await getDatabasesPath(), 'pepper_care_history.db');
@@ -22,6 +27,7 @@ class HistoryDatabase {
   }
 
   static Future<void> createSchema(DatabaseExecutor database) async {
+    // Create the schema for this flow.
     await database.execute('''
       CREATE TABLE history_records (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -59,6 +65,7 @@ class HistoryDatabase {
     int oldVersion,
     int newVersion,
   ) async {
+    // Process migrate for this flow.
     if (oldVersion < 1) await createSchema(database);
   }
 }

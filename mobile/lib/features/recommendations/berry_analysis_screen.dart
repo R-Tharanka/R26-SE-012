@@ -1,3 +1,7 @@
+// =============================================================================
+// File: berry_analysis_screen.dart
+// Purpose: Presents the berry analysis screen mobile interface and user flow.
+// =============================================================================
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -27,6 +31,7 @@ class BerryAnalysisScreen extends StatefulWidget {
   });
 
   @override
+  // Create the mutable state object for this widget.
   State<BerryAnalysisScreen> createState() => _BerryAnalysisScreenState();
 }
 
@@ -40,11 +45,13 @@ class _BerryAnalysisScreenState extends State<BerryAnalysisScreen> {
 
   @override
   void initState() {
+    // Initialize controllers, listeners, and first-load state.
     super.initState();
     _run();
   }
 
   Future<void> _run() async {
+    // Run the analysis and update the screen state.
     setState(() {
       _loading = true;
       _error = null;
@@ -70,6 +77,7 @@ class _BerryAnalysisScreenState extends State<BerryAnalysisScreen> {
   }
 
   Future<void> _saveHistory(BerryAnalysis result) async {
+    // Save this completed analysis to local history.
     final key = widget.historyRecordKey;
     final repository = HistoryScope.maybeOf(context);
     if (key == null || repository == null) return;
@@ -96,6 +104,7 @@ class _BerryAnalysisScreenState extends State<BerryAnalysisScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     return AnalysisScaffold(
       imageBytes: widget.imageBytes,
       title: AppLocalizations.of(context).berryGradingTitle,
@@ -105,6 +114,7 @@ class _BerryAnalysisScreenState extends State<BerryAnalysisScreen> {
   }
 
   List<Widget> _body() {
+    // Build the main content for the current screen state.
     final t = AppLocalizations.of(context);
     if (_loading) {
       return [LoadingView(message: t.analysingBerry)];
@@ -116,6 +126,7 @@ class _BerryAnalysisScreenState extends State<BerryAnalysisScreen> {
   }
 
   List<Widget> _resultBody(BerryAnalysis r) {
+    // Build the content for the completed analysis result.
     final t = AppLocalizations.of(context);
     if (!r.isBerryCluster) {
       return [
@@ -255,6 +266,7 @@ class _BerryAnalysisScreenState extends State<BerryAnalysisScreen> {
     ];
   }
 
+  // Build the market selection control.
   Widget _marketDropdown() => DropdownButton<Market>(
     value: _market,
     underline: const SizedBox.shrink(),
@@ -272,6 +284,7 @@ class _BerryAnalysisScreenState extends State<BerryAnalysisScreen> {
   );
 
   Widget _warning(String w) {
+    // Build the warning shown with this result.
     final warningColor = AppStatusColors.of(context).warning;
     return Padding(
       padding: const EdgeInsets.only(top: 8),

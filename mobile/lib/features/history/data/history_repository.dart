@@ -1,3 +1,7 @@
+// =============================================================================
+// File: history_repository.dart
+// Purpose: Supports the local-first history repository history workflow.
+// =============================================================================
 import 'dart:async';
 import 'dart:io';
 
@@ -16,6 +20,7 @@ class HistoryDeletionResult {
   const HistoryDeletionResult({required this.deleted, required this.pending});
   final int deleted;
   final int pending;
+  // Return the whether the cleanup operation completed.
   bool get isComplete => pending == 0;
 }
 
@@ -38,6 +43,7 @@ class HistoryRepository extends ChangeNotifier {
   bool _closed = false;
 
   static Future<HistoryRepository> openDefault() async {
+    // Open the default for this flow.
     final results = await Future.wait<Object>([
       HistoryDatabase.open(),
       HistoryImageStore.openDefault(),
@@ -50,13 +56,16 @@ class HistoryRepository extends ChangeNotifier {
     );
   }
 
+  // Return the saved automatic cleanup setting.
   bool get autoDeleteEnabled =>
       _preferences.getBool(historyAutoDeletePreferenceKey) ?? false;
 
+  // Process image file for this flow.
   File imageFile(HistoryRecord record) =>
       _imageStore.resolve(record.imageRelativePath);
 
   Future<HistoryRecord?> findByKey(String recordKey) async {
+    // Find by key for this flow.
     final rows = await _database.query(
       'history_records',
       where: 'record_key = ?',
@@ -71,6 +80,7 @@ class HistoryRepository extends ChangeNotifier {
     HistoryCursor? before,
     HistoryFeature? feature,
   }) async {
+    // Fetch the page for this flow.
     final clauses = <String>['delete_pending = 0'];
     final args = <Object?>[];
     if (feature != null) {
@@ -101,6 +111,7 @@ class HistoryRepository extends ChangeNotifier {
     );
   }
 
+  // Save the new for this flow.
   Future<void> saveNew({
     required String recordKey,
     required HistoryFeature feature,
@@ -144,6 +155,7 @@ class HistoryRepository extends ChangeNotifier {
     notifyListeners();
   });
 
+  // Process enrich for this flow.
   Future<bool> enrich({
     required String recordKey,
     required String outcomeCode,
@@ -168,17 +180,21 @@ class HistoryRepository extends ChangeNotifier {
     return count > 0;
   });
 
+  // Clear the all for this flow.
   Future<HistoryDeletionResult> clearAll() =>
       _deleteWhere('1 = 1', const <Object?>[]);
 
+  // Delete the older than for this flow.
   Future<HistoryDeletionResult> deleteOlderThan(DateTime cutoffUtc) =>
       _deleteWhere('created_at_utc_ms < ?', [
         cutoffUtc.toUtc().millisecondsSinceEpoch,
       ]);
 
+  // Retry pending deletions for this flow.
   Future<HistoryDeletionResult> retryPendingDeletions() =>
       _deleteWhere('delete_pending = 1', const <Object?>[], markPending: false);
 
+  // Delete the where for this flow.
   Future<HistoryDeletionResult> _deleteWhere(
     String where,
     List<Object?> whereArgs, {
@@ -221,6 +237,7 @@ class HistoryRepository extends ChangeNotifier {
   });
 
   Future<HistoryDeletionResult> setAutoDeleteEnabled(bool enabled) async {
+    // Update the auto delete enabled for this flow.
     await _preferences.setBool(historyAutoDeletePreferenceKey, enabled);
     notifyListeners();
     if (!enabled) {
@@ -232,6 +249,7 @@ class HistoryRepository extends ChangeNotifier {
   Future<HistoryDeletionResult> runRetentionCleanup({
     bool force = false,
   }) async {
+    // Run the retention cleanup for this flow.
     if (!autoDeleteEnabled) {
       return const HistoryDeletionResult(deleted: 0, pending: 0);
     }
@@ -254,6 +272,7 @@ class HistoryRepository extends ChangeNotifier {
   }
 
   Future<void> runMaintenance({bool forceRetention = false}) async {
+    // Run the maintenance for this flow.
     await retryPendingDeletions();
     await runRetentionCleanup(force: forceRetention);
     final rows = await _database.query(
@@ -266,6 +285,7 @@ class HistoryRepository extends ChangeNotifier {
   }
 
   Future<T> _exclusive<T>(Future<T> Function() action) {
+    // Process exclusive for this flow.
     final completer = Completer<T>();
     _operationTail = _operationTail.then((_) async {
       try {
@@ -278,6 +298,7 @@ class HistoryRepository extends ChangeNotifier {
   }
 
   Future<void> close() async {
+    // Close the owned client or database resources.
     if (_closed) return;
     _closed = true;
     await _operationTail;

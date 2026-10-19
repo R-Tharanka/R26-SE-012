@@ -1,3 +1,7 @@
+// =============================================================================
+// File: app_theme.dart
+// Purpose: Implements the app theme part of the mobile application.
+// =============================================================================
 import 'package:flutter/material.dart';
 
 const Color kBrand = Color(0xFF1B5E3B);
@@ -17,9 +21,11 @@ final ValueNotifier<ThemeMode> appThemeMode = ValueNotifier<ThemeMode>(
   ThemeMode.light,
 );
 
+// Return the is dark mode.
 bool get isDarkMode => appThemeMode.value == ThemeMode.dark;
 
 void toggleTheme() {
+  // Toggle theme for this flow.
   appThemeMode.value = isDarkMode ? ThemeMode.light : ThemeMode.dark;
 }
 
@@ -83,6 +89,7 @@ class AppStatusColors extends ThemeExtension<AppStatusColors> {
     onInfoContainer: Color(0xFFD8E7FF),
   );
 
+  // Read the theme extension from the current context.
   static AppStatusColors of(BuildContext context) =>
       Theme.of(context).extension<AppStatusColors>() ??
       (Theme.of(context).brightness == Brightness.dark
@@ -90,6 +97,7 @@ class AppStatusColors extends ThemeExtension<AppStatusColors> {
           : AppStatusColors.light);
 
   @override
+  // Return a copy with the supplied values replaced.
   AppStatusColors copyWith({
     Color? success,
     Color? successContainer,
@@ -120,6 +128,7 @@ class AppStatusColors extends ThemeExtension<AppStatusColors> {
 
   @override
   AppStatusColors lerp(AppStatusColors? other, double t) {
+    // Interpolate these theme values during a theme transition.
     if (other == null) return this;
     return AppStatusColors(
       success: Color.lerp(success, other.success, t)!,
@@ -228,6 +237,7 @@ class AppTheme {
     required ColorScheme scheme,
     required AppStatusColors statusColors,
   }) {
+    // Build and return the theme for this flow.
     final dark = brightness == Brightness.dark;
     final base = ThemeData(
       useMaterial3: true,

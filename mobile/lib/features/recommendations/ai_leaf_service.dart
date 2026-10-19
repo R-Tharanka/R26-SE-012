@@ -1,3 +1,7 @@
+// =============================================================================
+// File: ai_leaf_service.dart
+// Purpose: Provides the ai leaf service application service.
+// =============================================================================
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -12,6 +16,7 @@ class LeafAnalysisException implements Exception {
   final String message;
   LeafAnalysisException(this.message);
   @override
+  // Return a readable description of this value.
   String toString() => message;
 }
 
@@ -63,6 +68,7 @@ class AiLeafService {
     Uint8List jpegBytes, {
     String? knownDisease,
   }) async {
+    // Analyze the selected image and return its result.
     if (!AiConfig.hasKey) {
       throw LeafAnalysisException(
         'No AI API key. Run with --dart-define=GEMINI_API_KEY=your_key',

@@ -1,3 +1,7 @@
+// =============================================================================
+// File: leaf_analysis_screen.dart
+// Purpose: Presents the leaf analysis screen mobile interface and user flow.
+// =============================================================================
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -32,6 +36,7 @@ class LeafAnalysisScreen extends StatefulWidget {
   });
 
   @override
+  // Create the mutable state object for this widget.
   State<LeafAnalysisScreen> createState() => _LeafAnalysisScreenState();
 }
 
@@ -46,12 +51,14 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
   // Starts the leaf analysis as soon as the screen state is initialized.
   @override
   void initState() {
+    // Initialize controllers, listeners, and first-load state.
     super.initState();
     _run();
   }
 
   // Runs the AI analysis and updates the UI with its result or an error.
   Future<void> _run() async {
+    // Run the analysis and update the screen state.
     setState(() {
       _loading = true;
       _error = null;
@@ -84,6 +91,7 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
   }
 
   Future<void> _saveHistory(LeafAnalysis result) async {
+    // Save this completed analysis to local history.
     final key = widget.historyRecordKey;
     final repository = HistoryScope.maybeOf(context);
     if (key == null || repository == null) return;
@@ -109,6 +117,7 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     return AnalysisScaffold(
       imageBytes: widget.imageBytes,
       title: AppLocalizations.of(context).leafAnalysisTitle,
@@ -119,6 +128,7 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
 
   // Selects the appropriate content for the current loading, error, or result state.
   List<Widget> _body() {
+    // Build the main content for the current screen state.
     final t = AppLocalizations.of(context);
     if (_loading) {
       return [LoadingView(message: t.analysingLeaf)];
@@ -131,6 +141,7 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
 
   // Builds the appropriate result widgets from the completed leaf analysis.
   List<Widget> _resultBody(LeafAnalysis r) {
+    // Build the content for the completed analysis result.
     final t = AppLocalizations.of(context);
     if (!r.isPepperLeaf) {
       return [
@@ -336,6 +347,7 @@ class _LeafAnalysisScreenState extends State<LeafAnalysisScreen> {
     ];
   }
 
+  // Process conf for this flow.
   String _conf(double c, AppLocalizations t) =>
       c >= 0.75 ? t.high : (c >= 0.5 ? t.medium : t.low);
 }

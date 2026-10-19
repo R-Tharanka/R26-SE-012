@@ -1,3 +1,7 @@
+// =============================================================================
+// File: pest_analysis_screen.dart
+// Purpose: Presents the pest analysis screen mobile interface and user flow.
+// =============================================================================
 // Used for handling image data as bytes.
 
 import 'dart:typed_data';
@@ -39,6 +43,7 @@ class PestAnalysisScreen extends StatefulWidget {
   });
 
   @override
+  // Create the mutable state object for this widget.
   State<PestAnalysisScreen> createState() => _PestAnalysisScreenState();
 }
 
@@ -52,11 +57,13 @@ class _PestAnalysisScreenState extends State<PestAnalysisScreen> {
 
   @override
   void initState() {
+    // Initialize controllers, listeners, and first-load state.
     super.initState();
     _run();
   }
 
   Future<void> _run() async {
+    // Run the analysis and update the screen state.
     setState(() {
       _loading = true;
       _error = null;
@@ -87,6 +94,7 @@ class _PestAnalysisScreenState extends State<PestAnalysisScreen> {
   }
 
   Future<void> _saveHistory(PestAnalysis result) async {
+    // Save this completed analysis to local history.
     final key = widget.historyRecordKey;
     final repository = HistoryScope.maybeOf(context);
     if (key == null || repository == null) return;
@@ -115,6 +123,7 @@ class _PestAnalysisScreenState extends State<PestAnalysisScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     return AnalysisScaffold(
       imageBytes: widget.imageBytes,
       title: AppLocalizations.of(context).pestAnalysisTitle,
@@ -124,6 +133,7 @@ class _PestAnalysisScreenState extends State<PestAnalysisScreen> {
   }
 
   List<Widget> _body() {
+    // Build the main content for the current screen state.
     final t = AppLocalizations.of(context);
     if (_loading) {
       return [LoadingView(message: t.analysingPest)];
@@ -135,6 +145,7 @@ class _PestAnalysisScreenState extends State<PestAnalysisScreen> {
   }
 
   List<Widget> _resultBody(PestAnalysis r) {
+    // Build the content for the completed analysis result.
     final t = AppLocalizations.of(context);
     if (!r.isPepperPlant) {
       return [
@@ -288,6 +299,7 @@ class _PestAnalysisScreenState extends State<PestAnalysisScreen> {
   }
 
   Widget _thresholdBadge(bool above) {
+    // Process threshold badge for this flow.
     final t = AppLocalizations.of(context);
     final status = AppStatusColors.of(context);
     final color = above
@@ -331,6 +343,7 @@ class _PestAnalysisScreenState extends State<PestAnalysisScreen> {
     );
   }
 
+  // Build the market selection control.
   Widget _marketDropdown() => DropdownButton<Market>(
     value: _market,
     underline: const SizedBox.shrink(),
@@ -348,6 +361,7 @@ class _PestAnalysisScreenState extends State<PestAnalysisScreen> {
   );
 
   Widget _warning(String w) {
+    // Build the warning shown with this result.
     final warningColor = AppStatusColors.of(context).warning;
     return Padding(
       padding: const EdgeInsets.only(top: 8),

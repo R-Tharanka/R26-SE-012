@@ -1,3 +1,7 @@
+// =============================================================================
+// File: pest_treatment_engine.dart
+// Purpose: Implements the pest treatment engine part of the mobile application.
+// =============================================================================
 // Imports the pest analysis model that contains the AI detection result.
 import 'pest_analysis.dart';
 import 'remediation_engine.dart' show Market, TreatmentOption;
@@ -111,6 +115,7 @@ class PestTreatmentEngine {
 
   /// Finally, it returns the appropriate [PestTreatment].
   static PestTreatment forAnalysis(PestAnalysis a, Market market) {
+    // Create guidance for the supplied analysis result.
     if (!a.isPepperPlant) {
       return const PestTreatment(
         action: 'No advice — the image is not a pepper plant.',
@@ -196,6 +201,7 @@ class PestTreatmentEngine {
   }
 
   static TreatmentOption _marketFiltered(TreatmentOption o, Market market) {
+    // Return treatments allowed for the selected market.
     if (o.name == 'Fipronil' && market == Market.eu) {
       return TreatmentOption(
         name: o.name,
@@ -211,6 +217,7 @@ class PestTreatmentEngine {
     return o;
   }
 
+  // Return the safety warnings for the selected treatments.
   static List<String> _chemWarnings(Market market) => [
     'Wear protective equipment (gloves, mask) when mixing and spraying.',
     'Spray in the evening and avoid flowering to protect pollinators and '
@@ -220,6 +227,7 @@ class PestTreatmentEngine {
           'Fipronil residues will fail EU limits.',
   ];
 
+  // Create the export-market note for this result.
   static String _exportNote(PestAnalysis a, Market market) =>
       'Grading for ${market.label}: ~${a.pestCount} pests / '
       '${a.severityPercentage.toStringAsFixed(0)}% severity on the '

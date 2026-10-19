@@ -1,3 +1,7 @@
+// =============================================================================
+// File: win32_window.cpp
+// Purpose: Implements native window creation and message handling on Windows.
+// =============================================================================
 #include "win32_window.h"
 
 #include <dwmapi.h>
@@ -34,12 +38,14 @@ using EnableNonClientDpiScaling = BOOL __stdcall(HWND hwnd);
 // Scale helper to convert logical scaler values to physical using passed in
 // scale factor
 int Scale(int source, double scale_factor) {
+  // Convert a logical size into physical pixels for the current display scale.
   return static_cast<int>(source * scale_factor);
 }
 
 // Dynamically loads the |EnableNonClientDpiScaling| from the User32 module.
 // This API is only needed for PerMonitor V1 awareness mode.
 void EnableFullDpiSupportIfAvailable(HWND hwnd) {
+  // Enable non-client DPI scaling when the installed Windows API supports it.
   HMODULE user32_module = LoadLibraryA("User32.dll");
   if (!user32_module) {
     return;
@@ -62,6 +68,7 @@ class WindowClassRegistrar {
 
   // Returns the singleton registrar instance.
   static WindowClassRegistrar* GetInstance() {
+    // Create and return the shared window-class registrar.
     if (!instance_) {
       instance_ = new WindowClassRegistrar();
     }
@@ -87,6 +94,7 @@ class WindowClassRegistrar {
 WindowClassRegistrar* WindowClassRegistrar::instance_ = nullptr;
 
 const wchar_t* WindowClassRegistrar::GetWindowClass() {
+  // Register the native window class once and return its name.
   if (!class_registered_) {
     WNDCLASS window_class{};
     window_class.hCursor = LoadCursor(nullptr, IDC_ARROW);
@@ -107,15 +115,18 @@ const wchar_t* WindowClassRegistrar::GetWindowClass() {
 }
 
 void WindowClassRegistrar::UnregisterWindowClass() {
+  // Remove the native window class registration.
   UnregisterClass(kWindowClassName, nullptr);
   class_registered_ = false;
 }
 
 Win32Window::Win32Window() {
+  // Track the number of active native windows.
   ++g_active_window_count;
 }
 
 Win32Window::~Win32Window() {
+  // Release this window and update the active-window count.
   --g_active_window_count;
   Destroy();
 }
@@ -123,6 +134,7 @@ Win32Window::~Win32Window() {
 bool Win32Window::Create(const std::wstring& title,
                          const Point& origin,
                          const Size& size) {
+  // Create a DPI-aware native window at the requested position and size.
   Destroy();
 
   const wchar_t* window_class =
@@ -150,6 +162,7 @@ bool Win32Window::Create(const std::wstring& title,
 }
 
 bool Win32Window::Show() {
+  // Display the native window in its normal state.
   return ShowWindow(window_handle_, SW_SHOWNORMAL);
 }
 
@@ -158,6 +171,7 @@ LRESULT CALLBACK Win32Window::WndProc(HWND const window,
                                       UINT const message,
                                       WPARAM const wparam,
                                       LPARAM const lparam) noexcept {
+  // Connect native messages to the Win32Window instance that owns the handle.
   if (message == WM_NCCREATE) {
     auto window_struct = reinterpret_cast<CREATESTRUCT*>(lparam);
     SetWindowLongPtr(window, GWLP_USERDATA,
@@ -178,6 +192,7 @@ Win32Window::MessageHandler(HWND hwnd,
                             UINT const message,
                             WPARAM const wparam,
                             LPARAM const lparam) noexcept {
+  // Handle window lifecycle, sizing, focus, and theme messages.
   switch (message) {
     case WM_DESTROY:
       window_handle_ = nullptr;
@@ -222,6 +237,7 @@ Win32Window::MessageHandler(HWND hwnd,
 }
 
 void Win32Window::Destroy() {
+  // Destroy the native handle and unregister the class when no windows remain.
   OnDestroy();
 
   if (window_handle_) {
@@ -234,11 +250,13 @@ void Win32Window::Destroy() {
 }
 
 Win32Window* Win32Window::GetThisFromHandle(HWND const window) noexcept {
+  // Return the Win32Window associated with a native handle.
   return reinterpret_cast<Win32Window*>(
       GetWindowLongPtr(window, GWLP_USERDATA));
 }
 
 void Win32Window::SetChildContent(HWND content) {
+  // Attach and size a child view so it fills the client area.
   child_content_ = content;
   SetParent(content, window_handle_);
   RECT frame = GetClientArea();
@@ -250,29 +268,35 @@ void Win32Window::SetChildContent(HWND content) {
 }
 
 RECT Win32Window::GetClientArea() {
+  // Return the current drawable area inside the native window.
   RECT frame;
   GetClientRect(window_handle_, &frame);
   return frame;
 }
 
 HWND Win32Window::GetHandle() {
+  // Return the native window handle.
   return window_handle_;
 }
 
 void Win32Window::SetQuitOnClose(bool quit_on_close) {
+  // Set whether closing this window should end the application.
   quit_on_close_ = quit_on_close;
 }
 
 bool Win32Window::OnCreate() {
+  // Allow subclasses to perform setup after native window creation.
   // No-op; provided for subclasses.
   return true;
 }
 
 void Win32Window::OnDestroy() {
+  // Allow subclasses to release resources before native window destruction.
   // No-op; provided for subclasses.
 }
 
 void Win32Window::UpdateTheme(HWND const window) {
+  // Match the title-bar appearance to the current Windows theme.
   DWORD light_mode;
   DWORD light_mode_size = sizeof(light_mode);
   LSTATUS result = RegGetValue(HKEY_CURRENT_USER, kGetPreferredBrightnessRegKey,

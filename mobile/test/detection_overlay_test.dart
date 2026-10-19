@@ -1,9 +1,14 @@
+// =============================================================================
+// File: detection_overlay_test.dart
+// Purpose: Verifies the detection overlay test behavior.
+// =============================================================================
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pepper_care/shared/widgets/detection_overlay.dart';
 
 void main() {
+  // Register the tests defined in this file.
   group('OverlayTransform', () {
     test('contain shrinks to the tighter axis and letterboxes the other', () {
       // A 1000x500 frame into a 500x500 box: width is the binding axis.

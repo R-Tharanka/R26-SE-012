@@ -1,3 +1,7 @@
+// =============================================================================
+// File: grading_forecast_result.dart
+// Purpose: Defines the grading forecast result data model.
+// =============================================================================
 /// Typed representation of the Phase 6 decision-support response consumed by
 /// the Flutter presentation layer.
 ///
@@ -63,7 +67,9 @@ class GradingResult {
   final String qualityStatus;
   final String? rejectionReason;
   final String confidenceInterpretation;
+  // Return the whether this grading result was accepted.
   bool get isAccepted => status == 'ACCEPTED';
+  // Parse and validate one object from an API JSON response.
   factory GradingResult.fromJson(Map<String, dynamic> json) => GradingResult(
     status: _requiredString(json['status'], 'grading.status'),
     decision: _requiredString(json['decision'], 'grading.decision'),
@@ -91,6 +97,7 @@ class ForecastInterval {
   final double lower;
   final double upper;
   final String label;
+  // Parse and validate one object from an API JSON response.
   factory ForecastInterval.fromJson(Map<String, dynamic> json) =>
       ForecastInterval(
         lower: _double(json['lower']),
@@ -134,7 +141,9 @@ class MarketResult {
   final String? modelVsPersistence;
   final String? forecastSignal;
   final String? evidencePartition;
+  // Return the whether this forecast is available.
   bool get isAvailable => status == 'AVAILABLE';
+  // Parse and validate one object from an API JSON response.
   factory MarketResult.fromJson(Map<String, dynamic> json) => MarketResult(
     status: _requiredString(json['status'], 'market.status'),
     source: _nullableString(json['source']),
@@ -167,6 +176,7 @@ class DecisionSupportResult {
   final String category;
   final String summary;
   final List<String> limitations;
+  // Parse and validate one object from an API JSON response.
   factory DecisionSupportResult.fromJson(Map<String, dynamic> json) =>
       DecisionSupportResult(
         category: _requiredString(json['category'], 'decision_support.category'),
@@ -188,6 +198,7 @@ class RuntimeResult {
   final String price;
   final String mobile;
   final String tflite;
+  // Parse and validate one object from an API JSON response.
   factory RuntimeResult.fromJson(Map<String, dynamic> json) => RuntimeResult(
     grading: _requiredString(json['grading'], 'runtime.grading'),
     price: _requiredString(json['price'], 'runtime.price'),
@@ -257,8 +268,10 @@ void _validateDecisionContract(GradingForecastResult result) {
   }
 }
 
+// Process string for this flow.
 String _string(Object? value) => value?.toString() ?? '';
 String _requiredString(Object? value, String field) {
+  // Process required string for this flow.
   if (value is! String || value.trim().isEmpty) {
     throw FormatException('Missing or invalid $field.');
   }
@@ -266,12 +279,15 @@ String _requiredString(Object? value, String field) {
 }
 
 Map<String, dynamic> _requiredMap(Object? value, String field) {
+  // Process required map for this flow.
   if (value is! Map) throw FormatException('Missing or invalid $field.');
   return value.map((key, item) => MapEntry(key.toString(), item));
 }
 
+// Process nullable string for this flow.
 String? _nullableString(Object? value) => value?.toString();
 double _double(Object? value) {
+  // Process double for this flow.
   final parsed = value is num
       ? value.toDouble()
       : double.tryParse(value?.toString() ?? '');
@@ -281,8 +297,10 @@ double _double(Object? value) {
   return parsed;
 }
 
+// Process nullable double for this flow.
 double? _nullableDouble(Object? value) => value == null ? null : _double(value);
 List<String> _strings(Object? value) {
+  // Process strings for this flow.
   if (value is! List) {
     throw const FormatException('Missing or invalid string list.');
   }

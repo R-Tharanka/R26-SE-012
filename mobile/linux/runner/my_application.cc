@@ -1,3 +1,7 @@
+// =============================================================================
+// File: my_application.cc
+// Purpose: Implements the Linux window and Flutter application lifecycle.
+// =============================================================================
 #include "my_application.h"
 
 #include <flutter_linux/flutter_linux.h>
@@ -16,11 +20,13 @@ G_DEFINE_TYPE(MyApplication, my_application, GTK_TYPE_APPLICATION)
 
 // Called when first Flutter frame received.
 static void first_frame_cb(MyApplication* self, FlView* view) {
+  // Show the application window after Flutter renders its first frame.
   gtk_widget_show(gtk_widget_get_toplevel(GTK_WIDGET(view)));
 }
 
 // Implements GApplication::activate.
 static void my_application_activate(GApplication* application) {
+  // Create the window, Flutter project, view, and registered plugins.
   MyApplication* self = MY_APPLICATION(application);
   GtkWindow* window =
       GTK_WINDOW(gtk_application_window_new(GTK_APPLICATION(application)));
@@ -82,6 +88,7 @@ static void my_application_activate(GApplication* application) {
 static gboolean my_application_local_command_line(GApplication* application,
                                                   gchar*** arguments,
                                                   int* exit_status) {
+  // Forward command-line arguments to Dart and activate the application.
   MyApplication* self = MY_APPLICATION(application);
   // Strip out the first argument as it is the binary name.
   self->dart_entrypoint_arguments = g_strdupv(*arguments + 1);
@@ -101,6 +108,7 @@ static gboolean my_application_local_command_line(GApplication* application,
 
 // Implements GApplication::startup.
 static void my_application_startup(GApplication* application) {
+  // Pass startup handling to the parent GTK application class.
   // MyApplication* self = MY_APPLICATION(object);
 
   // Perform any actions required at application startup.
@@ -110,6 +118,7 @@ static void my_application_startup(GApplication* application) {
 
 // Implements GApplication::shutdown.
 static void my_application_shutdown(GApplication* application) {
+  // Pass shutdown handling to the parent GTK application class.
   // MyApplication* self = MY_APPLICATION(object);
 
   // Perform any actions required at application shutdown.
@@ -119,12 +128,14 @@ static void my_application_shutdown(GApplication* application) {
 
 // Implements GObject::dispose.
 static void my_application_dispose(GObject* object) {
+  // Release the copied Dart command-line arguments.
   MyApplication* self = MY_APPLICATION(object);
   g_clear_pointer(&self->dart_entrypoint_arguments, g_strfreev);
   G_OBJECT_CLASS(my_application_parent_class)->dispose(object);
 }
 
 static void my_application_class_init(MyApplicationClass* klass) {
+  // Connect GTK lifecycle callbacks to this application type.
   G_APPLICATION_CLASS(klass)->activate = my_application_activate;
   G_APPLICATION_CLASS(klass)->local_command_line =
       my_application_local_command_line;
@@ -133,9 +144,12 @@ static void my_application_class_init(MyApplicationClass* klass) {
   G_OBJECT_CLASS(klass)->dispose = my_application_dispose;
 }
 
-static void my_application_init(MyApplication* self) {}
+static void my_application_init(MyApplication* self) {
+  // No instance-specific initialization is currently required.
+}
 
 MyApplication* my_application_new() {
+  // Create a GTK application configured with the Flutter application ID.
   // Set the program name to the application ID, which helps various systems
   // like GTK and desktop environments map this running application to its
   // corresponding .desktop file. This ensures better integration by allowing

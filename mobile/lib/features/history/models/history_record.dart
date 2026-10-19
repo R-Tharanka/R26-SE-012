@@ -1,3 +1,7 @@
+// =============================================================================
+// File: history_record.dart
+// Purpose: Defines the history record data model.
+// =============================================================================
 import 'dart:math';
 
 enum HistoryFeature {
@@ -10,6 +14,7 @@ enum HistoryFeature {
   final String code;
 
   static HistoryFeature? tryParse(String? code) {
+    // Process try parse for this flow.
     for (final feature in values) {
       if (feature.code == code) return feature;
     }
@@ -24,6 +29,7 @@ enum HistoryAnalysisStage {
   const HistoryAnalysisStage(this.code);
   final String code;
 
+  // Parse the parse for this flow.
   static HistoryAnalysisStage parse(String? code) =>
       values.firstWhere((stage) => stage.code == code, orElse: () => detection);
 }
@@ -77,15 +83,18 @@ class HistoryRecord {
   final String? localeCode;
   final bool deletePending;
 
+  // Return the record creation time in the local timezone.
   DateTime get createdAtLocal => DateTime.fromMillisecondsSinceEpoch(
     createdAtUtcMs,
     isUtc: true,
   ).toLocal();
 
+  // Return the pagination cursor for this record.
   HistoryCursor get cursor =>
       HistoryCursor(createdAtUtcMs: createdAtUtcMs, id: id);
 
   factory HistoryRecord.fromMap(Map<String, Object?> map) {
+    // Rebuild one stored record from its database values.
     final feature = HistoryFeature.tryParse(map['feature_type'] as String?);
     if (feature == null) {
       throw const FormatException('Unsupported history feature type.');
@@ -113,6 +122,7 @@ class HistoryRecord {
 }
 
 String newHistoryRecordKey() {
+  // Process new history record key for this flow.
   final now = DateTime.now().toUtc().microsecondsSinceEpoch;
   final random = Random.secure().nextInt(0x7fffffff);
   return '${now.toRadixString(36)}-${random.toRadixString(36)}';

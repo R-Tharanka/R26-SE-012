@@ -1,3 +1,7 @@
+// =============================================================================
+// File: yolo_detector.dart
+// Purpose: Provides the yolo detector application service.
+// =============================================================================
 import 'dart:isolate';
 import 'dart:math' as math;
 import 'dart:typed_data';
@@ -45,6 +49,7 @@ class LetterboxGeometry {
     required int frameHeight,
     required int inputSize,
   }) {
+    // Create a detection result for one processed frame.
     final scale = inputSize / math.max(frameWidth, frameHeight);
     final scaledWidth = (frameWidth * scale).round();
     final scaledHeight = (frameHeight * scale).round();
@@ -124,7 +129,9 @@ class YoloDetector {
     this.fallbackConfThreshold = 0.2,
   });
 
+  // Return the config.
   ScannerModelConfig? get config => _config;
+  // Return the is ready.
   bool get isReady => _interpreter != null;
 
   /// Loads [config]. Throws [StateError] if the tensor shapes don't match the
@@ -134,6 +141,7 @@ class YoloDetector {
   /// stripped in release builds, and a mismatched model would then silently
   /// produce garbage detections in production instead of failing loudly.
   Future<void> load(ScannerModelConfig config) async {
+    // Load the configured model and prepare it for inference.
     await dispose();
 
     // Load the bytes once: used to validate on the main isolate here, and cached
@@ -177,6 +185,7 @@ class YoloDetector {
   }
 
   Future<void> dispose() async {
+    // Release controllers, listeners, and other owned resources.
     _interpreter?.close();
     _interpreter = null;
     _modelBytes = null;
@@ -195,6 +204,7 @@ class YoloDetector {
     Uint8List jpegBytes,
     int sensorOrientation,
   ) {
+    // Run object detection on JPEG image bytes.
     final cfg = _config;
     final bytes = _modelBytes;
     if (cfg == null || bytes == null) {
@@ -229,6 +239,7 @@ class YoloDetector {
   /// rotation and YUV conversion typically dominate, so timing invoke() alone
   /// would badly understate real per-frame cost.
   Future<DetectionResult> detect(img.Image frame, int sensorOrientation) async {
+    // Run model inference for one prepared image frame.
     final cfg = _config;
     final interpreter = _interpreter;
     if (cfg == null || interpreter == null) {
@@ -315,6 +326,7 @@ class YoloDetector {
     int uh,
     LetterboxGeometry box,
   ) {
+    // Decode with fallback for this flow.
     final strict = decode(out, cfg, uw, uh, box);
     if (strict.isNotEmpty || fallbackConfThreshold >= confThreshold) {
       return (
@@ -366,6 +378,7 @@ class YoloDetector {
     LetterboxGeometry box, {
     double? threshold,
   }) {
+    // Decode decode for this flow.
     final minScore = threshold ?? confThreshold;
     final raw = <Detection>[];
     final nc = cfg.numClasses;
@@ -418,6 +431,7 @@ class YoloDetector {
   /// Copies before sorting so the caller's list is left untouched.
   @visibleForTesting
   List<Detection> nms(List<Detection> dets, double iouThresh) {
+    // Remove overlapping detections while keeping the strongest boxes.
     final sorted = List<Detection>.of(dets)
       ..sort((a, b) => b.score.compareTo(a.score));
     final keep = <Detection>[];
@@ -437,6 +451,7 @@ class YoloDetector {
   /// Intersection over union of two rects. Returns 0 for degenerate input.
   @visibleForTesting
   double iou(Rect a, Rect b) {
+    // Calculate the intersection-over-union score for two boxes.
     final x1 = math.max(a.left, b.left);
     final y1 = math.max(a.top, b.top);
     final x2 = math.min(a.right, b.right);
@@ -472,6 +487,7 @@ class _DetectArgs {
 /// isolate, then closes its interpreter. Reuses [YoloDetector.detect] so there's
 /// a single source of truth for the detection logic.
 Future<DetectionResult> _detectInIsolate(_DetectArgs a) async {
+  // Run model inference in a background isolate.
   final decoded = img.decodeImage(a.jpegBytes);
   if (decoded == null) return const DetectionResult([], Size.zero, 0);
   final upright = img.bakeOrientation(decoded);

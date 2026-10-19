@@ -1,3 +1,7 @@
+// =============================================================================
+// File: flutter_window.h
+// Purpose: Declares the Windows host window for the Flutter interface.
+// =============================================================================
 #ifndef RUNNER_FLUTTER_WINDOW_H_
 #define RUNNER_FLUTTER_WINDOW_H_
 

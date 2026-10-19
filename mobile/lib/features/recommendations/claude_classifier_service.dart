@@ -1,3 +1,7 @@
+// =============================================================================
+// File: claude_classifier_service.dart
+// Purpose: Provides the claude classifier service application service.
+// =============================================================================
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -48,8 +52,11 @@ class ClaudeVerdict {
   final double confidence; // 0..1
   const ClaudeVerdict(this.label, this.confidence);
 
+  // Return the whether the classifier found no matching class.
   bool get isNone => label.toLowerCase() == 'none';
+  // Return the whether the classifier result is uncertain.
   bool get isUncertain => label.toLowerCase() == 'uncertain';
+  // Return the whether the classifier returned a positive class.
   bool get isPositive => !isNone && !isUncertain;
 }
 
@@ -76,6 +83,7 @@ class ClaudeClassifierService {
     required List<ClaudeAspect> aspects,
     required String objectNoun,
   }) async {
+    // Classify the supplied image with the configured AI service.
     if (!AiConfig.hasClaudeKey || crops.isEmpty || aspects.isEmpty) {
       return const {};
     }

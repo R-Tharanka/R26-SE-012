@@ -1,3 +1,7 @@
+// =============================================================================
+// File: history_detail_screen.dart
+// Purpose: Presents the history detail screen mobile interface and user flow.
+// =============================================================================
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -21,6 +25,7 @@ class HistoryDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     final t = AppLocalizations.of(context);
     final repository = HistoryScope.maybeOf(context);
     final image = repository?.imageFile(record);
@@ -89,6 +94,7 @@ class HistoryDetailScreen extends StatelessWidget {
     );
   }
 
+  // Process missing image for this flow.
   Widget _missingImage(BuildContext context, AppLocalizations t) => Container(
     color: Theme.of(context).colorScheme.surfaceContainerHighest,
     alignment: Alignment.center,
@@ -107,6 +113,7 @@ class HistoryDetailScreen extends StatelessWidget {
     AppLocalizations t,
     Map<String, dynamic> payload,
   ) {
+    // Process payload widgets for this flow.
     try {
       return switch (payload['kind']) {
         'grading_forecast' => _gradingWidgets(context, t, payload),
@@ -138,6 +145,7 @@ class HistoryDetailScreen extends StatelessWidget {
     AppLocalizations t,
     Map<String, dynamic> payload,
   ) {
+    // Process grading widgets for this flow.
     final resultMap = _map(payload['result']);
     final result = GradingForecastResult.fromJson(resultMap);
     final widgets = <Widget>[
@@ -191,6 +199,7 @@ class HistoryDetailScreen extends StatelessWidget {
     AppLocalizations t,
     Map<String, dynamic> payload,
   ) {
+    // Process leaf widgets for this flow.
     final analysis = _map(payload['analysis']);
     return [
       _analysisSummary(
@@ -222,6 +231,7 @@ class HistoryDetailScreen extends StatelessWidget {
     AppLocalizations t,
     Map<String, dynamic> payload,
   ) {
+    // Process pest widgets for this flow.
     final analysis = _map(payload['analysis']);
     final decision = _map(payload['decision']);
     return [
@@ -245,6 +255,7 @@ class HistoryDetailScreen extends StatelessWidget {
     AppLocalizations t,
     Map<String, dynamic> payload,
   ) {
+    // Process berry widgets for this flow.
     final analysis = _map(payload['analysis']);
     final decision = _map(payload['decision']);
     return [
@@ -268,6 +279,7 @@ class HistoryDetailScreen extends StatelessWidget {
     AppLocalizations t,
     Map<String, dynamic> payload,
   ) {
+    // Process detection widgets for this flow.
     final detections = _maps(payload['detections']);
     return [
       FarmerNoticeCard(
@@ -298,6 +310,7 @@ class HistoryDetailScreen extends StatelessWidget {
     ];
   }
 
+  // Process analysis summary for this flow.
   Widget _analysisSummary(
     BuildContext context,
     AppLocalizations t, {
@@ -329,6 +342,7 @@ class HistoryDetailScreen extends StatelessWidget {
     Map<String, dynamic> decision, {
     required String noteKey,
   }) {
+    // Process decision widgets for this flow.
     final options = _maps(decision['options']);
     final warnings = _strings(decision['warnings']);
     final note = _text(decision[noteKey]);
@@ -372,6 +386,7 @@ class HistoryDetailScreen extends StatelessWidget {
     ];
   }
 
+  // Process section for this flow.
   Widget _section(
     BuildContext context, {
     required String title,
@@ -407,6 +422,7 @@ class HistoryDetailScreen extends StatelessWidget {
     ),
   );
 
+  // Process label value for this flow.
   Widget _labelValue(BuildContext context, String label, String value) =>
       Padding(
         padding: const EdgeInsets.symmetric(vertical: 5),
@@ -433,6 +449,7 @@ class HistoryDetailScreen extends StatelessWidget {
         ),
       );
 
+  // Process bullet for this flow.
   Widget _bullet(BuildContext context, String value) => Padding(
     padding: const EdgeInsets.only(bottom: 8),
     child: Row(
@@ -449,14 +466,17 @@ class HistoryDetailScreen extends StatelessWidget {
   );
 
   static Map<String, dynamic> _map(Object? value) {
+    // Map the map for this flow.
     if (value is! Map) throw const FormatException('Expected map.');
     return value.map((key, item) => MapEntry(key.toString(), item));
   }
 
+  // Map the s for this flow.
   static List<Map<String, dynamic>> _maps(Object? value) => value is List
       ? value.whereType<Map>().map((item) => _map(item)).toList()
       : const [];
 
+  // Process strings for this flow.
   static List<String> _strings(Object? value) => value is List
       ? value
             .map((item) => item.toString())
@@ -464,9 +484,11 @@ class HistoryDetailScreen extends StatelessWidget {
             .toList()
       : const [];
 
+  // Process text for this flow.
   static String _text(Object? value) => value?.toString() ?? '';
 
   static String _percent(Object? value, {bool alreadyPercent = false}) {
+    // Process percent for this flow.
     final number = value is num ? value.toDouble() : double.tryParse('$value');
     if (number == null || !number.isFinite) return '—';
     final percent = alreadyPercent ? number : number * 100;
@@ -481,6 +503,7 @@ class _StoredHistoryImage extends StatefulWidget {
   final Widget fallback;
 
   @override
+  // Create the mutable state object for this widget.
   State<_StoredHistoryImage> createState() => _StoredHistoryImageState();
 }
 
@@ -489,12 +512,14 @@ class _StoredHistoryImageState extends State<_StoredHistoryImage> {
 
   @override
   void initState() {
+    // Initialize controllers, listeners, and first-load state.
     super.initState();
     _exists = widget.image?.exists() ?? Future<bool>.value(false);
   }
 
   @override
   void didUpdateWidget(covariant _StoredHistoryImage oldWidget) {
+    // Refresh state when this widget receives new configuration.
     super.didUpdateWidget(oldWidget);
     if (oldWidget.image?.path != widget.image?.path) {
       _exists = widget.image?.exists() ?? Future<bool>.value(false);
@@ -503,6 +528,7 @@ class _StoredHistoryImageState extends State<_StoredHistoryImage> {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     final file = widget.image;
     if (file == null) return widget.fallback;
     return FutureBuilder<bool>(

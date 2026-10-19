@@ -1,3 +1,7 @@
+// =============================================================================
+// File: ai_detection_service.dart
+// Purpose: Provides the ai detection service application service.
+// =============================================================================
 import 'dart:convert';
 import 'dart:isolate';
 import 'dart:async';
@@ -16,6 +20,7 @@ import 'ai_config.dart';
 import 'ai_leaf_service.dart' show LeafAnalysisException;
 import 'claude_classifier_service.dart';
 
+// Run the image operation outside the user-interface isolate.
 Future<T> _runOffThread<T>(FutureOr<T> Function() work) =>
     kIsWeb ? Future<T>.sync(work) : Isolate.run(work);
 
@@ -91,6 +96,7 @@ class AiDetectionService {
 
   @visibleForTesting
   static String? referenceFolderForTesting(String domainId, String className) {
+    // Override the reference-image folder for tests.
     for (final entry in _refs[domainId] ?? const <List<String>>[]) {
       if (entry[0] == className) return entry[1];
     }
@@ -98,6 +104,7 @@ class AiDetectionService {
   }
 
   @visibleForTesting
+  // Override the exemplar limit for tests.
   static int exemplarLimitForTesting(String domainId) =>
       _exemplarLimit(domainId);
 
@@ -134,6 +141,7 @@ class AiDetectionService {
     ScannerModelConfig config, {
     Future<DetectionResult?>? yolo,
   }) async {
+    // Run model inference for one prepared image frame.
     if (!AiConfig.hasKey) {
       throw LeafAnalysisException('No AI key configured.');
     }
@@ -237,6 +245,7 @@ class AiDetectionService {
       final color = isPlant
           ? (_plantColors[resolvedLabel] ?? const Color(0xFFE67E22))
           : config.colorFor(classId);
+      // Process n for this flow.
       double n(Object? v) =>
           (v is num ? v.toDouble() : double.tryParse('${v ?? ''}') ?? 0) /
           1000.0;
@@ -318,6 +327,7 @@ class AiDetectionService {
   /// context a box can't verify), and uses a stricter bar for the Leaf Blight /
   /// Quick Wilt look-alike pair.
   static bool _agrees(Detection d, List<Detection> priors) {
+    // Check whether both classifiers agree on the result.
     if (isPestClass(d.className) || d.className == 'Little Leaf') return false;
     final hard = d.className == 'Leaf Blight' || d.className == 'Quick Wilt';
     final minG = hard ? 0.95 : 0.90;
@@ -340,6 +350,7 @@ class AiDetectionService {
     List<String> classNames,
     List<Map<String, Object?>> parts,
   ) async {
+    // Send the prepared image prompt to Gemini.
     final uri = Uri.parse(
       'https://generativelanguage.googleapis.com/v1beta/models/'
       '${AiConfig.model}:generateContent',
@@ -376,6 +387,7 @@ class AiDetectionService {
             .post(
               uri,
               headers: {
+            // Process to double for this flow.
                 'x-goog-api-key': AiConfig.apiKey,
                 'Content-Type': 'application/json',
               },
@@ -432,6 +444,7 @@ class AiDetectionService {
     List<_Exemplar> exemplars,
     List<Detection> yoloPriors,
   ) async {
+    // Refine the local detection with Claude when configured.
     const maxCrops = 12;
     // Only the ambiguous crops are sent; among those, classify the largest ones
     // and leave the rest on Gemini's labels (keeps the payload/latency bounded).
@@ -559,6 +572,7 @@ class AiDetectionService {
 
   // Builds a plant-domain detection (leaf disease or pest) for [det]'s box.
   Detection _plantDet(Detection det, String label, double conf) {
+    // Process plant det for this flow.
     final all = [...leafClasses, ...pestClasses];
     int classId = all.indexOf(label);
     if (classId < 0) classId = det.classId;
@@ -593,11 +607,13 @@ class AiDetectionService {
     hints: _pestHints,
   );
 
+  // Calculate the area of this bounding box.
   static double _area(Rect r) => r.width * r.height;
 
   // Best-overlapping trained-model detection for [rect], as a short hint string
   // ("local model: Leaf Blight 0.82"), or '' if nothing overlaps enough.
   static String _priorFor(Rect rect, List<Detection> priors) {
+    // Calculate the class prior for a detection.
     Detection? best;
     var bestIou = 0.30; // require a meaningful overlap
     for (final p in priors) {
@@ -613,6 +629,7 @@ class AiDetectionService {
   }
 
   static double _iou(Rect a, Rect b) {
+    // Calculate the overlap between two bounding boxes.
     final x1 = a.left > b.left ? a.left : b.left;
     final y1 = a.top > b.top ? a.top : b.top;
     final x2 = a.right < b.right ? a.right : b.right;
@@ -632,6 +649,7 @@ class AiDetectionService {
     double pad = 0.06,
     int maxDim = 448,
   }) {
+    // Crop and encode the selected image region.
     final w = src.width, h = src.height;
     final l = ((rect.left - pad) * w).clamp(0, w - 1).round();
     final t = ((rect.top - pad) * h).clamp(0, h - 1).round();
@@ -645,6 +663,7 @@ class AiDetectionService {
 
   // ---- reference exemplars ----
   Future<List<_Exemplar>> _exemplars(String domainId) async {
+    // Load the reference examples for the selected class.
     if (_cache.containsKey(domainId)) return _cache[domainId]!;
     final spec = _refs[domainId] ?? const [];
     final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
@@ -689,6 +708,7 @@ class AiDetectionService {
     return out;
   }
 
+  // Return the maximum number of reference examples to use.
   static int _exemplarLimit(String domainId) => switch (domainId) {
     'plant' => 10, // 8 classes × 10 = 80, + overview + crops < 100
     'berry' => 6,
@@ -696,11 +716,13 @@ class AiDetectionService {
   };
 
   static bool _isImage(String a) {
+    // Check whether isImage is true for the supplied value.
     final l = a.toLowerCase();
     return l.endsWith('.jpg') || l.endsWith('.jpeg') || l.endsWith('.png');
   }
 
   static Uint8List _resizedJpeg(img.Image src, int maxDim) {
+    // Resize and encode an image for the remote classifier.
     final longest = src.width > src.height ? src.width : src.height;
     final scaled = longest > maxDim
         ? img.copyResize(
@@ -796,6 +818,7 @@ only the structured result.
   // Single-class cues for non-plant domains (berry). The combined leaf+pest
   // domain uses _diseaseHints / _pestHints via its two aspects instead.
   static String _classHints(String domainId) {
+    // Build class hints for the remote classifier.
     if (domainId == 'berry') return _berryHints;
     return '';
   }
@@ -938,6 +961,7 @@ a feature ON the leaf/spike itself, never the backdrop.''';
         'and rounded (minor natural unevenness is still healthy)',
   };
 
+  // Build the expected structured response schema.
   static Schema _schema(List<String> classNames) => Schema.object(
     properties: {
       'is_relevant': Schema.boolean(),

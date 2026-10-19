@@ -1,7 +1,12 @@
+// =============================================================================
+// File: history_labels.dart
+// Purpose: Provides reusable history labels user-interface components.
+// =============================================================================
 import '../../../l10n/app_localizations.dart';
 import '../../../shared/class_labels.dart';
 import '../models/history_record.dart';
 
+// Process history feature label for this flow.
 String historyFeatureLabel(AppLocalizations t, HistoryFeature feature) =>
     switch (feature) {
       HistoryFeature.gradingForecast => t.featureGradingTitle,
@@ -11,6 +16,7 @@ String historyFeatureLabel(AppLocalizations t, HistoryFeature feature) =>
     };
 
 String historyOutcomeLabel(AppLocalizations t, HistoryRecord record) {
+  // Process history outcome label for this flow.
   final classCode = record.primaryClassCode;
   if (classCode != null && classCode.trim().isNotEmpty) {
     return localizedClassName(classCode, t);

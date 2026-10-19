@@ -1,3 +1,7 @@
+// =============================================================================
+// File: grading_forecast_api_service_test.dart
+// Purpose: Verifies the grading forecast api service test behavior.
+// =============================================================================
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -6,6 +10,7 @@ import 'package:http/testing.dart';
 import 'package:pepper_care/features/grading_forecast/services/grading_forecast_api_service.dart';
 
 void main() {
+  // Register the tests defined in this file.
   test('rejects an empty image before making a request', () async {
     var called = false;
     final client = MockClient((_) async {

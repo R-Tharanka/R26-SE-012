@@ -1,3 +1,7 @@
+// =============================================================================
+// File: component_integration_test.dart
+// Purpose: Verifies the component integration test behavior.
+// =============================================================================
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pepper_care/features/berry_disease/berry_scanner_screen.dart';
@@ -7,6 +11,7 @@ import 'package:pepper_care/features/plant_health/screens/plant_health_scanner_s
 import 'package:pepper_care/l10n/app_localizations.dart';
 import 'package:pepper_care/shared/widgets/scanner_view.dart';
 
+// Create the application widget used by this test.
 Widget _app() => const MaterialApp(
   localizationsDelegates: AppLocalizations.localizationsDelegates,
   supportedLocales: AppLocalizations.supportedLocales,
@@ -14,7 +19,9 @@ Widget _app() => const MaterialApp(
 );
 
 void main() {
+  // Register the tests defined in this file.
   Future<void> usePhoneViewport(WidgetTester tester) async {
+    // Set a phone-sized viewport for this widget test.
     await tester.binding.setSurfaceSize(const Size(800, 1000));
     addTearDown(() => tester.binding.setSurfaceSize(null));
   }

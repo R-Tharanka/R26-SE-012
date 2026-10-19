@@ -1,3 +1,7 @@
+// =============================================================================
+// File: utils.cpp
+// Purpose: Implements console and command-line helpers for the Windows runner.
+// =============================================================================
 #include "utils.h"
 
 #include <flutter_windows.h>
@@ -8,6 +12,7 @@
 #include <iostream>
 
 void CreateAndAttachConsole() {
+  // Create a console and connect the standard output streams when possible.
   if (::AllocConsole()) {
     FILE *unused;
     if (freopen_s(&unused, "CONOUT$", "w", stdout)) {
@@ -22,6 +27,7 @@ void CreateAndAttachConsole() {
 }
 
 std::vector<std::string> GetCommandLineArguments() {
+  // Return the application arguments as UTF-8 strings without the binary name.
   // Convert the UTF-16 command line arguments to UTF-8 for the Engine to use.
   int argc;
   wchar_t** argv = ::CommandLineToArgvW(::GetCommandLineW(), &argc);
@@ -42,6 +48,7 @@ std::vector<std::string> GetCommandLineArguments() {
 }
 
 std::string Utf8FromUtf16(const wchar_t* utf16_string) {
+  // Convert a null-terminated UTF-16 string into UTF-8 safely.
   if (utf16_string == nullptr) {
     return std::string();
   }

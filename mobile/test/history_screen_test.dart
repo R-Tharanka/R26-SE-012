@@ -1,3 +1,7 @@
+// =============================================================================
+// File: history_screen_test.dart
+// Purpose: Verifies the history screen test behavior.
+// =============================================================================
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -14,12 +18,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
+  // Register the tests defined in this file.
   TestWidgetsFlutterBinding.ensureInitialized();
   sqfliteFfiInit();
 
   late Directory temporaryDirectory;
   late HistoryRepository repository;
 
+  // Create the application widget used by this test.
   Widget app() => HistoryScope(
     repository: repository,
     child: const MaterialApp(
@@ -30,6 +36,7 @@ void main() {
     ),
   );
 
+  // Save the record for this flow.
   Future<void> saveRecord(String key) => repository.saveNew(
     recordKey: key,
     feature: HistoryFeature.leafDisease,
@@ -53,6 +60,7 @@ void main() {
   );
 
   Future<void> settleHistory(WidgetTester tester) async {
+    // Wait for pending history updates to finish in this test.
     for (var attempt = 0; attempt < 30; attempt++) {
       await tester.runAsync(
         () => Future<void>.delayed(const Duration(milliseconds: 50)),
@@ -63,6 +71,7 @@ void main() {
   }
 
   Future<void> disposeApp(WidgetTester tester) async {
+    // Process dispose app for this flow.
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.runAsync(repository.close);
   }

@@ -1,3 +1,7 @@
+// =============================================================================
+// File: price_forecast_screen.dart
+// Purpose: Presents the price forecast screen mobile interface and user flow.
+// =============================================================================
 import 'package:flutter/material.dart';
 import 'package:pepper_care/l10n/app_localizations.dart';
 
@@ -19,6 +23,7 @@ class PriceForecastScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     final t = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
@@ -193,6 +198,7 @@ class PriceForecastScreen extends StatelessWidget {
     );
   }
 
+  // Process price for this flow.
   static String _price(AppLocalizations t, double? value) => value == null
       ? t.phase7NotAvailable
       : t.phase7PriceValue(value.toStringAsFixed(2));
@@ -215,6 +221,7 @@ class _DetailRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     final theme = Theme.of(context);
     return Column(
       children: [

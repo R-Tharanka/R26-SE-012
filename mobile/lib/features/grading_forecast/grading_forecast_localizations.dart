@@ -1,3 +1,7 @@
+// =============================================================================
+// File: grading_forecast_localizations.dart
+// Purpose: Implements the grading forecast localizations part of the mobile application.
+// =============================================================================
 import 'package:pepper_care/l10n/app_localizations.dart';
 
 import 'models/grading_forecast_result.dart';
@@ -8,6 +12,7 @@ import 'services/grading_forecast_api_service.dart';
 /// research traceability; only their presentation is translated here.
 extension GradingForecastApiExceptionLocalization
     on GradingForecastApiException {
+  // Return the localized message for this error.
   String localizedMessage(AppLocalizations t) => switch (kind) {
     GradingForecastApiErrorKind.emptyImage => t.phase7EmptyImage,
     GradingForecastApiErrorKind.imageTooLarge => t.phase7ImageTooLarge,
@@ -26,6 +31,7 @@ extension GradingForecastApiExceptionLocalization
   };
 }
 
+// Return the localized decision category.
 String localizedDecisionCategory(AppLocalizations t, String category) =>
     switch (category) {
       'REJECT' => t.phase7CategoryReject,
@@ -40,6 +46,7 @@ String localizedDecisionCategory(AppLocalizations t, String category) =>
       _ => category.replaceAll('_', ' '),
     };
 
+// Return the localized decision.
 String localizedDecision(AppLocalizations t, String value) => switch (value) {
   'GRADE_1' => t.phase7DecisionGrade1,
   'GRADE_2' => t.phase7DecisionGrade2,
@@ -50,6 +57,7 @@ String localizedDecision(AppLocalizations t, String value) => switch (value) {
   _ => value.replaceAll('_', ' '),
 };
 
+// Return the localized grade.
 String localizedGrade(AppLocalizations t, String? value) => switch (value) {
   'V3 Grade 1' => t.phase7ProjectGrade1,
   'V3 Grade 2' => t.phase7ProjectGrade2,
@@ -59,6 +67,7 @@ String localizedGrade(AppLocalizations t, String? value) => switch (value) {
   _ => value,
 };
 
+// Return the localized quality status.
 String localizedQualityStatus(AppLocalizations t, String value) =>
     switch (value) {
       'PASSED' => t.phase7Passed,
@@ -66,6 +75,7 @@ String localizedQualityStatus(AppLocalizations t, String value) =>
       _ => value,
     };
 
+// Return the localized rejection reason.
 String localizedRejectionReason(AppLocalizations t, String value) =>
     switch (value) {
       'no_detection_above_threshold' => t.phase7ReasonNoDetection,
@@ -78,6 +88,7 @@ String localizedRejectionReason(AppLocalizations t, String value) =>
       _ => value.replaceAll('_', ' '),
     };
 
+// Return the localized direction.
 String localizedDirection(AppLocalizations t, String? value) => switch (value) {
   'UP' => t.phase7DirectionUp,
   'DOWN' => t.phase7DirectionDown,
@@ -86,6 +97,7 @@ String localizedDirection(AppLocalizations t, String? value) => switch (value) {
   _ => value,
 };
 
+// Return the localized signal.
 String localizedSignal(AppLocalizations t, String? value) => switch (value) {
   'HIGH_UNCERTAINTY' => t.phase7SignalHighUncertainty,
   'LIMITED_SIGNAL' => t.phase7SignalLimited,
@@ -93,6 +105,7 @@ String localizedSignal(AppLocalizations t, String? value) => switch (value) {
   _ => value.replaceAll('_', ' '),
 };
 
+// Return the localized persistence.
 String localizedPersistence(AppLocalizations t, String? value) =>
     switch (value) {
       'RIDGE_BETTER' => t.phase7RidgeBetter,
@@ -102,6 +115,7 @@ String localizedPersistence(AppLocalizations t, String? value) =>
       _ => value.replaceAll('_', ' '),
     };
 
+// Return the localized decision summary.
 String localizedDecisionSummary(
   AppLocalizations t,
   GradingForecastResult result,
@@ -126,6 +140,7 @@ List<String> localizedResearchLimitations(AppLocalizations t) => [
   t.phase7LimitationMixedForecast,
 ];
 
+// Return the localized market source.
 String localizedMarketSource(AppLocalizations t, String? source) =>
     source == null
     ? t.phase7NotAvailable
@@ -133,6 +148,7 @@ String localizedMarketSource(AppLocalizations t, String? source) =>
     ? t.phase7EacReferencePrice
     : source;
 
+// Process farmer grade label for this flow.
 String farmerGradeLabel(AppLocalizations t, String? grade) => switch (grade) {
   'V3 Grade 1' => t.farmerBerryGrade1,
   'V3 Grade 2' => t.farmerBerryGrade2,
@@ -140,6 +156,7 @@ String farmerGradeLabel(AppLocalizations t, String? grade) => switch (grade) {
 };
 
 String farmerResultTitle(AppLocalizations t, GradingForecastResult result) {
+  // Process farmer result title for this flow.
   if (result.grading.status == 'ACCEPTED') {
     return farmerGradeLabel(t, result.grading.grade);
   }
@@ -155,6 +172,7 @@ String farmerResultExplanation(
   AppLocalizations t,
   GradingForecastResult result,
 ) {
+  // Process farmer result explanation for this flow.
   if (result.grading.status == 'ACCEPTED') {
     return switch (result.grading.grade) {
       'V3 Grade 1' => t.farmerGrade1Explanation,
@@ -170,6 +188,7 @@ String farmerResultExplanation(
   };
 }
 
+// Process farmer retake guidance for this flow.
 String farmerRetakeGuidance(AppLocalizations t, GradingForecastResult result) =>
     switch (result.grading.rejectionReason) {
       'blur_variance_below_minimum' => t.farmerRetakeBlur,
@@ -180,6 +199,7 @@ String farmerRetakeGuidance(AppLocalizations t, GradingForecastResult result) =>
       _ => t.farmerRetakeGeneral,
     };
 
+// Process farmer direction label for this flow.
 String farmerDirectionLabel(AppLocalizations t, String? direction) =>
     switch (direction) {
       'UP' => t.farmerExpectedRise,
@@ -188,6 +208,7 @@ String farmerDirectionLabel(AppLocalizations t, String? direction) =>
       _ => t.phase7NotAvailable,
     };
 
+// Process farmer price confidence message for this flow.
 String farmerPriceConfidenceMessage(AppLocalizations t, String? signal) =>
     switch (signal) {
       'HIGH_UNCERTAINTY' => t.farmerPriceHighUncertainty,

@@ -1,3 +1,7 @@
+// =============================================================================
+// File: ai_config.dart
+// Purpose: Implements the ai config part of the mobile application.
+// =============================================================================
 /// AI API configuration.
 ///
 /// Keys are supplied at build/run time from the project .env so they are never
@@ -18,6 +22,7 @@ class AiConfig {
   /// is a safe auto-updating fallback.
   static const String model = 'gemini-3.6-flash';
 
+  // Return the has key.
   static bool get hasKey => apiKey.isNotEmpty;
 
   // ---- Claude (two-stage classifier) ----
@@ -36,5 +41,6 @@ class AiConfig {
   // with no thinking) if you want it cheaper/faster.
   static const String claudeModel = 'claude-opus-5-5';
 
+  // Return the has claude key.
   static bool get hasClaudeKey => claudeApiKey.isNotEmpty;
 }

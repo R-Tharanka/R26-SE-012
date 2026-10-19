@@ -1,3 +1,7 @@
+// =============================================================================
+// File: farmer_ui.dart
+// Purpose: Provides reusable farmer ui user-interface components.
+// =============================================================================
 import 'package:flutter/material.dart';
 
 const double kPagePadding = 20;
@@ -17,6 +21,7 @@ class FarmerSectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     final theme = Theme.of(context);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -65,6 +70,7 @@ class FarmerNoticeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     final scheme = Theme.of(context).colorScheme;
     final accent = color ?? scheme.primary;
     return Container(
@@ -114,6 +120,7 @@ class FarmerEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     final theme = Theme.of(context);
     return Center(
       child: ConstrainedBox(
@@ -183,6 +190,7 @@ class FeatureIntroSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     final theme = Theme.of(context);
     return SafeArea(
       child: SingleChildScrollView(
@@ -262,6 +270,7 @@ class GuideStepCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     final theme = Theme.of(context);
     return Card(
       margin: const EdgeInsets.only(bottom: 14),
@@ -333,5 +342,6 @@ class GuideStepCard extends StatelessWidget {
 }
 
 void popToHome(BuildContext context) {
+  // Process pop to home for this flow.
   Navigator.of(context).popUntil((route) => route.isFirst);
 }

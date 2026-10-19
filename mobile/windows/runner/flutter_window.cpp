@@ -1,3 +1,7 @@
+// =============================================================================
+// File: flutter_window.cpp
+// Purpose: Implements the Windows host window for the Flutter interface.
+// =============================================================================
 #include "flutter_window.h"
 
 #include <optional>
@@ -5,11 +9,16 @@
 #include "flutter/generated_plugin_registrant.h"
 
 FlutterWindow::FlutterWindow(const flutter::DartProject& project)
-    : project_(project) {}
+    : project_(project) {
+  // Keep the Dart project used to create the Flutter view controller.
+}
 
-FlutterWindow::~FlutterWindow() {}
+FlutterWindow::~FlutterWindow() {
+  // Member resources are released automatically during destruction.
+}
 
 bool FlutterWindow::OnCreate() {
+  // Create the Flutter controller and attach its view to this window.
   if (!Win32Window::OnCreate()) {
     return false;
   }
@@ -40,6 +49,7 @@ bool FlutterWindow::OnCreate() {
 }
 
 void FlutterWindow::OnDestroy() {
+  // Release the Flutter controller before destroying the native window.
   if (flutter_controller_) {
     flutter_controller_ = nullptr;
   }
@@ -51,6 +61,7 @@ LRESULT
 FlutterWindow::MessageHandler(HWND hwnd, UINT const message,
                               WPARAM const wparam,
                               LPARAM const lparam) noexcept {
+  // Let Flutter handle messages before using the native fallback handler.
   // Give Flutter, including plugins, an opportunity to handle window messages.
   if (flutter_controller_) {
     std::optional<LRESULT> result =

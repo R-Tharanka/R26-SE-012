@@ -1,3 +1,7 @@
+// =============================================================================
+// File: widget_test.dart
+// Purpose: Verifies the widget test behavior.
+// =============================================================================
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pepper_care/core/locale/app_locale.dart';
@@ -5,6 +9,7 @@ import 'package:pepper_care/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  // Register the tests defined in this file.
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     await loadSavedLocale();
