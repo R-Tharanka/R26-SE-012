@@ -51,14 +51,17 @@ def initialize_grading_runtime() -> None:
 
 
 def _decode(image_bytes: bytes) -> np.ndarray:
-    # Decode uploaded image bytes into an RGB pixel array.
+    # Decode the uploaded JPEG, PNG, or WEBP bytes into image pixels.
     try:
         # Match the frozen Phase 3 and Ultralytics OpenCV decode path exactly.
         # Pillow may expose the stored pixel orientation differently for images
         # carrying EXIF orientation metadata.
+        # np.frombuffer creates the one-dimensional byte array expected by
+        # OpenCV without changing the uploaded image content.
         bgr = cv2.imdecode(np.frombuffer(image_bytes, dtype=np.uint8), cv2.IMREAD_COLOR)
         if bgr is None:
             raise ValueError("OpenCV decode returned no image")
+        # OpenCV decodes colors as BGR, while the trained YOLO model expects RGB.
         return cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
     except Exception as exc:
         raise GradingRuntimeError("Image is unreadable") from exc
@@ -73,24 +76,38 @@ def _quality(rgb: np.ndarray) -> dict:
 
 
 def _letterbox(rgb: np.ndarray, size: int) -> tuple[np.ndarray, float, tuple[float, float]]:
-    # Resize and pad the image to the model input shape.
+    # Prepare one RGB image for the fixed square ONNX model input.
     height, width = rgb.shape[:2]
+
+    # Use one scale for both dimensions so berries are not stretched. The
+    # longest side becomes `size`, while the shorter side remains proportional.
     scale = min(size / height, size / width)
     resized = cv2.resize(rgb, (round(width * scale), round(height * scale)), interpolation=cv2.INTER_LINEAR)
+
+    # Place the resized image in the center of a square, using the same gray
+    # padding value (114) used by the frozen YOLO preprocessing pipeline.
     canvas = np.full((size, size, 3), 114, dtype=np.uint8)
     pad_x, pad_y = (size - resized.shape[1]) / 2, (size - resized.shape[0]) / 2
     left, top = round(pad_x - 0.1), round(pad_y - 0.1)
     canvas[top:top + resized.shape[0], left:left + resized.shape[1]] = resized
+
+    # Convert HWC pixels to the NCHW layout expected by ONNX:
+    #   [height, width, channels] -> [batch, channels, height, width].
+    # The resulting float32 tensor has shape [1, 3, size, size], and division
+    # by 255 changes pixel values from integers in 0..255 to floats in 0..1.
     tensor = np.ascontiguousarray(canvas.transpose(2, 0, 1)[None], dtype=np.float32) / 255.0
     return tensor, scale, (left, top)
 
 
 def infer_raw(image_bytes: bytes) -> dict:
-    # Run inference and return the raw model result.
+    # Convert one uploaded image into the tensor used for ONNX inference.
     rgb = _decode(image_bytes)
     settings = load_config()["grading"]
     tensor, scale, padding = _letterbox(rgb, int(settings["image_size"]))
     try:
+        # Pass the tensor under the configured ONNX input name (`images`) and
+        # request the configured output (`output0`). The leading [0] selects
+        # the single output array; the trailing [0] selects this one-image batch.
         output = np.asarray(session().run([settings["output_name"]], {settings["input_name"]: tensor})[0])[0]
     except Exception as exc:
         raise GradingRuntimeError("Frozen V3 ONNX inference failed") from exc
