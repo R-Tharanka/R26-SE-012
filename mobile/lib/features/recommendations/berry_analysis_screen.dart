@@ -12,7 +12,7 @@ import '../../shared/class_labels.dart';
 import '../history/history_scope.dart';
 import '../history/serialization/history_payload_codec.dart';
 import 'analysis_ui.dart';
-import 'berry_analysis.dart';
+import 'berry_analysis.dart'; //import the berry_analysis.dart to get the severity percentage
 import 'ai_berry_service.dart';
 import 'ai_errors.dart';
 import 'remediation_engine.dart';
