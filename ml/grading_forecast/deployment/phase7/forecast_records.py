@@ -1,3 +1,7 @@
+# =============================================================================
+# File: forecast records
+# Purpose: Validates and retrieves frozen grade-specific forecast records.
+# =============================================================================
 """Serve the latest approved frozen Phase 5 forecast record for an exact grade."""
 
 from __future__ import annotations
@@ -16,6 +20,7 @@ class ForecastRecordError(RuntimeError):
 
 
 def validate_frozen_forecast_source() -> Path:
+    # Validate frozen forecast source and report any integrity problems.
     settings = load_config()["price_runtime"]
     source = repo_path(settings["source"])
     if not frozen_text_matches(
@@ -28,6 +33,7 @@ def validate_frozen_forecast_source() -> Path:
 
 
 def latest_frozen_forecast(v3_grade: str) -> MarketForecast | None:
+    # Return the newest validated frozen forecast for the accepted grade.
     route = route_for_grade(v3_grade)
     source = validate_frozen_forecast_source()
     with source.open(newline="", encoding="utf-8-sig") as handle:

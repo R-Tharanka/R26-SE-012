@@ -1,3 +1,7 @@
+# =============================================================================
+# File: audit berry v3 phase1
+# Purpose: Implements the audit berry v3 phase1 step of the machine-learning workflow.
+# =============================================================================
 from __future__ import annotations
 
 import argparse
@@ -20,6 +24,7 @@ SEED = 42
 
 
 def sha256(path: Path) -> str:
+    # Calculate the SHA-256 value used for reproducibility and integrity checks.
     digest = hashlib.sha256()
     with path.open("rb") as stream:
         for block in iter(lambda: stream.read(1024 * 1024), b""):
@@ -28,10 +33,12 @@ def sha256(path: Path) -> str:
 
 
 def stable_order(value: str, namespace: str) -> str:
+    # Create a repeatable sort key for a path or record.
     return hashlib.sha256(f"{SEED}|{namespace}|{value}".encode("utf-8")).hexdigest()
 
 
 def image_files(root: Path) -> list[Path]:
+    # List supported image files in stable order.
     return sorted(
         (path for path in root.rglob("*") if path.is_file() and path.suffix.lower() in IMAGE_EXTENSIONS),
         key=lambda path: path.as_posix().lower(),
@@ -39,6 +46,7 @@ def image_files(root: Path) -> list[Path]:
 
 
 def parse_yolo_label(path: Path) -> tuple[int, float, float, float, float]:
+    # Parse yolo label safely from the supplied input.
     rows = [line.strip() for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
     if len(rows) != 1:
         raise ValueError(f"Expected exactly one V3 sample/batch box in {path}; found {len(rows)}")
@@ -55,6 +63,7 @@ def parse_yolo_label(path: Path) -> tuple[int, float, float, float, float]:
 
 
 def write_csv(path: Path, fieldnames: list[str], rows: list[dict[str, object]]) -> None:
+    # Write the supplied results in a stable, reproducible format.
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8", newline="") as stream:
         writer = csv.DictWriter(stream, fieldnames=fieldnames)
@@ -63,6 +72,7 @@ def write_csv(path: Path, fieldnames: list[str], rows: list[dict[str, object]]) 
 
 
 def split_groups(group_rows: dict[str, list[dict[str, object]]]) -> dict[str, str]:
+    # Split groups without mixing protected groups or time periods.
     groups_by_grade: dict[str, list[str]] = defaultdict(list)
     for group_id, rows in group_rows.items():
         grades = {str(row["v3_grade"]) for row in rows}
@@ -87,6 +97,7 @@ def split_groups(group_rows: dict[str, list[dict[str, object]]]) -> dict[str, st
 
 
 def descriptive(values: list[float]) -> dict[str, float]:
+    # Calculate descriptive statistics for a numeric list.
     return {
         "min": round(min(values), 6),
         "max": round(max(values), 6),
@@ -96,6 +107,7 @@ def descriptive(values: list[float]) -> dict[str, float]:
 
 
 def read_image_metadata(path: Path) -> dict[str, object]:
+    # Read image metadata into the structure used by this workflow.
     with Image.open(path) as image:
         width, height = image.size
         exif = image.getexif()
@@ -137,6 +149,7 @@ def make_contact_sheet(
     columns: int,
     cell_size: tuple[int, int] = (280, 240),
 ) -> None:
+    # Create contact sheet for analysis or reporting.
     cell_width, cell_height = cell_size
     rows = math.ceil(len(entries) / columns)
     sheet = Image.new("RGB", (columns * cell_width, rows * cell_height), "white")
@@ -159,6 +172,7 @@ def make_contact_sheet(
 
 
 def save_blind_copy(source: Path, output: Path) -> None:
+    # Save a metadata-free image copy for blind review.
     with Image.open(source) as image:
         clean = ImageOps.exif_transpose(image).convert("RGB")
         output.parent.mkdir(parents=True, exist_ok=True)
@@ -170,6 +184,7 @@ def choose_group_diverse(
     count: int,
     namespace: str,
 ) -> list[dict[str, object]]:
+    # Choose examples while preserving group diversity.
     by_group: dict[str, list[dict[str, object]]] = defaultdict(list)
     for row in rows:
         by_group[str(row["physical_sample_id"])].append(row)
@@ -199,6 +214,7 @@ def choose_group_diverse(
 
 
 def main() -> int:
+    # Parse the command options and run this script's complete workflow.
     parser = argparse.ArgumentParser(description="Audit and prepare V3 Phase 1 research manifests.")
     parser.add_argument(
         "--source-root",

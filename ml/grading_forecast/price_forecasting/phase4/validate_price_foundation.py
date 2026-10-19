@@ -1,3 +1,7 @@
+# =============================================================================
+# File: validate price foundation
+# Purpose: Checks validate price foundation integrity and reproducibility.
+# =============================================================================
 """Focused integrity checks for the reconstructed Phase 4 price foundation."""
 
 from __future__ import annotations
@@ -18,10 +22,12 @@ KEY = ["date", "market", "commodity", "grade", "price_type", "market_level"]
 
 
 def check(condition: bool, name: str, details: str = "") -> dict:
+    # Create one clear integrity-check result.
     return {"check": name, "passed": bool(condition), "details": details}
 
 
 def main() -> int:
+    # Parse the command options and run this script's complete workflow.
     raw_path = sorted(RAW_DIR.glob("dea_eac_pepper_observations_retrieved_*.csv"))[-1]
     raw = pd.read_csv(raw_path)
     canonical = pd.read_csv(DATA_DIR / "eac_pepper_price_canonical.csv")

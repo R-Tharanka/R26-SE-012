@@ -1,3 +1,7 @@
+# =============================================================================
+# File: evaluate berry classifier
+# Purpose: Archived legacy workflow: evaluates berry classifier and saves reproducible metrics.
+# =============================================================================
 from __future__ import annotations
 
 import argparse
@@ -13,14 +17,17 @@ sys.dont_write_bytecode = True
 
 
 def _repo_root() -> Path:
+    # Find the repository root from this script's fixed location.
     return Path(__file__).resolve().parents[4]
 
 
 def _utc_now_iso() -> str:
+    # Return the current UTC time in a stable ISO format.
     return datetime.now(tz=UTC).replace(microsecond=0).isoformat()
 
 
 def _safe_float(x: object) -> float | None:
+    # Convert a value to a finite float when possible.
     try:
         return float(x)  # type: ignore[arg-type]
     except Exception:
@@ -28,6 +35,7 @@ def _safe_float(x: object) -> float | None:
 
 
 def _load_class_names(models_dir: Path) -> list[str]:
+    # Load class names from its approved source.
     p = models_dir / "class_names.json"
     if not p.exists():
         return ["Grade 1", "Grade 2", "Grade 3"]
@@ -38,6 +46,7 @@ def _load_val_dir_from_metadata(models_dir: Path) -> Path | None:
     """
     If training used a deterministic directory split, reuse its validation directory for evaluation.
     """
+    # Load val dir from metadata from its approved source.
     meta_path = models_dir / "berry_model_metadata.json"
     if not meta_path.exists():
         return None
@@ -57,6 +66,7 @@ def _load_val_dir_from_metadata(models_dir: Path) -> Path | None:
 
 
 def _iter_image_files(root: Path) -> list[Path]:
+    # List image files in stable order.
     exts = {".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff", ".webp"}
     if not root.exists():
         return []
@@ -64,6 +74,7 @@ def _iter_image_files(root: Path) -> list[Path]:
 
 
 def _validate_class_dirs(root: Path, class_names: list[str], *, label: str) -> None:
+    # Ensure every expected class directory exists and contains images.
     missing = [c for c in class_names if not (root / c).is_dir()]
     if missing:
         raise ValueError(f"{label} is missing class directories: {missing}. Root: {root}")
@@ -73,6 +84,7 @@ def _validate_class_dirs(root: Path, class_names: list[str], *, label: str) -> N
 
 
 def _model_size_mb(path: Path) -> float | None:
+    # Return the model file size in megabytes.
     try:
         return round(path.stat().st_size / (1024.0 * 1024.0), 3)
     except Exception:
@@ -80,6 +92,7 @@ def _model_size_mb(path: Path) -> float | None:
 
 
 def _memory_rss_bytes() -> int | None:
+    # Read current process memory usage when the platform supports it.
     try:
         import psutil
 
@@ -89,6 +102,7 @@ def _memory_rss_bytes() -> int | None:
 
 
 def _letterbox_pil(img, *, size: tuple[int, int] = (224, 224)):
+    # Resize and pad a PIL image without changing its aspect ratio.
     from PIL import Image
 
     target_w, target_h = size
@@ -104,6 +118,7 @@ def _letterbox_pil(img, *, size: tuple[int, int] = (224, 224)):
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Parse the command options and run this script's complete workflow.
     parser = argparse.ArgumentParser(description="Evaluate berry classifier and write metrics JSON + plots.")
     parser.add_argument("--data-dir", type=Path, default=None, help="Dataset root with grade_1/grade_2/grade_3 subfolders.")
     parser.add_argument("--model", type=Path, default=None, help="Path to .keras model.")

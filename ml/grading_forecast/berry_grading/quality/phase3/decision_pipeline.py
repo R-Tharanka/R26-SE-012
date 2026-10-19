@@ -1,3 +1,7 @@
+# =============================================================================
+# File: decision pipeline
+# Purpose: Implements the decision pipeline step of the machine-learning workflow.
+# =============================================================================
 """Pure Phase 3 quality and decision logic for the frozen V3 YOLO model."""
 
 from __future__ import annotations
@@ -39,6 +43,7 @@ class FrozenThresholds:
 
 
 def read_image(path: str | Path) -> np.ndarray:
+    # Read image into the structure used by this workflow.
     payload = np.fromfile(str(path), dtype=np.uint8)
     image = cv2.imdecode(payload, cv2.IMREAD_COLOR)
     if image is None:
@@ -47,6 +52,7 @@ def read_image(path: str | Path) -> np.ndarray:
 
 
 def quality_scores(path: str | Path) -> dict:
+    # Calculate brightness, blur, and resolution quality measurements.
     image = read_image(path)
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     height, width = gray.shape
@@ -60,6 +66,7 @@ def quality_scores(path: str | Path) -> dict:
 
 
 def decide(record: dict, thresholds: FrozenThresholds) -> dict:
+    # Apply the fixed decision rules to the supplied grading and market evidence.
     quality = record["quality"]
     reason = None
     decision = None

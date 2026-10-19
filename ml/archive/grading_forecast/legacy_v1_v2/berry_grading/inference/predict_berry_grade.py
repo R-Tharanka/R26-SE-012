@@ -1,3 +1,7 @@
+# =============================================================================
+# File: predict berry grade
+# Purpose: Archived legacy workflow: runs predict berry grade for the legacy inference workflow.
+# =============================================================================
 from __future__ import annotations
 
 import argparse
@@ -15,10 +19,12 @@ sys.dont_write_bytecode = True
 
 
 def _repo_root() -> Path:
+    # Find the repository root from this script's fixed location.
     return Path(__file__).resolve().parents[4]
 
 
 def _softmax(x: np.ndarray) -> np.ndarray:
+    # Convert raw model scores into probabilities that sum to one.
     x = x.astype(np.float32)
     x = x - np.max(x, axis=-1, keepdims=True)
     e = np.exp(x)
@@ -26,6 +32,7 @@ def _softmax(x: np.ndarray) -> np.ndarray:
 
 
 def _resize(img: Image.Image, size: tuple[int, int] = (224, 224)) -> Image.Image:
+    # Resize and pad the image to the classifier input shape.
     target_w, target_h = size
     img = img.convert("RGB")
     w, h = img.size
@@ -35,6 +42,7 @@ def _resize(img: Image.Image, size: tuple[int, int] = (224, 224)) -> Image.Image
 
 
 def _load_class_names(models_dir: Path) -> list[str]:
+    # Load class names from its approved source.
     p = models_dir / "class_names.json"
     if p.exists():
         return list(json.loads(p.read_text(encoding="utf-8")))
@@ -42,6 +50,7 @@ def _load_class_names(models_dir: Path) -> list[str]:
 
 
 def _predict_with_onnx(onnx_path: Path, image_arr: np.ndarray) -> tuple[np.ndarray, dict[str, Any]]:
+    # Predict with onnx from the prepared model inputs.
     import onnxruntime as ort
 
     sess = ort.InferenceSession(str(onnx_path), providers=["CPUExecutionProvider"])
@@ -53,6 +62,7 @@ def _predict_with_onnx(onnx_path: Path, image_arr: np.ndarray) -> tuple[np.ndarr
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Parse the command options and run this script's complete workflow.
     parser = argparse.ArgumentParser(description="Predict pepper berry grade from an image using ONNX runtime.")
     parser.add_argument("image", type=Path, help="Path to input image.")
     parser.add_argument("--model", type=Path, default=None, help="Path to berry_mobilenetv2_best.onnx.")

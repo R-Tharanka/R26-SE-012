@@ -1,3 +1,7 @@
+# =============================================================================
+# File: grading runtime
+# Purpose: Runs frozen ONNX berry grading with approved thresholds.
+# =============================================================================
 """ONNX Runtime inference with the frozen Phase 3 decision pipeline."""
 
 from __future__ import annotations
@@ -18,6 +22,7 @@ class GradingRuntimeError(RuntimeError):
 
 
 def _thresholds() -> FrozenThresholds:
+    # Load the frozen decision thresholds from the approved configuration.
     frozen = load_config()["grading"]
     import json
     payload = json.loads(repo_path(frozen["decision_config"]).read_text(encoding="utf-8"))
@@ -26,6 +31,7 @@ def _thresholds() -> FrozenThresholds:
 
 @lru_cache(maxsize=1)
 def session():
+    # Create and cache the ONNX Runtime inference session.
     try:
         import onnxruntime as ort
         settings = load_config()["grading"]
@@ -40,10 +46,12 @@ def session():
 
 
 def initialize_grading_runtime() -> None:
+    # Load the ONNX session before requests are served.
     session()
 
 
 def _decode(image_bytes: bytes) -> np.ndarray:
+    # Decode uploaded image bytes into an RGB pixel array.
     try:
         # Match the frozen Phase 3 and Ultralytics OpenCV decode path exactly.
         # Pillow may expose the stored pixel orientation differently for images
@@ -57,6 +65,7 @@ def _decode(image_bytes: bytes) -> np.ndarray:
 
 
 def _quality(rgb: np.ndarray) -> dict:
+    # Calculate image quality measurements used by the frozen decision rules.
     gray = cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY)
     height, width = gray.shape
     return {"width": int(width), "height": int(height), "minimum_dimension": int(min(width, height)),
@@ -64,6 +73,7 @@ def _quality(rgb: np.ndarray) -> dict:
 
 
 def _letterbox(rgb: np.ndarray, size: int) -> tuple[np.ndarray, float, tuple[float, float]]:
+    # Resize and pad the image to the model input shape.
     height, width = rgb.shape[:2]
     scale = min(size / height, size / width)
     resized = cv2.resize(rgb, (round(width * scale), round(height * scale)), interpolation=cv2.INTER_LINEAR)
@@ -76,6 +86,7 @@ def _letterbox(rgb: np.ndarray, size: int) -> tuple[np.ndarray, float, tuple[flo
 
 
 def infer_raw(image_bytes: bytes) -> dict:
+    # Run inference and return the raw model result.
     rgb = _decode(image_bytes)
     settings = load_config()["grading"]
     tensor, scale, padding = _letterbox(rgb, int(settings["image_size"]))
@@ -110,6 +121,7 @@ def infer_raw(image_bytes: bytes) -> dict:
 
 
 def grade_image(image_bytes: bytes, input_id: str) -> tuple[GradingResult, dict]:
+    # Grade image with the frozen model and thresholds.
     raw = infer_raw(image_bytes)
     outcome = decide(raw, _thresholds())
     result = GradingResult(input_id=input_id, decision=outcome["decision"], grade=outcome["grade"],

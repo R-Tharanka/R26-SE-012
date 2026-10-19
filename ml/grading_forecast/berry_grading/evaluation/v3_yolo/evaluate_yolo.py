@@ -1,3 +1,7 @@
+# =============================================================================
+# File: evaluate yolo
+# Purpose: Evaluates yolo and saves reproducible metrics.
+# =============================================================================
 """Evaluate the frozen Phase 2 V3 YOLO checkpoint without test-set tuning.
 
 Run validation first. That run selects and freezes the image-level confidence
@@ -37,11 +41,13 @@ GRADE_NAMES = {0: "V3 Grade 1", 1: "V3 Grade 2", 2: "REJECT"}
 
 
 def read_yaml(path: Path) -> dict:
+    # Load the frozen workflow configuration from disk.
     with path.open(encoding="utf-8") as handle:
         return yaml.safe_load(handle)
 
 
 def read_manifest(partition: str) -> list[dict]:
+    # Read manifest into the structure used by this workflow.
     with MANIFEST.open(newline="", encoding="utf-8-sig") as handle:
         rows = [r for r in csv.DictReader(handle) if r["research_partition"] == partition]
     expected = {"VALIDATION": 116, "TEST": 120}[partition]
@@ -51,10 +57,12 @@ def read_manifest(partition: str) -> list[dict]:
 
 
 def materialized_image(row: dict, split: str) -> Path:
+    # Resolve the prepared image path for one dataset record.
     return ROOT / "data/processed/grading_forecast/berry_v3/yolo_phase2/materialized" / split / "images" / Path(row["v3_image_path"]).name
 
 
 def predict_raw(model: YOLO, rows: list[dict], split: str, config: dict) -> list[dict]:
+    # Predict raw from the prepared model inputs.
     sources = [str(materialized_image(row, split)) for row in rows]
     start = time.perf_counter()
     results = model.predict(
@@ -98,6 +106,7 @@ def predict_raw(model: YOLO, rows: list[dict], split: str, config: dict) -> list
 
 
 def apply_threshold(records: list[dict], threshold: float) -> list[dict]:
+    # Apply threshold consistently to the prepared records.
     output = []
     for record in records:
         pred = record["raw_prediction"]
@@ -107,6 +116,7 @@ def apply_threshold(records: list[dict], threshold: float) -> list[dict]:
 
 
 def classification_metrics(records: list[dict]) -> dict:
+    # Calculate image-level grade classification metrics.
     y_true = [r["true_class"] for r in records]
     y_pred = [r["predicted_class"] for r in records]
     precision, recall, f1, support = precision_recall_fscore_support(
@@ -142,6 +152,7 @@ def classification_metrics(records: list[dict]) -> dict:
 
 
 def calibrate(records: list[dict], config: dict) -> tuple[float, list[dict]]:
+    # Select a threshold using only the designated validation records.
     calibration = config["calibration"]
     candidates = np.arange(
         float(calibration["candidate_min"]),
@@ -158,6 +169,7 @@ def calibrate(records: list[dict], config: dict) -> tuple[float, list[dict]]:
 
 
 def detection_metrics(model: YOLO, split: str, config: dict) -> dict:
+    # Calculate the detector metrics reported by the YOLO evaluator.
     split_name = {"validation": "val", "test": "test"}[split]
     result = model.val(
         data=str(DATA_YAML), split=split_name, imgsz=int(config["image_size"]),
@@ -175,6 +187,7 @@ def detection_metrics(model: YOLO, split: str, config: dict) -> dict:
 
 
 def sample_metrics(records: list[dict]) -> dict:
+    # Calculate metrics after grouping predictions by sample.
     grouped = defaultdict(list)
     for record in records:
         grouped[record["physical_sample_id"]].append(record)
@@ -210,6 +223,7 @@ def sample_metrics(records: list[dict]) -> dict:
 
 
 def subgroup_metrics(records: list[dict]) -> dict:
+    # Calculate performance separately for each recorded subgroup.
     output = {}
     keys = {
         "camera_model": lambda r: r["camera_model"] or "EXIF unavailable",
@@ -226,6 +240,7 @@ def subgroup_metrics(records: list[dict]) -> dict:
 
 
 def intersection_over_union(record: dict, split: str) -> float | None:
+    # Calculate box overlap for one prediction and reference label.
     if record["box_xyxy"] is None:
         return None
     # Use the stored JPEG dimensions seen by YOLO. Manifest dimensions are
@@ -243,6 +258,7 @@ def intersection_over_union(record: dict, split: str) -> float | None:
 
 
 def error_analysis(records: list[dict], output_dir: Path, split: str) -> list[dict]:
+    # Build detailed records and figures for representative errors.
     candidates = {
         "correct_grade_1": lambda r: r["true_class"] == 0 and r["predicted_class"] == 0,
         "incorrect_grade_1": lambda r: r["true_class"] == 0 and r["predicted_class"] != 0,
@@ -313,6 +329,7 @@ def error_analysis(records: list[dict], output_dir: Path, split: str) -> list[di
 
 
 def write_predictions(records: list[dict], path: Path) -> None:
+    # Write predictions in the required reproducible format.
     fields = ["image_id", "physical_sample_id", "camera_model", "width", "height", "true_class", "predicted_class", "confidence", "accepted", "box_xyxy", "inference_ms"]
     with path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=fields)
@@ -321,6 +338,7 @@ def write_predictions(records: list[dict], path: Path) -> None:
 
 
 def plot_confusion(metrics: dict, path: Path) -> None:
+    # Plot confusion for clear visual comparison.
     values = np.array(metrics["confusion_matrix"]["values"])
     fig, axis = plt.subplots(figsize=(7, 5))
     image = axis.imshow(values, cmap="Blues")
@@ -337,6 +355,7 @@ def plot_confusion(metrics: dict, path: Path) -> None:
 
 
 def main() -> None:
+    # Parse the command options and run this script's complete workflow.
     parser = argparse.ArgumentParser()
     parser.add_argument("--split", required=True, choices=["validation", "test"])
     args = parser.parse_args()

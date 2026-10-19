@@ -1,3 +1,7 @@
+# =============================================================================
+# File: build price foundation
+# Purpose: Implements the build price foundation step of the machine-learning workflow.
+# =============================================================================
 """Build the canonical, analytical, and leakage-safe Phase 4 price datasets."""
 
 from __future__ import annotations
@@ -24,6 +28,7 @@ SEED = 42
 
 
 def sha256(path: Path) -> str:
+    # Calculate the SHA-256 value used for reproducibility and integrity checks.
     digest = hashlib.sha256()
     with path.open("rb") as handle:
         for block in iter(lambda: handle.read(1024 * 1024), b""):
@@ -32,6 +37,7 @@ def sha256(path: Path) -> str:
 
 
 def interval_stats(dates: pd.Series) -> dict:
+    # Summarize gaps between consecutive price dates.
     unique = pd.Series(pd.to_datetime(dates).dropna().sort_values().unique())
     gaps = unique.diff().dt.days.dropna()
     return {
@@ -49,6 +55,7 @@ def interval_stats(dates: pd.Series) -> dict:
 
 
 def price_stats(series: pd.Series) -> dict:
+    # Summarize the distribution of a price series.
     clean = pd.to_numeric(series, errors="coerce").dropna()
     return {
         "count": int(len(clean)), "minimum": float(clean.min()), "maximum": float(clean.max()),
@@ -57,6 +64,7 @@ def price_stats(series: pd.Series) -> dict:
 
 
 def add_grade_features(group: pd.DataFrame) -> pd.DataFrame:
+    # Add grade features without changing the source observations.
     group = group.sort_values("date").copy()
     price = group["price_lkr_per_kg"]
     group["return"] = price.pct_change(fill_method=None)
@@ -80,6 +88,7 @@ def add_grade_features(group: pd.DataFrame) -> pd.DataFrame:
 
 
 def temporal_partitions(frame: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
+    # Assign chronological train, validation, and test partitions.
     eligible_dates = sorted(frame.loc[frame["next_observation_date"].le(OLD_CUTOFF), "next_observation_date"].dropna().unique())
     n = len(eligible_dates)
     train_end = max(1, int(n * 0.70))
@@ -111,7 +120,9 @@ def temporal_partitions(frame: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
 
 
 def plots(national: pd.DataFrame, relationship: pd.DataFrame, forecasting: pd.DataFrame) -> None:
+    # Create the price-foundation diagnostic figures.
     def observed_segments(ax, frame: pd.DataFrame, value: str, label: str, color: str) -> None:
+        # Plot observed values as separate segments across missing periods.
         ordered = frame.sort_values("date")
         ax.scatter(ordered["date"], ordered[value], s=7, color=color, alpha=0.8)
         segment = ordered["date"].diff().dt.days.gt(14).cumsum()
@@ -143,6 +154,7 @@ def plots(national: pd.DataFrame, relationship: pd.DataFrame, forecasting: pd.Da
 
 
 def main() -> int:
+    # Parse the command options and run this script's complete workflow.
     raw_files = sorted(RAW_DIR.glob("dea_eac_pepper_observations_retrieved_*.csv"))
     if not raw_files:
         raise FileNotFoundError("Run reconstruct_eac_prices.py first")

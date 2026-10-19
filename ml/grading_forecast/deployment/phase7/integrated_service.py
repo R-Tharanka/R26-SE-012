@@ -1,3 +1,7 @@
+# =============================================================================
+# File: integrated service
+# Purpose: Connects grading, frozen forecasts, and Phase 6 decisions.
+# =============================================================================
 """Executable rejection-first bridge into the authoritative Phase 6 engine."""
 
 from __future__ import annotations
@@ -10,6 +14,7 @@ from .grading_runtime import grade_image
 
 
 def _complete(grading, *, timestamp_utc: str | None = None) -> dict:
+    # Route grading through the matching frozen forecast and decision rules.
     market = latest_frozen_forecast(grading.grade) if grading.status == "ACCEPTED" else None
     result = decide(grading, market, timestamp_utc=timestamp_utc)
     result["runtime"] = {"grading": "ONNX_RUNTIME_CPU", "price": "FROZEN_PHASE5_FORECAST_RECORD",
@@ -18,6 +23,7 @@ def _complete(grading, *, timestamp_utc: str | None = None) -> dict:
 
 
 def analyze_image_bytes(image_bytes: bytes, input_id: str, *, timestamp_utc: str | None = None) -> dict:
+    # Grade one image and complete the integrated decision flow.
     grading, raw = grade_image(image_bytes, input_id)
     result = _complete(grading, timestamp_utc=timestamp_utc)
     result["trace"]["detection_count"] = raw["detection_count"]
@@ -27,6 +33,7 @@ def analyze_image_bytes(image_bytes: bytes, input_id: str, *, timestamp_utc: str
 
 
 def analyze_sample_bytes(images: list[tuple[str, bytes]], sample_id: str, *, timestamp_utc: str | None = None) -> dict:
+    # Aggregate multiple sample images and complete the decision flow.
     if not images:
         raise ValueError("At least one image is required")
     views = [grade_image(payload, name)[0] for name, payload in images]

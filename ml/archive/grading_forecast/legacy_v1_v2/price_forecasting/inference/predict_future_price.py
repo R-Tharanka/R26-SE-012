@@ -1,3 +1,7 @@
+# =============================================================================
+# File: predict future price
+# Purpose: Archived legacy workflow: runs predict future price for the legacy inference workflow.
+# =============================================================================
 from __future__ import annotations
 
 import argparse
@@ -15,10 +19,12 @@ sys.dont_write_bytecode = True
 
 
 def _repo_root() -> Path:
+    # Find the repository root from this script's fixed location.
     return Path(__file__).resolve().parents[4]
 
 
 def _trend(current: float, predicted: float) -> str:
+    # Classify the price movement as upward, downward, or stable.
     threshold = max(20.0, float(abs(current) * 0.02))
     if predicted >= current + threshold:
         return "upward"
@@ -28,11 +34,13 @@ def _trend(current: float, predicted: float) -> str:
 
 
 def _is_v2_path(path: Path, marker: str) -> bool:
+    # Check whether v2 path meets the required condition.
     normalized = str(path).replace("\\", "/").lower()
     return marker.lower() in normalized
 
 
 def _add_time_features(df: pd.DataFrame) -> pd.DataFrame:
+    # Build add time features from the validated inputs.
     out = df.copy()
     out["month"] = out["date"].dt.month.astype(int)
     out["week_of_year"] = out["date"].dt.isocalendar().week.astype(int)
@@ -46,6 +54,7 @@ def build_features(
     rolling_windows: list[int],
     eps: float,
 ) -> pd.DataFrame:
+    # Build features from the validated inputs.
     df = series_df.copy()
     df["date"] = pd.to_datetime(df["date"], errors="coerce")
     df = df.dropna(subset=["date", "price_lkr_per_kg"]).sort_values("date", ascending=True)
@@ -69,6 +78,7 @@ def build_features(
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Parse the command options and run this script's complete workflow.
     parser = argparse.ArgumentParser(description="Predict next-week pepper price using trained RandomForest model.")
     parser.add_argument("--data-csv", type=Path, default=None, help="Forecast training CSV (forecast_training_data.csv).")
     parser.add_argument("--models-dir", type=Path, default=None, help="Models dir with joblib + features.")

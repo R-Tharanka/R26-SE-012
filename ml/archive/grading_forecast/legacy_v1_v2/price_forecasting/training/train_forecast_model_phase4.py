@@ -1,3 +1,7 @@
+# =============================================================================
+# File: train forecast model phase4
+# Purpose: Archived legacy workflow: trains forecast model phase4 using the recorded experiment procedure.
+# =============================================================================
 """Phase 4 Limited Improvement — RandomForest with extended lag features.
 
 This script extends the Phase 3 baseline by accepting configurable lags and
@@ -50,14 +54,17 @@ sys.dont_write_bytecode = True
 
 
 def _repo_root() -> Path:
+    # Find the repository root from this script's fixed location.
     return Path(__file__).resolve().parents[4]
 
 
 def _utc_now_iso() -> str:
+    # Return the current UTC time in a stable ISO format.
     return datetime.now(tz=UTC).replace(microsecond=0).isoformat()
 
 
 def _git_sha(repo_root: Path) -> str | None:
+    # Return the current Git revision when it can be determined.
     head = repo_root / ".git" / "HEAD"
     if not head.exists():
         return None
@@ -75,12 +82,14 @@ def _git_sha(repo_root: Path) -> str | None:
 
 
 def _set_seeds(seed: int) -> None:
+    # Set seeds for repeatable execution.
     os.environ.setdefault("PYTHONHASHSEED", str(seed))
     random.seed(seed)
     np.random.seed(seed)
 
 
 def _feature_spec(*, lags: list[int], rolling_windows: list[int], eps: float) -> dict[str, Any]:
+    # Build feature spec from the validated inputs.
     features: list[str] = []
     for lag in lags:
         features.append(f"lag_{lag}")
@@ -103,6 +112,7 @@ TARGET_DEFINITION = {
 
 
 def _date_range_payload(df: pd.DataFrame) -> dict[str, str | None]:
+    # Return the dataset date range as serializable text.
     if df.empty or "date" not in df.columns:
         return {"start": None, "end": None}
     dates = pd.to_datetime(df["date"], errors="coerce").dropna()
@@ -112,6 +122,7 @@ def _date_range_payload(df: pd.DataFrame) -> dict[str, str | None]:
 
 
 def _csv_summary(path: Path | None) -> dict[str, Any] | None:
+    # Summarize csv summary from the supplied records.
     if path is None or not path.exists():
         return None
     df = pd.read_csv(path)
@@ -122,6 +133,7 @@ def _csv_summary(path: Path | None) -> dict[str, Any] | None:
 
 
 def _add_time_features(df: pd.DataFrame) -> pd.DataFrame:
+    # Build add time features from the validated inputs.
     out = df.copy()
     out["month"] = out["date"].dt.month.astype(int)
     out["week_of_year"] = out["date"].dt.isocalendar().week.astype(int)
@@ -142,6 +154,7 @@ def build_features(
     Output: df with engineered features + target y_next_price.
     All lags and rolling windows are past-only (no future leakage).
     """
+    # Build features from the validated inputs.
     df = series_df.copy()
     df["date"] = pd.to_datetime(df["date"], errors="coerce")
     df = df.dropna(subset=["date", "price_lkr_per_kg"]).sort_values("date", ascending=True)
@@ -170,11 +183,13 @@ def build_features(
 
 
 def _hash_feature_spec(spec: dict[str, Any]) -> str:
+    # Build hash feature spec from the validated inputs.
     b = json.dumps(spec, sort_keys=True).encode("utf-8")
     return hashlib.sha256(b).hexdigest()[:16]
 
 
 def _metrics(y_true: np.ndarray, y_pred: np.ndarray) -> dict[str, float]:
+    # Calculate metrics from the supplied evaluation records.
     mae = float(mean_absolute_error(y_true, y_pred))
     mse = float(mean_squared_error(y_true, y_pred))
     rmse = float(np.sqrt(mse))
@@ -184,6 +199,7 @@ def _metrics(y_true: np.ndarray, y_pred: np.ndarray) -> dict[str, float]:
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Parse the command options and run this script's complete workflow.
     parser = argparse.ArgumentParser(
         description="Phase 4: Train RandomForest with extended lag features (one-step weekly)."
     )

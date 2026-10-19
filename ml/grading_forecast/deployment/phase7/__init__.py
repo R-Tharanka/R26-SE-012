@@ -1,3 +1,7 @@
+# =============================================================================
+# File: init
+# Purpose: Marks this machine-learning directory as a Python package.
+# =============================================================================
 """Phase 7 executable integration over frozen Phase 3, 5, and 6 artifacts."""
 
 from .integrated_service import analyze_image_bytes, analyze_sample_bytes

@@ -1,3 +1,7 @@
+# =============================================================================
+# File: run phase7 verification
+# Purpose: Runs the phase7 verification research workflow.
+# =============================================================================
 from __future__ import annotations
 
 import json
@@ -11,6 +15,7 @@ HERE = Path(__file__).parent
 
 
 def run() -> dict:
+    # Run the complete verification workflow and return its results.
     config = load_config()
     timestamp = config["experiment"]["deterministic_timestamp_utc"]
     outputs = []

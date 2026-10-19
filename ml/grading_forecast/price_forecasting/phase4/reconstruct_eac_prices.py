@@ -1,3 +1,7 @@
+# =============================================================================
+# File: reconstruct eac prices
+# Purpose: Implements the reconstruct eac prices step of the machine-learning workflow.
+# =============================================================================
 """Reconstruct page-level DEA EAC pepper observations without imputing prices."""
 
 from __future__ import annotations
@@ -32,6 +36,7 @@ SOURCE_MANIFEST = OUT_DIR / "eac_pepper_price_source_manifest.csv"
 
 class PepperTableParser(HTMLParser):
     def __init__(self) -> None:
+        # Initialize the object state needed by this workflow.
         super().__init__(convert_charrefs=True)
         self.pepper_anchor_seen = False
         self.in_target_table = False
@@ -43,6 +48,7 @@ class PepperTableParser(HTMLParser):
         self.rows: list[list[str]] = []
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        # Record the start of a relevant HTML table element.
         attrs_dict = dict(attrs)
         if tag.lower() == "a" and (attrs_dict.get("name") or "").lower() == "pepper":
             self.pepper_anchor_seen = True
@@ -59,6 +65,7 @@ class PepperTableParser(HTMLParser):
             self.current_row = []
 
     def handle_endtag(self, tag: str) -> None:
+        # Finish the current HTML table element and store its values.
         if self.in_target_table and tag.lower() in {"td", "th"} and self.in_cell:
             value = re.sub(r"\s+", " ", html.unescape("".join(self.cell_parts))).strip()
             self.current_row.append(value)
@@ -73,11 +80,13 @@ class PepperTableParser(HTMLParser):
                 self.target_table_complete = True
 
     def handle_data(self, data: str) -> None:
+        # Collect text found inside the current HTML table element.
         if self.in_target_table and self.in_cell:
             self.cell_parts.append(data)
 
 
 def fetch(url: str, *, attempts: int = 8) -> bytes:
+    # Download one source page with bounded retries.
     for attempt in range(attempts):
         request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
         try:
@@ -91,6 +100,7 @@ def fetch(url: str, *, attempts: int = 8) -> bytes:
 
 
 def dated_page_urls(index_payload: bytes) -> list[tuple[date, str]]:
+    # Extract and sort dated market-price page links from the index.
     text = index_payload.decode("utf-8", errors="replace")
     hrefs = re.findall(r'href\s*=\s*["\']([^"\']+\.html)["\']', text, flags=re.I)
     found: dict[date, str] = {}
@@ -108,6 +118,7 @@ def dated_page_urls(index_payload: bytes) -> list[tuple[date, str]]:
 
 
 def parse_price(value: str) -> float | None:
+    # Parse price safely from the supplied input.
     clean = value.replace(",", "").strip()
     if clean in {"", "-", "–", "—", "N/A", "n/a"}:
         return None
@@ -116,11 +127,13 @@ def parse_price(value: str) -> float | None:
 
 
 def normalize_district(value: str) -> str:
+    # Normalize district into the standard form.
     clean = re.sub(r"\s+", " ", value.replace("_", " ").strip())
     return "Nuwara Eliya" if clean.lower() == "nuwara eliya" else clean.title()
 
 
 def parse_page(page_date: date, url: str, payload: bytes) -> tuple[list[dict], dict]:
+    # Parse page safely from the supplied input.
     parser = PepperTableParser()
     parser.feed(payload.decode("utf-8", errors="replace"))
     digest = hashlib.sha256(payload).hexdigest()
@@ -161,6 +174,7 @@ def parse_page(page_date: date, url: str, payload: bytes) -> tuple[list[dict], d
 
 
 def retrieve_one(item: tuple[date, str]) -> tuple[list[dict], dict]:
+    # Download and parse one dated market-price page.
     page_date, url = item
     cache_path = PAGE_CACHE_DIR / str(page_date.year) / f"{page_date.strftime('%d.%m.%Y')}.html"
     try:
@@ -187,6 +201,7 @@ def retrieve_one(item: tuple[date, str]) -> tuple[list[dict], dict]:
 
 
 def main() -> int:
+    # Parse the command options and run this script's complete workflow.
     index_payload = fetch(INDEX_URL)
     pages = dated_page_urls(index_payload)
     if len(pages) < 400:

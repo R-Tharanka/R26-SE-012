@@ -1,3 +1,7 @@
+# =============================================================================
+# File: train berry classifier
+# Purpose: Archived legacy workflow: trains berry classifier using the recorded experiment procedure.
+# =============================================================================
 from __future__ import annotations
 
 import argparse
@@ -14,10 +18,12 @@ sys.dont_write_bytecode = True
 
 
 def _repo_root() -> Path:
+    # Find the repository root from this script's fixed location.
     return Path(__file__).resolve().parents[4]
 
 
 def _utc_now_iso() -> str:
+    # Return the current UTC time in a stable ISO format.
     return datetime.now(tz=UTC).replace(microsecond=0).isoformat()
 
 
@@ -28,6 +34,7 @@ def _maybe_enable_determinism() -> None:
 
 
 def _set_seeds(seed: int) -> None:
+    # Set seeds for repeatable execution.
     random.seed(seed)
     try:
         import numpy as np
@@ -45,6 +52,7 @@ def _set_seeds(seed: int) -> None:
 
 
 def _iter_image_files(root: Path) -> list[Path]:
+    # List image files in stable order.
     exts = {".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff", ".webp"}
     if not root.exists():
         return []
@@ -52,6 +60,7 @@ def _iter_image_files(root: Path) -> list[Path]:
 
 
 def _count_per_class(root: Path, class_names: list[str]) -> dict[str, int]:
+    # Count per class from the prepared data.
     counts: dict[str, int] = {}
     for c in class_names:
         counts[c] = len(_iter_image_files(root / c))
@@ -59,6 +68,7 @@ def _count_per_class(root: Path, class_names: list[str]) -> dict[str, int]:
 
 
 def _validate_class_dirs(root: Path, class_names: list[str], *, label: str) -> None:
+    # Ensure every expected class directory exists and contains images.
     missing = [c for c in class_names if not (root / c).is_dir()]
     if missing:
         raise ValueError(f"{label} is missing class directories: {missing}. Root: {root}")
@@ -81,6 +91,7 @@ def _ensure_stratified_split_dir(
 
     Returns (train_dir, val_dir) when a split is created/used, otherwise None.
     """
+    # Ensure stratified split dir is ready before continuing.
     if not dataset_root.exists():
         return None
 
@@ -154,6 +165,7 @@ def _ensure_stratified_split_dir(
 
 
 def _dataset_label_counts(ds) -> dict[int, int]:
+    # Count training examples for each numeric class label.
     import numpy as np
 
     counts: dict[int, int] = {}
@@ -165,6 +177,7 @@ def _dataset_label_counts(ds) -> dict[int, int]:
 
 
 def _compute_class_weight_from_counts(counts: dict[int, int]) -> dict[int, float]:
+    # Calculate balanced class weights from the label counts.
     total = sum(counts.values())
     if total <= 0:
         return {}
@@ -187,6 +200,7 @@ class StageConfig:
 
 
 def _build_model(*, num_classes: int, dropout: float):
+    # Build model from the validated inputs.
     import tensorflow as tf
 
     base = tf.keras.applications.MobileNetV2(
@@ -208,6 +222,7 @@ def _build_model(*, num_classes: int, dropout: float):
 
 
 def _augmentation_layers(*, seed: int):
+    # Build the image-augmentation layers used during training.
     import tensorflow as tf
 
     return tf.keras.Sequential(
@@ -222,6 +237,7 @@ def _augmentation_layers(*, seed: int):
 
 
 def _git_sha(repo_root: Path) -> str | None:
+    # Return the current Git revision when it can be determined.
     head = repo_root / ".git" / "HEAD"
     if not head.exists():
         return None
@@ -239,6 +255,7 @@ def _git_sha(repo_root: Path) -> str | None:
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Parse the command options and run this script's complete workflow.
     _maybe_enable_determinism()
 
     parser = argparse.ArgumentParser(description="Train MobileNetV2 berry grading classifier (Grade 1/2/3).")
@@ -418,6 +435,7 @@ def main(argv: list[str] | None = None) -> int:
     val_counts = _dataset_label_counts(val_ds)
 
     def _balanced_enough(counts: dict[int, int], tol: int = 1) -> bool:
+        # Check whether class counts are within the allowed difference.
         if not counts:
             return False
         values = list(counts.values())
@@ -466,6 +484,7 @@ def main(argv: list[str] | None = None) -> int:
     aug = _augmentation_layers(seed=args.seed)
 
     def _with_aug(ds):
+        # Apply training augmentation while keeping evaluation data unchanged.
         return ds.map(lambda x, y: (aug(x, training=True), y), num_parallel_calls=tf.data.AUTOTUNE)
 
     train_ds = _with_aug(train_ds).cache().prefetch(tf.data.AUTOTUNE)

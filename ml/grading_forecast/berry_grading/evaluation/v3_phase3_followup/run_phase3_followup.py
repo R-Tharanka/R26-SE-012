@@ -1,3 +1,7 @@
+# =============================================================================
+# File: run phase3 followup
+# Purpose: Runs the phase3 followup research workflow.
+# =============================================================================
 """Two-stage Phase 3 Follow-up evaluation with a sealed final holdout boundary."""
 
 from __future__ import annotations
@@ -43,6 +47,7 @@ ACCEPTED = {"GRADE_1", "GRADE_2"}
 
 
 def sha256(path: Path) -> str:
+    # Calculate the SHA-256 value used for reproducibility and integrity checks.
     digest = hashlib.sha256()
     with path.open("rb") as handle:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
@@ -51,15 +56,18 @@ def sha256(path: Path) -> str:
 
 
 def load_csv(path: Path) -> list[dict]:
+    # Load csv from its approved source.
     with path.open(newline="", encoding="utf-8-sig") as handle:
         return list(csv.DictReader(handle))
 
 
 def write_json(path: Path, payload: dict | list) -> None:
+    # Write the supplied results in a stable, reproducible format.
     path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
 
 def write_csv(path: Path, rows: list[dict], fields: list[str] | None = None) -> None:
+    # Write the supplied results in a stable, reproducible format.
     if not rows:
         return
     fields = fields or list(rows[0])
@@ -70,6 +78,7 @@ def write_csv(path: Path, rows: list[dict], fields: list[str] | None = None) -> 
 
 
 def verify_row_file(row: dict, path_key: str, hash_key: str = "sha256") -> Path:
+    # Verify row file before the workflow continues.
     path = ROOT / row[path_key]
     if not path.is_file() or sha256(path) != row[hash_key].lower():
         raise RuntimeError(f"Manifest/file integrity failure: {path}")
@@ -77,6 +86,7 @@ def verify_row_file(row: dict, path_key: str, hash_key: str = "sha256") -> Path:
 
 
 def predict(model: YOLO, rows: list[dict], path_key: str, kind: str, config: dict) -> list[dict]:
+    # Run model predictions for the supplied manifest records.
     sources = [str(ROOT / row[path_key]) for row in rows]
     started = time.perf_counter()
     results = model.predict(source=sources, imgsz=int(config["image_size"]), conf=0.001, iou=0.70,
@@ -116,6 +126,7 @@ def predict(model: YOLO, rows: list[dict], path_key: str, kind: str, config: dic
 
 
 def thresholds(config: dict, detection: float) -> FrozenThresholds:
+    # Load the frozen decision thresholds from the approved configuration.
     quality = config["quality_gate"]
     return FrozenThresholds(
         minimum_blur_variance=float(quality["minimum_blur_variance"]), minimum_brightness=float(quality["minimum_brightness"]),
@@ -126,10 +137,12 @@ def thresholds(config: dict, detection: float) -> FrozenThresholds:
 
 
 def apply(records: list[dict], selected: FrozenThresholds) -> list[dict]:
+    # Apply the frozen thresholds to every prediction record.
     return [{**record, **decide(record, selected)} for record in records]
 
 
 def positive_metrics(records: list[dict]) -> dict:
+    # Calculate acceptance and grade metrics for positive samples.
     accepted = [r for r in records if r["decision"] in ACCEPTED]
     truth = [r["true_class"] for r in accepted]
     predictions = [0 if r["decision"] == "GRADE_1" else 1 for r in accepted]
@@ -155,6 +168,7 @@ def positive_metrics(records: list[dict]) -> dict:
 
 
 def negative_metrics(records: list[dict]) -> dict:
+    # Calculate rejection metrics for negative samples.
     rejected = [r for r in records if r["decision"] not in ACCEPTED]
     by_category = {}
     for category in sorted({r["category"] for r in records}):
@@ -175,6 +189,7 @@ def negative_metrics(records: list[dict]) -> dict:
 
 
 def validation_stage() -> int:
+    # Run threshold selection using only validation partitions.
     OUTPUT.mkdir(parents=True, exist_ok=True)
     config = yaml.safe_load(CONFIG.read_text(encoding="utf-8"))
     if FREEZE.exists() or METRICS.exists():
@@ -225,6 +240,7 @@ def validation_stage() -> int:
 
 
 def combined_matrix(positives: list[dict], negatives: list[dict]) -> dict:
+    # Build the combined positive-versus-negative confusion matrix.
     rows = []
     for truth in (0, 1):
         subset = [r for r in positives if r["true_class"] == truth]
@@ -234,6 +250,7 @@ def combined_matrix(positives: list[dict], negatives: list[dict]) -> dict:
 
 
 def binary_gate_metrics(positives: list[dict], negatives: list[dict]) -> dict:
+    # Calculate binary pepper acceptance and rejection metrics.
     truth = [0] * len(positives) + [1] * len(negatives)
     predictions = [int(r["decision"] not in ACCEPTED) for r in positives + negatives]
     return {
@@ -247,6 +264,7 @@ def binary_gate_metrics(positives: list[dict], negatives: list[dict]) -> dict:
 
 
 def plot_confusion(matrix: dict) -> None:
+    # Plot confusion for clear visual comparison.
     values = np.array(matrix["values"])
     fig, ax = plt.subplots(figsize=(6, 5))
     image = ax.imshow(values, cmap="Greens")
@@ -259,6 +277,7 @@ def plot_confusion(matrix: dict) -> None:
 
 
 def plot_confidences(groups: dict[str, list[dict]]) -> None:
+    # Plot confidences for clear visual comparison.
     fig, ax = plt.subplots(figsize=(8, 5))
     bins = np.linspace(0, 1, 21)
     for label, records in groups.items():
@@ -268,9 +287,11 @@ def plot_confidences(groups: dict[str, list[dict]]) -> None:
 
 
 def plot_comparison(baseline: dict, treatment: dict) -> None:
+    # Plot comparison for clear visual comparison.
     labels = ["New holdout rejection", "Vegetation/crop rejection"]
     hard = {"vegetation_leaves", "agricultural_crops", "aerial_crop_imagery"}
     def hard_rate(metrics: dict) -> float:
+        # Calculate the hard-negative rejection rate for this comparison.
         values = [v for k, v in metrics["by_category"].items() if k in hard]
         return sum(v["rejected"] for v in values) / sum(v["n"] for v in values)
     values = [[baseline["rejection_rate"], hard_rate(baseline)], [treatment["rejection_rate"], hard_rate(treatment)]]
@@ -280,6 +301,7 @@ def plot_comparison(baseline: dict, treatment: dict) -> None:
 
 
 def qualitative_figure(original: list[dict], new_negative: list[dict], positive: list[dict]) -> None:
+    # Create a visual comparison of representative outcomes.
     examples = []
     original_errors = [r for r in original if r["decision"] in ACCEPTED]
     new_rejections = [r for r in new_negative if r["decision"] not in ACCEPTED]
@@ -302,6 +324,7 @@ def qualitative_figure(original: list[dict], new_negative: list[dict], positive:
 
 
 def final_stage() -> int:
+    # Evaluate the frozen choices once on the sealed final partitions.
     config = yaml.safe_load(CONFIG.read_text(encoding="utf-8"))
     phase3_baseline = json.loads(ORIGINAL_PHASE3_METRICS.read_text(encoding="utf-8"))
     if METRICS.exists():
@@ -373,10 +396,12 @@ def final_stage() -> int:
 
 
 def pct(value: float) -> str:
+    # Format a decimal value as a percentage.
     return f"{100 * value:.2f}%"
 
 
 def write_report(m: dict) -> None:
+    # Write report in the required reproducible format.
     dataset = json.loads((ROOT / "data/processed/grading_forecast/berry_v3/phase3_followup_negative_dataset_summary.json").read_text(encoding="utf-8"))
     training = json.loads((ROOT / "ml/grading_forecast/berry_grading/models/v3_phase3_followup/experiment_metadata.json").read_text(encoding="utf-8"))
     val, new, pos, original = m["validation"], m["new_negative_holdout"], m["phase2_positive_test_regression"], m["original_phase3_holdout"]
@@ -475,6 +500,7 @@ This result does not establish production readiness or camera-independent field 
 
 
 def append_log(m: dict) -> None:
+    # Append the completed experiment summary to the research log.
     marker = "### BERRY-V3-YOLO11N-PHASE3-FOLLOWUP-001"
     existing = LOG.read_text(encoding="utf-8")
     if marker in existing:
@@ -505,6 +531,7 @@ Date: 2026-10-07.
 
 
 def main() -> int:
+    # Parse the command options and run this script's complete workflow.
     parser = argparse.ArgumentParser()
     parser.add_argument("--stage", required=True, choices=["validation", "final"])
     args = parser.parse_args()

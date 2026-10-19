@@ -1,3 +1,7 @@
+# =============================================================================
+# File: make negative contact sheet
+# Purpose: Implements the make negative contact sheet step of the machine-learning workflow.
+# =============================================================================
 """Create a review contact sheet for the fixed Phase 3 external negatives."""
 
 from __future__ import annotations
@@ -14,6 +18,7 @@ OUTPUT = ROOT / "ml/grading_forecast/berry_grading/evaluation/v3_phase3/external
 
 
 def main() -> int:
+    # Parse the command options and run this script's complete workflow.
     with MANIFEST.open(newline="", encoding="utf-8-sig") as handle:
         rows = list(csv.DictReader(handle))
     if len(rows) != 80:

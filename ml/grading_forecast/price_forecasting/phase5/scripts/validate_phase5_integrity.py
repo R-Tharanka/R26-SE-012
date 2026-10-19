@@ -1,3 +1,7 @@
+# =============================================================================
+# File: validate phase5 integrity
+# Purpose: Checks validate phase5 integrity integrity and reproducibility.
+# =============================================================================
 """Focused data, leakage, preservation, and artifact checks for Phase 5."""
 
 from __future__ import annotations
@@ -19,6 +23,7 @@ OUTPUT = PHASE5 / "outputs"
 
 
 def sha256(path: Path) -> str:
+    # Calculate the SHA-256 value used for reproducibility and integrity checks.
     digest = hashlib.sha256()
     with path.open("rb") as handle:
         for block in iter(lambda: handle.read(1024 * 1024), b""):
@@ -27,10 +32,12 @@ def sha256(path: Path) -> str:
 
 
 def result(name: str, passed: bool, details: str = "") -> dict:
+    # Create one clear integrity-check result.
     return {"check": name, "passed": bool(passed), "details": details}
 
 
 def git_changed_paths() -> list[str]:
+    # List repository paths that currently differ from the recorded revision.
     completed = subprocess.run(
         ["git", "status", "--porcelain=v1", "--untracked-files=all"], cwd=ROOT,
         text=True, capture_output=True, check=True,
@@ -39,6 +46,7 @@ def git_changed_paths() -> list[str]:
 
 
 def verify_v3_images_and_labels() -> tuple[bool, bool, int]:
+    # Verify v3 images and labels before the workflow continues.
     manifest = pd.read_csv(ROOT / "data/processed/grading_forecast/berry_v3/v3_image_sample_manifest.csv")
     image_ok, label_ok = True, True
     for row in manifest.itertuples(index=False):
@@ -59,6 +67,7 @@ def verify_v3_images_and_labels() -> tuple[bool, bool, int]:
 
 
 def main() -> int:
+    # Parse the command options and run this script's complete workflow.
     config = yaml.safe_load((PHASE5 / "phase5_config.yaml").read_text(encoding="utf-8"))
     metrics = json.loads((OUTPUT / "phase5_forecasting_metrics.json").read_text(encoding="utf-8"))
     canonical = pd.read_csv(ROOT / config["experiment"]["dataset_path"])

@@ -1,3 +1,7 @@
+# =============================================================================
+# File: clean price data
+# Purpose: Archived legacy workflow: implements the clean price data step of the machine-learning workflow.
+# =============================================================================
 from __future__ import annotations
 
 import argparse
@@ -11,10 +15,12 @@ sys.dont_write_bytecode = True
 
 
 def _repo_root() -> Path:
+    # Find the repository root from this script's fixed location.
     return Path(__file__).resolve().parents[4]
 
 
 def _standardize_district(value: object) -> str | None:
+    # Standardize district into one consistent value.
     if value is None or (isinstance(value, float) and pd.isna(value)):
         return None
     text = str(value).strip()
@@ -26,6 +32,7 @@ def _standardize_district(value: object) -> str | None:
 
 
 def _standardize_grade(value: object) -> str | None:
+    # Standardize grade into one consistent value.
     if value is None or (isinstance(value, float) and pd.isna(value)):
         return None
     text = str(value).strip()
@@ -40,6 +47,7 @@ def _standardize_grade(value: object) -> str | None:
 
 
 def _standardize_price_type(value: object) -> str | None:
+    # Standardize price type into one consistent value.
     if value is None or (isinstance(value, float) and pd.isna(value)):
         return None
     text = str(value).strip().lower()
@@ -53,6 +61,7 @@ def _standardize_price_type(value: object) -> str | None:
 
 
 def _parse_price(value: object) -> float | None:
+    # Parse price safely from the supplied input.
     if value is None or (isinstance(value, float) and pd.isna(value)):
         return None
     text = str(value).strip()
@@ -66,6 +75,7 @@ def _parse_price(value: object) -> float | None:
 
 
 def clean_price_data(input_csv: Path, output_csv: Path) -> pd.DataFrame:
+    # Clean price data while preserving valid observations.
     df = pd.read_csv(input_csv)
 
     required_columns = {"date", "district", "grade", "price_type", "price_lkr_per_kg"}
@@ -97,14 +107,17 @@ def clean_price_data(input_csv: Path, output_csv: Path) -> pd.DataFrame:
 
 
 def _default_input(repo_root: Path) -> Path:
+    # Return the default input path for this legacy workflow.
     return repo_root / "data" / "raw" / "market_prices" / "dea_farmgate_weekly_prices_2016_2026.csv"
 
 
 def _default_output(repo_root: Path) -> Path:
+    # Return the default output path.
     return repo_root / "data" / "processed" / "grading_forecast" / "cleaned_price_data.csv"
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Parse the command options and run this script's complete workflow.
     parser = argparse.ArgumentParser(description="Clean weekly DEA farm-gate pepper price data for forecasting.")
     parser.add_argument("--input", type=Path, default=None, help="Input price CSV path (defaults to project dataset).")
     parser.add_argument("--output", type=Path, default=None, help="Output cleaned CSV path.")

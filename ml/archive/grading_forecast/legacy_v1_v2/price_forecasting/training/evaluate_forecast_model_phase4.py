@@ -1,3 +1,7 @@
+# =============================================================================
+# File: evaluate forecast model phase4
+# Purpose: Archived legacy workflow: evaluates forecast model phase4 and saves reproducible metrics.
+# =============================================================================
 """Phase 4 Limited Improvement — Evaluate RandomForest with extended lag features.
 
 Evaluates a Phase 4 forecast model against the same 36 V2 test timestamps.
@@ -40,14 +44,17 @@ sys.dont_write_bytecode = True
 
 
 def _repo_root() -> Path:
+    # Find the repository root from this script's fixed location.
     return Path(__file__).resolve().parents[4]
 
 
 def _utc_now_iso() -> str:
+    # Return the current UTC time in a stable ISO format.
     return datetime.now(tz=UTC).replace(microsecond=0).isoformat()
 
 
 def _metrics(y_true: np.ndarray, y_pred: np.ndarray) -> dict[str, float]:
+    # Calculate metrics from the supplied evaluation records.
     mae = float(mean_absolute_error(y_true, y_pred))
     mse = float(mean_squared_error(y_true, y_pred))
     rmse = float(np.sqrt(mse))
@@ -57,6 +64,7 @@ def _metrics(y_true: np.ndarray, y_pred: np.ndarray) -> dict[str, float]:
 
 
 def _date_range_payload(dates: pd.Series) -> dict[str, str | None]:
+    # Return the dataset date range as serializable text.
     clean = pd.to_datetime(dates, errors="coerce").dropna()
     if clean.empty:
         return {"start": None, "end": None}
@@ -64,6 +72,7 @@ def _date_range_payload(dates: pd.Series) -> dict[str, str | None]:
 
 
 def _add_time_features(df: pd.DataFrame) -> pd.DataFrame:
+    # Build add time features from the validated inputs.
     out = df.copy()
     out["month"] = out["date"].dt.month.astype(int)
     out["week_of_year"] = out["date"].dt.isocalendar().week.astype(int)
@@ -77,6 +86,7 @@ def build_features(
     rolling_windows: list[int],
     eps: float,
 ) -> pd.DataFrame:
+    # Build features from the validated inputs.
     df = series_df.copy()
     df["date"] = pd.to_datetime(df["date"], errors="coerce")
     df = df.dropna(subset=["date", "price_lkr_per_kg"]).sort_values("date", ascending=True)
@@ -109,6 +119,7 @@ def build_test_prediction_frame(
     eps: float,
 ) -> pd.DataFrame:
     """Build one-step-ahead prediction rows for the test target dates."""
+    # Build test prediction frame from the validated inputs.
     test_dates = pd.to_datetime(test_df["date"], errors="coerce").dropna()
     feature_frame = build_features(target_df, lags=lags, rolling_windows=rolling_windows, eps=eps)
     feature_frame = feature_frame.dropna(subset=["prediction_date"])
@@ -119,6 +130,7 @@ def build_test_prediction_frame(
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Parse the command options and run this script's complete workflow.
     parser = argparse.ArgumentParser(
         description="Phase 4: Evaluate extended-lag RandomForest on V2 test set."
     )

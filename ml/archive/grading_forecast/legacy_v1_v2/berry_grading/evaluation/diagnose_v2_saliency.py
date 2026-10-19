@@ -1,3 +1,7 @@
+# =============================================================================
+# File: diagnose v2 saliency
+# Purpose: Archived legacy workflow: implements the diagnose v2 saliency step of the machine-learning workflow.
+# =============================================================================
 """Generate a small, deterministic input-gradient saliency audit for frozen V2.
 
 This is a diagnostic only. It does not train or modify the historical V2 model.
@@ -19,10 +23,12 @@ IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png"}
 
 
 def _stable_order(path: Path) -> str:
+    # Create a repeatable sort key for a path or record.
     return hashlib.sha256(path.as_posix().encode("utf-8")).hexdigest()
 
 
 def _load_image(path: Path, size: tuple[int, int] = (224, 224)) -> tuple[Image.Image, np.ndarray]:
+    # Load image from its approved source.
     with Image.open(path) as source:
         display = ImageOps.exif_transpose(source).convert("RGB")
     resized = display.resize(size, Image.Resampling.BILINEAR)
@@ -30,6 +36,7 @@ def _load_image(path: Path, size: tuple[int, int] = (224, 224)) -> tuple[Image.I
 
 
 def _saliency_overlay(display: Image.Image, saliency: np.ndarray) -> Image.Image:
+    # Create the saliency overlay visualization for the saved report.
     saliency = np.maximum(saliency, 0.0)
     scale = float(np.percentile(saliency, 99.0))
     if scale <= 0.0:
@@ -46,10 +53,12 @@ def _saliency_overlay(display: Image.Image, saliency: np.ndarray) -> Image.Image
 
 
 def _fit(image: Image.Image, size: tuple[int, int]) -> Image.Image:
+    # Resize the image to the requested display size.
     return ImageOps.pad(image, size, method=Image.Resampling.LANCZOS, color="white")
 
 
 def main() -> int:
+    # Parse the command options and run this script's complete workflow.
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", type=Path, required=True)
     parser.add_argument("--test-dir", type=Path, required=True)

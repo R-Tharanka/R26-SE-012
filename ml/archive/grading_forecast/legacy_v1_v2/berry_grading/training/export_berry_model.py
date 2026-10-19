@@ -1,3 +1,7 @@
+# =============================================================================
+# File: export berry model
+# Purpose: Archived legacy workflow: exports berry model for deployment.
+# =============================================================================
 from __future__ import annotations
 
 import argparse
@@ -11,14 +15,17 @@ sys.dont_write_bytecode = True
 
 
 def _repo_root() -> Path:
+    # Find the repository root from this script's fixed location.
     return Path(__file__).resolve().parents[4]
 
 
 def _utc_now_iso() -> str:
+    # Return the current UTC time in a stable ISO format.
     return datetime.now(tz=UTC).replace(microsecond=0).isoformat()
 
 
 def _git_sha(repo_root: Path) -> str | None:
+    # Return the current Git revision when it can be determined.
     head = repo_root / ".git" / "HEAD"
     if not head.exists():
         return None
@@ -36,6 +43,7 @@ def _git_sha(repo_root: Path) -> str | None:
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Parse the command options and run this script's complete workflow.
     parser = argparse.ArgumentParser(description="Export berry MobileNetV2 Keras model to ONNX (training environment).")
     parser.add_argument("--model", type=Path, default=None, help="Path to best .keras model.")
     parser.add_argument("--out", type=Path, default=None, help="Output .onnx path.")

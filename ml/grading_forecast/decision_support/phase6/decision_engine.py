@@ -1,3 +1,7 @@
+# =============================================================================
+# File: decision engine
+# Purpose: Combines grading and market evidence into rejection-first advice.
+# =============================================================================
 """Transparent rule-based fusion of frozen grading and market evidence."""
 
 from __future__ import annotations
@@ -12,6 +16,7 @@ from .price_router import MarketForecast, validate_route
 
 
 def _empty_market(status: str) -> dict:
+    # Build an empty market response with the requested availability status.
     return {
         "status": status, "source": None, "price_grade": None, "latest_reference_date": None,
         "latest_reference_price": None, "previous_reference_price": None, "latest_observed_return": None,
@@ -28,6 +33,7 @@ def decide(
     timestamp_utc: str | None = None,
     config: dict | None = None,
 ) -> dict:
+    # Apply the fixed decision rules to the supplied grading and market evidence.
     config = config or load_config()
     timestamp = timestamp_utc or config["experiment"]["deterministic_timestamp_utc"]
     frozen_grading = config["frozen_grading"]
@@ -131,8 +137,10 @@ def decide(
 
 
 def canonical_json(result: dict) -> str:
+    # Serialize the result with stable key ordering.
     return json.dumps(result, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
 
 
 def decision_hash(result: dict) -> str:
+    # Calculate a stable hash for the complete decision result.
     return hashlib.sha256(canonical_json(result).encode("utf-8")).hexdigest()
