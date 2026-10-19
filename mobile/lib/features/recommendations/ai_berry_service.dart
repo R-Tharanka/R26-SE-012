@@ -112,7 +112,7 @@ Rules:
         enumValues: _problemVocab,
         description: 'Best-matching label from the allowed list.',
       ),
-      'severity_percentage': Schema.number(
+      'severity_percentage': Schema.number( //severity percentage returned by the LLM
         description:
             'Visual damage severity 0-100: how much of the spike looks '
             'affected overall. 0 when healthy.',
