@@ -1,8 +1,13 @@
+// =============================================================================
+// File: home_screen_test.dart
+// Purpose: Verifies the home screen test behavior.
+// =============================================================================
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pepper_care/features/home/screens/home_screen.dart';
 import 'package:pepper_care/l10n/app_localizations.dart';
 
+// Wrap the widget with the dependencies required by this test.
 Widget wrap(Widget child, {Locale locale = const Locale('en')}) => MaterialApp(
   locale: locale,
   localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -11,8 +16,10 @@ Widget wrap(Widget child, {Locale locale = const Locale('en')}) => MaterialApp(
 );
 
 void main() {
+  // Register the tests defined in this file.
   group('HomeScreen', () {
     Future<void> usePhoneViewport(WidgetTester tester) async {
+      // Set a phone-sized viewport for this widget test.
       await tester.binding.setSurfaceSize(const Size(800, 1000));
       addTearDown(() => tester.binding.setSurfaceSize(null));
     }
@@ -53,6 +60,7 @@ void main() {
       await tester.pumpWidget(wrap(const HomeScreen()));
 
       expect(find.byType(GridView), findsNothing);
+      // Return the screen rectangle occupied by the selected card.
       Rect cardRect(String label) => tester.getRect(
         find.ancestor(of: find.text(label), matching: find.byType(Card)).first,
       );

@@ -1,3 +1,7 @@
+# =============================================================================
+# File: visual feature extractor
+# Purpose: Converts pepper images into normalized, deterministic visual features.
+# =============================================================================
 from __future__ import annotations
 
 import hashlib
@@ -14,6 +18,7 @@ def extract_features_from_bytes(image_bytes: bytes | None) -> dict[str, float]:
     falls back to deterministic demo features derived from the image bytes.
     """
 
+    # Decode the image and calculate features, using safe demo values on failure.
     if image_bytes is None:
         return _demo_features(None)
 
@@ -110,6 +115,7 @@ def extract_features_from_bytes(image_bytes: bytes | None) -> dict[str, float]:
 
 
 def _berry_mask(image_bgr) -> object | None:
+    # Separate the darker pepper berries from the likely image background.
     try:
         import cv2  # type: ignore
         import numpy as np
@@ -146,12 +152,14 @@ def _berry_mask(image_bgr) -> object | None:
 
 
 def _clamp01(value: float) -> float:
+    # Keep every feature inside the normalized zero-to-one range.
     if value != value:  # NaN
         return 0.0
     return float(max(0.0, min(1.0, value)))
 
 
 def _demo_features(image_bytes: bytes | None) -> dict[str, float]:
+    # Produce stable fallback features so the same input gives the same result.
     if not image_bytes:
         return {
             "color_uniformity_score": 0.72,
@@ -168,7 +176,7 @@ def _demo_features(image_bytes: bytes | None) -> dict[str, float]:
     digest = hasher.digest()
 
     def u01(i: int) -> float:
-        # Map 2 bytes into [0, 1]
+        # Map two digest bytes into a repeatable value between zero and one.
         n = int.from_bytes(digest[i : i + 2], "big", signed=False)
         return n / 65535.0
 

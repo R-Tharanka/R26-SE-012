@@ -1,3 +1,7 @@
+# =============================================================================
+# File: train baseline forecast
+# Purpose: Archived legacy workflow: trains baseline forecast using the recorded experiment procedure.
+# =============================================================================
 from __future__ import annotations
 
 import json
@@ -5,10 +9,12 @@ from pathlib import Path
 
 
 def _repo_root() -> Path:
+    # Find the repository root from this script's fixed location.
     return Path(__file__).resolve().parents[4]
 
 
 def main() -> int:
+    # Parse the command options and run this script's complete workflow.
     repo_root = _repo_root()
     out_path = (
         repo_root

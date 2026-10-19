@@ -1,3 +1,7 @@
+// =============================================================================
+// File: scan_result_view.dart
+// Purpose: Provides reusable scan result view user-interface components.
+// =============================================================================
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -38,6 +42,7 @@ class ScanResultView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     final detections = result.detections;
 
     return Column(
@@ -194,6 +199,7 @@ class _LowConfidenceNotice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     final status = AppStatusColors.of(context);
     return Container(
       padding: const EdgeInsets.all(14),
@@ -236,6 +242,7 @@ class _DetectionRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     final cs = Theme.of(context).colorScheme;
     return Row(
       children: [

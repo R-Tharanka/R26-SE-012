@@ -1,3 +1,7 @@
+// =============================================================================
+// File: history_payload_codec.dart
+// Purpose: Supports the local-first history payload codec history workflow.
+// =============================================================================
 import 'dart:convert';
 
 import '../../../core/services/yolo_detector.dart';
@@ -15,6 +19,7 @@ class HistoryPayloadCodec {
   static const int schemaVersion = 1;
 
   static Map<String, dynamic>? tryDecode(String source) {
+    // Process try decode for this flow.
     try {
       final value = jsonDecode(source);
       if (value is! Map) return null;
@@ -26,6 +31,7 @@ class HistoryPayloadCodec {
     }
   }
 
+  // Process detection for this flow.
   static String detection(DetectionResult result) => jsonEncode({
     'history_payload_version': schemaVersion,
     'kind': 'detection',
@@ -37,12 +43,14 @@ class HistoryPayloadCodec {
     'detections': result.detections.map(_detection).toList(),
   });
 
+  // Process grading for this flow.
   static String grading(GradingForecastResult result) => jsonEncode({
     'history_payload_version': schemaVersion,
     'kind': 'grading_forecast',
     'result': _grading(result),
   });
 
+  // Process leaf for this flow.
   static String leaf(LeafAnalysis analysis) => jsonEncode({
     'history_payload_version': schemaVersion,
     'kind': 'leaf_detail',
@@ -59,6 +67,7 @@ class HistoryPayloadCodec {
     },
   });
 
+  // Process pest for this flow.
   static String pest(
     PestAnalysis analysis,
     PestTreatment treatment,
@@ -82,6 +91,7 @@ class HistoryPayloadCodec {
     'decision': _pestTreatment(treatment),
   });
 
+  // Process berry for this flow.
   static String berry(
     BerryAnalysis analysis,
     Remediation remediation,
@@ -103,6 +113,7 @@ class HistoryPayloadCodec {
     'decision': _remediation(remediation),
   });
 
+  // Process detection for this flow.
   static Map<String, dynamic> _detection(Detection detection) => {
     'class_id': detection.classId,
     'class_name': detection.className,
@@ -113,6 +124,7 @@ class HistoryPayloadCodec {
     'bottom': detection.rect.bottom,
   };
 
+  // Process grading for this flow.
   static Map<String, dynamic> _grading(GradingForecastResult result) => {
     'schema_version': result.schemaVersion,
     'grading': {
@@ -162,6 +174,7 @@ class HistoryPayloadCodec {
     },
   };
 
+  // Process option for this flow.
   static Map<String, dynamic> _option(TreatmentOption option) => {
     'name': option.name,
     'mix': option.mix,
@@ -172,6 +185,7 @@ class HistoryPayloadCodec {
     'is_chemical': option.isChemical,
   };
 
+  // Process pest treatment for this flow.
   static Map<String, dynamic> _pestTreatment(PestTreatment treatment) => {
     'action': treatment.action,
     'above_threshold': treatment.aboveThreshold,
@@ -180,6 +194,7 @@ class HistoryPayloadCodec {
     'note': treatment.note,
   };
 
+  // Process remediation for this flow.
   static Map<String, dynamic> _remediation(Remediation remediation) => {
     'action': remediation.action,
     'options': remediation.options.map(_option).toList(),

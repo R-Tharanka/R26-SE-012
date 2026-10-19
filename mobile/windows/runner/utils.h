@@ -1,3 +1,7 @@
+// =============================================================================
+// File: utils.h
+// Purpose: Declares shared helpers used by the Windows Flutter runner.
+// =============================================================================
 #ifndef RUNNER_UTILS_H_
 #define RUNNER_UTILS_H_
 

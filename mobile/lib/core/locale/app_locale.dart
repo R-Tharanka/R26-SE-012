@@ -1,3 +1,7 @@
+// =============================================================================
+// File: app_locale.dart
+// Purpose: Implements the app locale part of the mobile application.
+// =============================================================================
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -24,6 +28,7 @@ bool get hasChosenLanguage => _chosen;
 
 /// Loads the saved language before the app builds. Safe if nothing is stored.
 Future<void> loadSavedLocale() async {
+  // Load the saved application language.
   try {
     final prefs = await SharedPreferences.getInstance();
     _chosen = prefs.getBool(_kChosenKey) ?? false;
@@ -38,6 +43,7 @@ Future<void> loadSavedLocale() async {
 
 /// Sets and persists the app language.
 Future<void> setLocale(Locale locale) async {
+  // Save and apply the selected application language.
   appLocale.value = locale;
   _chosen = true;
   try {
@@ -52,6 +58,7 @@ Future<void> setLocale(Locale locale) async {
 /// English name of the active language, for instructing the AI which language to
 /// write its free-text answers in. Defaults to English.
 String currentPromptLanguage() {
+  // Return the language code used for AI prompts.
   switch (appLocale.value?.languageCode) {
     case 'si':
       return 'Sinhala';
@@ -64,6 +71,7 @@ String currentPromptLanguage() {
 
 /// Native display name for a supported language code.
 String languageDisplayName(String code) {
+  // Return the display name for a supported language.
   switch (code) {
     case 'si':
       return 'සිංහල';

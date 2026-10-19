@@ -1,3 +1,7 @@
+# =============================================================================
+# File: image preprocessor
+# Purpose: Safely prepares uploaded images for visual feature extraction.
+# =============================================================================
 from __future__ import annotations
 
 
@@ -11,6 +15,7 @@ def preprocess_image_bytes(image_bytes: bytes | None) -> tuple[bytes | None, dic
       returns (None, meta) so callers can fall back to demo mode.
     """
 
+    # Validate and normalize the image while keeping every failure recoverable.
     meta: dict[str, object] = {"processed": False, "note": "Preprocessing not executed."}
     if not image_bytes:
         meta["note"] = "No image provided; using demo mode."

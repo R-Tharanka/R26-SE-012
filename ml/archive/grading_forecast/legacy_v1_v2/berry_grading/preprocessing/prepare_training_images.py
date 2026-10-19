@@ -1,3 +1,7 @@
+# =============================================================================
+# File: prepare training images
+# Purpose: Archived legacy workflow: prepares training images for the next ML stage.
+# =============================================================================
 from __future__ import annotations
 
 import argparse
@@ -13,10 +17,12 @@ sys.dont_write_bytecode = True
 
 
 def _repo_root() -> Path:
+    # Find the repository root from this script's fixed location.
     return Path(__file__).resolve().parents[4]
 
 
 def _iter_image_files(root: Path) -> list[Path]:
+    # List image files in stable order.
     exts = {".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff", ".webp"}
     if not root.exists():
         return []
@@ -24,6 +30,7 @@ def _iter_image_files(root: Path) -> list[Path]:
 
 
 def _resize_with_letterbox(img: Image.Image, size: tuple[int, int] = (224, 224), fill: tuple[int, int, int] = (0, 0, 0)) -> Image.Image:
+    # Resize and pad an image without changing its aspect ratio.
     target_w, target_h = size
     img = img.convert("RGB")
     w, h = img.size
@@ -49,6 +56,7 @@ def prepare_images(
     *,
     size: tuple[int, int] = (224, 224),
 ) -> dict:
+    # Prepare images for the next workflow stage.
     files = _iter_image_files(raw_root)
     processed_root.mkdir(parents=True, exist_ok=True)
 
@@ -111,6 +119,7 @@ def prepare_images(
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Parse the command options and run this script's complete workflow.
     parser = argparse.ArgumentParser(description="Prepare resized (224x224) berry images for training.")
     parser.add_argument("--raw", type=Path, default=None, help="Raw images root folder.")
     parser.add_argument("--out-dir", type=Path, default=None, help="Processed output root folder.")

@@ -1,3 +1,7 @@
+# =============================================================================
+# File: FastAPI application entry point
+# Purpose: Loads configuration, initializes Phase 7, and creates the web API.
+# =============================================================================
 from contextlib import asynccontextmanager
 
 from dotenv import load_dotenv
@@ -10,12 +14,14 @@ from app.services.grading_forecast.phase7_service import initialize_phase7_runti
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Load environment settings and verify the complete runtime before serving.
     load_dotenv()
     initialize_phase7_runtime()
     yield
 
 
 def create_app() -> FastAPI:
+    # Build the API, attach shared middleware, and register the endpoint router.
     app = FastAPI(
         title="Multimodal Pepper AI Decision Support - Backend",
         version="0.2.0-phase7",

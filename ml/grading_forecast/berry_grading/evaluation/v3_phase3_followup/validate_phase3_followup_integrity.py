@@ -1,3 +1,7 @@
+# =============================================================================
+# File: validate phase3 followup integrity
+# Purpose: Checks validate phase3 followup integrity integrity and reproducibility.
+# =============================================================================
 """Focused integrity validator for the completed Phase 3 Follow-up experiment."""
 
 from __future__ import annotations
@@ -26,6 +30,7 @@ EXPECTED = {
 
 
 def sha256(path: Path) -> str:
+    # Calculate the SHA-256 value used for reproducibility and integrity checks.
     digest = hashlib.sha256()
     with path.open("rb") as handle:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
@@ -34,15 +39,18 @@ def sha256(path: Path) -> str:
 
 
 def rows(path: Path) -> list[dict]:
+    # Read CSV rows for the integrity or evaluation workflow.
     with path.open(newline="", encoding="utf-8-sig") as handle:
         return list(csv.DictReader(handle))
 
 
 def check(name: str, passed: bool, detail: str) -> dict:
+    # Create one clear integrity-check result.
     return {"check": name, "status": "PASS" if passed else "FAIL", "detail": detail}
 
 
 def main() -> int:
+    # Parse the command options and run this script's complete workflow.
     checks = []
     for relative, expected in EXPECTED.items():
         path = ROOT / relative

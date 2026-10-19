@@ -1,3 +1,7 @@
+# =============================================================================
+# File: grading and forecast schemas
+# Purpose: Defines and validates all Phase 7 and legacy API data structures.
+# =============================================================================
 """Stable API contract for the frozen Phase 7 decision-support workflow.
 
 The enums and validators in this module are intentionally stricter than the
@@ -69,6 +73,7 @@ class Phase7ForecastInterval(BaseModel):
     @model_validator(mode="after")
     def validate_bounds(self) -> "Phase7ForecastInterval":
         """Reject reversed ranges and any claim of calibrated probability."""
+        # Require an ordered descriptive interval with no probability claim.
         if self.lower > self.upper:
             raise ValueError("Forecast interval lower bound exceeds upper bound")
         if self.probability_claim:
@@ -131,6 +136,7 @@ class Phase7AnalyzeResponse(BaseModel):
         the frozen research workflow. This protects clients from accidental
         schema drift or a wrong-grade price response.
         """
+        # Check rejection-first behavior and exact grade-to-price routing.
         category = self.decision_support.category
         unavailable_values = (
             self.market.price_grade,

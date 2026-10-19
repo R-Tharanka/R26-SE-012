@@ -1,3 +1,7 @@
+# =============================================================================
+# File: price router
+# Purpose: Routes accepted grades to matching frozen price evidence.
+# =============================================================================
 """Strict grade-to-price routing over frozen Phase 4/5 artifacts."""
 
 from __future__ import annotations
@@ -28,6 +32,7 @@ class MarketForecast:
 
 
 def route_for_grade(v3_grade: str, config: dict | None = None) -> dict:
+    # Route for grade through the matching grade-specific path.
     config = config or load_config()
     routing = config["grade_routing"]
     if v3_grade not in routing:
@@ -36,6 +41,7 @@ def route_for_grade(v3_grade: str, config: dict | None = None) -> dict:
 
 
 def validate_route(v3_grade: str, forecast: MarketForecast, config: dict | None = None) -> dict:
+    # Validate route and report any integrity problems.
     route = route_for_grade(v3_grade, config)
     if forecast.price_grade != route["price_grade"]:
         raise ValueError(
@@ -46,6 +52,7 @@ def validate_route(v3_grade: str, forecast: MarketForecast, config: dict | None 
 
 
 def canonical_history(config: dict | None = None) -> dict[str, list[dict]]:
+    # Load the fixed Grade 1 and Grade 2 market histories.
     config = config or load_config()
     path = repo_path(config["frozen_price"]["canonical_dataset_path"])
     output = {"Grade 1": [], "Grade 2": []}
@@ -59,6 +66,7 @@ def canonical_history(config: dict | None = None) -> dict[str, list[dict]]:
 
 
 def history_context(grade: str, reference_date: str, histories: dict[str, list[dict]]) -> dict:
+    # Return the observations surrounding a requested reference date.
     values = histories.get(grade)
     if not values:
         raise ValueError(f"No canonical history for {grade}")

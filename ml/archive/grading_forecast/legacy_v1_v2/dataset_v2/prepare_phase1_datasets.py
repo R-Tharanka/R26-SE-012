@@ -1,3 +1,7 @@
+# =============================================================================
+# File: prepare phase1 datasets
+# Purpose: Archived legacy workflow: prepares phase1 datasets for the next ML stage.
+# =============================================================================
 from __future__ import annotations
 
 import argparse
@@ -69,22 +73,27 @@ class BerryRecord:
 
 
 def repo_root() -> Path:
+    # Find the repository root from this script's fixed location.
     return Path(__file__).resolve().parents[3]
 
 
 def utc_now_iso() -> str:
+    # Return the current UTC time in a stable ISO format.
     return datetime.now(tz=UTC).replace(microsecond=0).isoformat()
 
 
 def rel_posix(root: Path, path: Path) -> str:
+    # Return a repository-relative path using forward slashes.
     return path.resolve().relative_to(root.resolve()).as_posix()
 
 
 def make_image_id(index: int) -> str:
+    # Create image id for analysis or reporting.
     return f"IMGV2_{index:06d}"
 
 
 def normalize_district(value: object) -> str | None:
+    # Normalize district into the standard form.
     if value is None or (isinstance(value, float) and pd.isna(value)):
         return None
     text = str(value).strip()
@@ -95,6 +104,7 @@ def normalize_district(value: object) -> str | None:
 
 
 def normalize_grade(value: object) -> str | None:
+    # Normalize grade into the standard form.
     if value is None or (isinstance(value, float) and pd.isna(value)):
         return None
     text = str(value).strip()
@@ -105,6 +115,7 @@ def normalize_grade(value: object) -> str | None:
 
 
 def normalize_price_type(value: object) -> str | None:
+    # Normalize price type into the standard form.
     if value is None or (isinstance(value, float) and pd.isna(value)):
         return None
     text = str(value).strip().lower().replace(" ", "_")
@@ -115,6 +126,7 @@ def normalize_price_type(value: object) -> str | None:
 
 
 def parse_price(value: object) -> float | None:
+    # Parse price safely from the supplied input.
     if value is None or (isinstance(value, float) and pd.isna(value)):
         return None
     text = str(value).strip().replace(",", "")
@@ -130,6 +142,7 @@ def parse_price(value: object) -> float | None:
 
 
 def image_metadata(path: Path) -> tuple[bool, int | None, int | None, float | None, str, str, str | None]:
+    # Read image dimensions, format, and integrity information.
     try:
         digest = hashlib.md5(path.read_bytes()).hexdigest()
         with Image.open(path) as img:
@@ -145,6 +158,7 @@ def image_metadata(path: Path) -> tuple[bool, int | None, int | None, float | No
 
 
 def discover_berry_records(root: Path, raw_root: Path) -> tuple[list[BerryRecord], dict[str, Any]]:
+    # Discover valid berry images and collect their metadata.
     records: list[BerryRecord] = []
     unreadable: list[str] = []
     missing_or_inconsistent: list[str] = []
@@ -195,6 +209,7 @@ def discover_berry_records(root: Path, raw_root: Path) -> tuple[list[BerryRecord
 
 
 def write_berry_manifest(path: Path, records: list[BerryRecord]) -> None:
+    # Write berry manifest in the required reproducible format.
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=BERRY_MANIFEST_COLUMNS)
@@ -218,6 +233,7 @@ def write_berry_manifest(path: Path, records: list[BerryRecord]) -> None:
 
 
 def split_samples(records: list[BerryRecord], seed: int) -> dict[tuple[str, str], str]:
+    # Split samples without mixing protected groups or time periods.
     samples_by_grade: dict[str, list[str]] = defaultdict(list)
     for record in records:
         if not record.image_readable:
@@ -253,12 +269,14 @@ def split_samples(records: list[BerryRecord], seed: int) -> dict[tuple[str, str]
 
 
 def reset_v2_directory(path: Path) -> None:
+    # Recreate the legacy V2 output directory in a clean state.
     if path.exists():
         shutil.rmtree(path)
     path.mkdir(parents=True, exist_ok=True)
 
 
 def create_berry_split(root: Path, split_root: Path, split_manifest: Path, records: list[BerryRecord], seed: int) -> dict[str, Any]:
+    # Create berry split from the prepared source data.
     split_map = split_samples(records, seed=seed)
     reset_v2_directory(split_root)
 
@@ -294,6 +312,7 @@ def create_berry_split(root: Path, split_root: Path, split_manifest: Path, recor
 
 
 def validate_berry_split(records: list[BerryRecord], split_rows: list[dict[str, str]]) -> dict[str, Any]:
+    # Validate berry split and report any integrity problems.
     readable_records = [r for r in records if r.image_readable]
     source_paths = [r.image_path for r in readable_records]
     split_source_paths = [row["source_image_path"] for row in split_rows]
@@ -352,6 +371,7 @@ def validate_berry_split(records: list[BerryRecord], split_rows: list[dict[str, 
 
 
 def summarize_berry(records: list[BerryRecord], discovery_summary: dict[str, Any], split_validation: dict[str, Any]) -> dict[str, Any]:
+    # Summarize berry for the saved research results.
     readable = [r for r in records if r.image_readable]
     duplicate_paths = sorted([path for path, count in Counter(r.image_path for r in records).items() if count > 1])
     duplicate_hashes = {
@@ -417,6 +437,7 @@ def summarize_berry(records: list[BerryRecord], discovery_summary: dict[str, Any
 
 
 def clean_price_v2(input_csv: Path, output_csv: Path) -> tuple[pd.DataFrame, dict[str, Any]]:
+    # Clean price v2 while preserving valid observations.
     raw = pd.read_csv(input_csv)
     required = {
         "date",
@@ -476,6 +497,7 @@ def clean_price_v2(input_csv: Path, output_csv: Path) -> tuple[pd.DataFrame, dic
 
 
 def create_price_target(cleaned: pd.DataFrame, output_csv: Path) -> pd.DataFrame:
+    # Create price target from the prepared source data.
     subset = cleaned[
         (cleaned["commodity"] == "black_pepper")
         & (cleaned["country"] == "Sri Lanka")
@@ -495,6 +517,7 @@ def create_price_target(cleaned: pd.DataFrame, output_csv: Path) -> pd.DataFrame
 
 
 def date_gap_summary(dates: list[pd.Timestamp]) -> dict[str, Any]:
+    # Summarize time gaps between consecutive observations.
     if not dates:
         return {
             "observation_count": 0,
@@ -529,6 +552,7 @@ def date_gap_summary(dates: list[pd.Timestamp]) -> dict[str, Any]:
 
 
 def create_forecast_splits(target: pd.DataFrame, out_dir: Path) -> dict[str, Any]:
+    # Create forecast splits from the prepared source data.
     df = target.copy()
     df["date"] = pd.to_datetime(df["date"], errors="coerce")
     df = df.dropna(subset=["date", "price_lkr_per_kg"]).sort_values("date")
@@ -560,6 +584,7 @@ def create_forecast_splits(target: pd.DataFrame, out_dir: Path) -> dict[str, Any
 
 
 def coverage_summary(cleaned: pd.DataFrame, target: pd.DataFrame, clean_summary: dict[str, Any], split_summary: dict[str, Any]) -> dict[str, Any]:
+    # Summarize dataset coverage and split validation results.
     cleaned = cleaned.copy()
     cleaned["year"] = cleaned["date"].dt.year
     target_dates = list(pd.to_datetime(target["date"], errors="coerce").dropna())
@@ -613,11 +638,13 @@ def coverage_summary(cleaned: pd.DataFrame, target: pd.DataFrame, clean_summary:
 
 
 def write_json(path: Path, payload: dict[str, Any]) -> None:
+    # Write the supplied results in a stable, reproducible format.
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Parse the command options and run this script's complete workflow.
     parser = argparse.ArgumentParser(description="Prepare Phase 1 V2 dataset artifacts without touching V1 outputs.")
     parser.add_argument("--seed", type=int, default=SEED, help="Deterministic sample split seed.")
     args = parser.parse_args(argv)

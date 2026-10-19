@@ -1,3 +1,7 @@
+# =============================================================================
+# File: export forecast model
+# Purpose: Archived legacy workflow: exports forecast model for deployment.
+# =============================================================================
 from __future__ import annotations
 
 import argparse
@@ -11,19 +15,23 @@ sys.dont_write_bytecode = True
 
 
 def _repo_root() -> Path:
+    # Find the repository root from this script's fixed location.
     return Path(__file__).resolve().parents[4]
 
 
 def _utc_now_iso() -> str:
+    # Return the current UTC time in a stable ISO format.
     return datetime.now(tz=UTC).replace(microsecond=0).isoformat()
 
 
 def _is_v2_path(path: Path, marker: str) -> bool:
+    # Check whether v2 path meets the required condition.
     normalized = str(path).replace("\\", "/").lower()
     return marker.lower() in normalized
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Parse the command options and run this script's complete workflow.
     parser = argparse.ArgumentParser(description="Finalize/validate forecast artifacts in models folder (no retrain).")
     parser.add_argument("--models-dir", type=Path, default=None, help="Models directory.")
     parser.add_argument("--require-v2-paths", action="store_true", help="Fail unless V2 models directory is used.")

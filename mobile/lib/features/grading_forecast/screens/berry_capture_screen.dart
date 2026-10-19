@@ -1,3 +1,7 @@
+// =============================================================================
+// File: berry_capture_screen.dart
+// Purpose: Presents the berry capture screen mobile interface and user flow.
+// =============================================================================
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -11,6 +15,7 @@ class BerryCaptureScreen extends StatefulWidget {
   const BerryCaptureScreen({super.key});
 
   @override
+  // Create the mutable state object for this widget.
   State<BerryCaptureScreen> createState() => _BerryCaptureScreenState();
 }
 
@@ -24,6 +29,7 @@ class _BerryCaptureScreenState extends State<BerryCaptureScreen> {
   Uint8List? _selectedBytes;
 
   Future<void> _pick(ImageSource source) async {
+    // Select pick for this flow.
     try {
       // Preserve the selected bytes for the frozen Phase 7 backend pipeline.
       // Resizing or JPEG recompression here changes the blur, detection, and
@@ -65,12 +71,14 @@ class _BerryCaptureScreenState extends State<BerryCaptureScreen> {
   }
 
   void _showSelectionError(String message) {
+    // Show the selection error for this flow.
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   void _analyze() {
+    // Analyze the selected image and return its result.
     final selected = _selected;
     final bytes = _selectedBytes;
     if (selected == null) return;
@@ -87,6 +95,7 @@ class _BerryCaptureScreenState extends State<BerryCaptureScreen> {
   }
 
   void _showPhotoGuide() {
+    // Show the photo guide for this flow.
     final t = AppLocalizations.of(context);
     showModalBottomSheet<void>(
       context: context,
@@ -136,6 +145,7 @@ class _BerryCaptureScreenState extends State<BerryCaptureScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     final t = AppLocalizations.of(context);
     final imageBytes = _selectedBytes;
     final canAnalyze = imageBytes != null && imageBytes.isNotEmpty;

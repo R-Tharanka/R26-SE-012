@@ -1,3 +1,7 @@
+// =============================================================================
+// File: berry_analysis.dart
+// Purpose: Implements the berry analysis part of the mobile application.
+// =============================================================================
 /// Vision result of an AI pepper-berry spike analysis.
 ///
 /// The AI judges damage SEVERITY visually — how much of the spike looks damaged
@@ -42,6 +46,8 @@ class BerryAnalysis {
   }
 
   factory BerryAnalysis.fromJson(Map<String, dynamic> j) {
+    // Read a numeric JSON value as a decimal number.
+    // Parse and validate one object from an API JSON response.
     double asDouble(Object? v) =>
         v is num ? v.toDouble() : (double.tryParse('${v ?? ''}') ?? 0);
     final healthy = j['healthy'] == true;

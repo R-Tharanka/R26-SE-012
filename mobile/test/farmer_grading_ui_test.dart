@@ -1,3 +1,7 @@
+// =============================================================================
+// File: farmer_grading_ui_test.dart
+// Purpose: Verifies the farmer grading ui test behavior.
+// =============================================================================
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -12,12 +16,14 @@ final Uint8List _onePixelPng = base64Decode(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
 );
 
+// Create the application widget used by this test.
 Widget _app(Widget child) => MaterialApp(
   localizationsDelegates: AppLocalizations.localizationsDelegates,
   supportedLocales: AppLocalizations.supportedLocales,
   home: child,
 );
 
+// Create a sample grading result for this test.
 GradingForecastResult _result({
   String gradingStatus = 'ACCEPTED',
   String decision = 'GRADE_1',
@@ -75,6 +81,7 @@ GradingForecastResult _result({
 });
 
 void main() {
+  // Register the tests defined in this file.
   testWidgets('accepted result leads with farmer grade and hides internals', (
     tester,
   ) async {

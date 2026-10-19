@@ -1,3 +1,7 @@
+# =============================================================================
+# File: prepare yolo dataset
+# Purpose: Prepares yolo dataset for the next ML stage.
+# =============================================================================
 """Build manifest-driven Ultralytics image lists without copying V3 data."""
 
 from __future__ import annotations
@@ -22,6 +26,7 @@ LIST_NAMES = {"TRAIN": "train.txt", "VALIDATION": "validation.txt", "TEST": "tes
 
 
 def sha256(path: Path) -> str:
+    # Calculate the SHA-256 value used for reproducibility and integrity checks.
     digest = hashlib.sha256()
     with path.open("rb") as handle:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
@@ -30,6 +35,7 @@ def sha256(path: Path) -> str:
 
 
 def main() -> int:
+    # Parse the command options and run this script's complete workflow.
     parser = argparse.ArgumentParser()
     parser.add_argument("--manifest", type=Path, default=Path("data/processed/grading_forecast/berry_v3/v3_image_sample_manifest.csv"))
     parser.add_argument("--group-manifest", type=Path, default=Path("data/processed/grading_forecast/berry_v3/v3_group_split_manifest.csv"))

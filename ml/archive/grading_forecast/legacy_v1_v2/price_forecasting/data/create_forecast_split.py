@@ -1,3 +1,7 @@
+# =============================================================================
+# File: create forecast split
+# Purpose: Archived legacy workflow: implements the create forecast split step of the machine-learning workflow.
+# =============================================================================
 from __future__ import annotations
 
 import argparse
@@ -10,22 +14,27 @@ sys.dont_write_bytecode = True
 
 
 def _repo_root() -> Path:
+    # Find the repository root from this script's fixed location.
     return Path(__file__).resolve().parents[4]
 
 
 def _default_input(repo_root: Path) -> Path:
+    # Return the default input path for this legacy workflow.
     return repo_root / "data" / "processed" / "grading_forecast" / "forecast_training_data.csv"
 
 
 def _default_train(repo_root: Path) -> Path:
+    # Return the default train path.
     return repo_root / "data" / "processed" / "grading_forecast" / "train_forecast_data.csv"
 
 
 def _default_test(repo_root: Path) -> Path:
+    # Return the default test path.
     return repo_root / "data" / "processed" / "grading_forecast" / "test_forecast_data.csv"
 
 
 def _date_range(df: pd.DataFrame) -> str:
+    # Summarize the earliest and latest dates in the dataset.
     if df.empty:
         return "(empty)"
     start = df["date"].min().date()
@@ -34,6 +43,7 @@ def _date_range(df: pd.DataFrame) -> str:
 
 
 def create_split(input_csv: Path, train_csv: Path, test_csv: Path, train_ratio: float = 0.8) -> tuple[int, int]:
+    # Create split from the prepared source data.
     df = pd.read_csv(input_csv)
     if "date" not in df.columns:
         raise ValueError("Input CSV must contain a 'date' column.")
@@ -60,6 +70,7 @@ def create_split(input_csv: Path, train_csv: Path, test_csv: Path, train_ratio: 
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Parse the command options and run this script's complete workflow.
     parser = argparse.ArgumentParser(description="Create a chronological train/test split for forecasting data.")
     parser.add_argument("--input", type=Path, default=None, help="Input forecasting CSV path.")
     parser.add_argument("--train-out", type=Path, default=None, help="Train CSV output path.")

@@ -1,3 +1,7 @@
+// =============================================================================
+// File: detection_overlay.dart
+// Purpose: Provides reusable detection overlay user-interface components.
+// =============================================================================
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
@@ -32,6 +36,7 @@ class OverlayTransform {
     required Size widgetSize,
     required OverlayFit fit,
   }) {
+    // Process for fit for this flow.
     final sx = widgetSize.width / imageSize.width;
     final sy = widgetSize.height / imageSize.height;
     final scale = fit == OverlayFit.cover ? math.max(sx, sy) : math.min(sx, sy);
@@ -71,6 +76,7 @@ class DetectionOverlay extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    // Draw the current detection overlay on the canvas.
     if (imageSize.isEmpty || size.isEmpty) return;
 
     final transform = OverlayTransform.forFit(
@@ -96,6 +102,7 @@ class DetectionOverlay extends CustomPainter {
   }
 
   void _drawLabel(Canvas canvas, Rect box, Detection d) {
+    // Process draw label for this flow.
     final text = '${d.className}  ${(d.score * 100).toStringAsFixed(0)}%';
     final tp = TextPainter(
       text: TextSpan(
@@ -133,6 +140,7 @@ class DetectionOverlay extends CustomPainter {
   }
 
   @override
+  // Decide whether changed overlay data requires repainting.
   bool shouldRepaint(covariant DetectionOverlay old) =>
       old.detections != detections ||
       old.imageSize != imageSize ||

@@ -1,3 +1,7 @@
+# =============================================================================
+# File: validate dataset
+# Purpose: Archived legacy workflow: checks validate dataset integrity and reproducibility.
+# =============================================================================
 from __future__ import annotations
 
 import argparse
@@ -13,10 +17,12 @@ sys.dont_write_bytecode = True
 
 
 def _repo_root() -> Path:
+    # Find the repository root from this script's fixed location.
     return Path(__file__).resolve().parents[4]
 
 
 def _normalize_grade(value: object) -> str | None:
+    # Normalize grade into the standard form.
     if value is None or (isinstance(value, float) and pd.isna(value)):
         return None
     text = str(value).strip()
@@ -30,6 +36,7 @@ def _normalize_grade(value: object) -> str | None:
 
 
 def _is_readable_image(path: Path) -> tuple[bool, tuple[int, int] | None, str | None]:
+    # Check whether readable image meets the required condition.
     try:
         img = cv2.imread(str(path))
     except Exception as exc:  # noqa: BLE001
@@ -43,6 +50,7 @@ def _is_readable_image(path: Path) -> tuple[bool, tuple[int, int] | None, str | 
 
 
 def validate_labels_csv(labels_csv: Path, summary_json: Path, repo_root: Path) -> dict:
+    # Validate labels csv and report any integrity problems.
     df = pd.read_csv(labels_csv)
     if "image_path" not in df.columns or "grade" not in df.columns:
         raise ValueError("Labels CSV must contain 'image_path' and 'grade' columns.")
@@ -114,6 +122,7 @@ def validate_labels_csv(labels_csv: Path, summary_json: Path, repo_root: Path) -
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Parse the command options and run this script's complete workflow.
     parser = argparse.ArgumentParser(description="Validate berry grading dataset labels and images.")
     parser.add_argument(
         "--labels",

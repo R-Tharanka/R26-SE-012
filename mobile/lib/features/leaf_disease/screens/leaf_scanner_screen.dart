@@ -1,3 +1,7 @@
+// =============================================================================
+// File: leaf_scanner_screen.dart
+// Purpose: Presents the leaf scanner screen mobile interface and user flow.
+// =============================================================================
 import 'package:flutter/material.dart';
 
 import '../../../l10n/app_localizations.dart';
@@ -26,6 +30,7 @@ class LeafScannerScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     return ScannerView(
       modelConfig: _leafConfig,
       title: AppLocalizations.of(context).homeLeafHealth,

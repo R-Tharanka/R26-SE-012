@@ -1,3 +1,7 @@
+# =============================================================================
+# File: download external negatives
+# Purpose: Implements the download external negatives step of the machine-learning workflow.
+# =============================================================================
 """Download and verify the small Wikimedia Commons Phase 3 negative set."""
 
 from __future__ import annotations
@@ -51,10 +55,12 @@ CATEGORY_SEARCH = {
 
 
 def sha256_bytes(payload: bytes) -> str:
+    # Calculate the SHA-256 value used for reproducibility and integrity checks.
     return hashlib.sha256(payload).hexdigest()
 
 
 def request_json(params: dict) -> dict:
+    # Request one page of candidate-image metadata from the external API.
     url = API + "?" + urllib.parse.urlencode(params)
     for attempt in range(5):
         request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
@@ -69,6 +75,7 @@ def request_json(params: dict) -> dict:
 
 
 def candidates(query: str) -> list[dict]:
+    # Collect candidate negative images returned by the configured searches.
     payload = request_json({
         "action": "query", "format": "json", "generator": "search",
         "gsrsearch": f"{query} filetype:bitmap", "gsrnamespace": 6, "gsrlimit": 50,
@@ -79,15 +86,18 @@ def candidates(query: str) -> list[dict]:
 
 
 def clean_html(value: str | None) -> str:
+    # Clean html while preserving valid observations.
     return re.sub(r"<[^>]+>", "", value or "").strip()
 
 
 def existing_v3_hashes() -> set[str]:
+    # Collect hashes already present in the protected V3 dataset.
     with V3_MANIFEST.open(newline="", encoding="utf-8-sig") as handle:
         return {row["sha256"].lower() for row in csv.DictReader(handle)}
 
 
 def validate_existing() -> bool:
+    # Validate existing and report any integrity problems.
     if not MANIFEST.exists():
         return False
     with MANIFEST.open(newline="", encoding="utf-8-sig") as handle:
@@ -105,6 +115,7 @@ def validate_existing() -> bool:
 
 
 def main() -> int:
+    # Parse the command options and run this script's complete workflow.
     if validate_existing():
         return 0
     OUTPUT_ROOT.mkdir(parents=True, exist_ok=True)

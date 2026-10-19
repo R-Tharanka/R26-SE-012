@@ -1,3 +1,7 @@
+# =============================================================================
+# File: predict price
+# Purpose: Archived legacy workflow: runs predict price for the legacy inference workflow.
+# =============================================================================
 from __future__ import annotations
 
 import json
@@ -8,10 +12,12 @@ sys.dont_write_bytecode = True
 
 
 def _repo_root() -> Path:
+    # Find the repository root from this script's fixed location.
     return Path(__file__).resolve().parents[4]
 
 
 def main() -> int:
+    # Parse the command options and run this script's complete workflow.
     repo_root = _repo_root()
     backend_path = repo_root / "backend"
     sys.path.insert(0, str(backend_path))

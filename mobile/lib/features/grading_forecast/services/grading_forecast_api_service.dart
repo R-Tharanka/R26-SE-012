@@ -1,3 +1,7 @@
+// =============================================================================
+// File: grading_forecast_api_service.dart
+// Purpose: Provides the grading forecast api service application service.
+// =============================================================================
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -18,6 +22,7 @@ class GradingForecastApiException implements Exception {
   final int? statusCode;
   final Object? cause;
   @override
+  // Return a readable description of this value.
   String toString() => 'GradingForecastApiException($statusCode): $message';
 }
 
@@ -51,6 +56,7 @@ class GradingForecastApiService {
   final String _baseUrl;
   final http.Client _client;
   final bool _ownsClient;
+  // Return the configured backend base URL.
   String get baseUrl => _baseUrl;
 
   /// Validates the upload locally, then strictly parses the complete response
@@ -59,6 +65,7 @@ class GradingForecastApiService {
     Uint8List bytes,
     String filename,
   ) async {
+    // Analyze the supplied image bytes.
     if (bytes.isEmpty) {
       throw const GradingForecastApiException(
         'The selected image is empty.',
@@ -149,6 +156,7 @@ class GradingForecastApiService {
   }
 
   void close() {
+    // Close the owned client or database resources.
     if (_ownsClient) _client.close();
   }
 
@@ -164,6 +172,7 @@ class GradingForecastApiService {
     return null;
   }
 
+  // Process message for status for this flow.
   static String _messageForStatus(int statusCode) => switch (statusCode) {
     400 => 'The selected file is not a readable image.',
     413 => 'The selected image exceeds the safe upload or processing limit.',
@@ -175,6 +184,7 @@ class GradingForecastApiService {
     _ => 'Analysis failed on the research backend.',
   };
 
+  // Process kind for status for this flow.
   static GradingForecastApiErrorKind _kindForStatus(int statusCode) =>
       switch (statusCode) {
         400 => GradingForecastApiErrorKind.invalidImage,

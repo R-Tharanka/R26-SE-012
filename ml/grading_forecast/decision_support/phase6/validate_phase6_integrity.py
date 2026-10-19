@@ -1,3 +1,7 @@
+# =============================================================================
+# File: validate phase6 integrity
+# Purpose: Checks validate phase6 integrity integrity and reproducibility.
+# =============================================================================
 """Integrity and reproducibility validation for Phase 6 grade-price fusion."""
 
 from __future__ import annotations
@@ -30,19 +34,23 @@ FROZEN = {
 
 
 def sha256(path: Path) -> str:
+    # Calculate the SHA-256 value used for reproducibility and integrity checks.
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def check(name: str, passed: bool, detail: str = "") -> dict:
+    # Create one clear integrity-check result.
     return {"check": name, "status": "PASS" if passed else "FAIL", "detail": detail}
 
 
 def read_csv(path: Path) -> list[dict[str, str]]:
+    # Read csv into the structure used by this workflow.
     with path.open(newline="", encoding="utf-8-sig") as handle:
         return list(csv.DictReader(handle))
 
 
 def main() -> int:
+    # Parse the command options and run this script's complete workflow.
     config = load_config()
     checks = []
     frozen_hashes = {}

@@ -1,3 +1,7 @@
+# =============================================================================
+# File: validate phase6 integrity
+# Purpose: Checks validate phase6 integrity integrity and reproducibility.
+# =============================================================================
 """Validate the Phase 0-5 freeze and optional Phase 6 field-data independence.
 
 This script is read-only except for its Phase 6 integrity JSON output. It does
@@ -53,6 +57,7 @@ ALLOWED_PHASE6_CHANGES = (
 
 
 def sha256(path: Path) -> str:
+    # Calculate the SHA-256 value used for reproducibility and integrity checks.
     digest = hashlib.sha256()
     with path.open("rb") as handle:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
@@ -61,6 +66,7 @@ def sha256(path: Path) -> str:
 
 
 def rows(path: Path) -> list[dict[str, str]]:
+    # Read CSV rows for the integrity or evaluation workflow.
     if not path.is_file():
         return []
     with path.open(newline="", encoding="utf-8-sig") as handle:
@@ -68,11 +74,13 @@ def rows(path: Path) -> list[dict[str, str]]:
 
 
 def check(name: str, passed: bool | None, detail: str, required: bool = True) -> dict:
+    # Create one clear integrity-check result.
     status = "UNAVAILABLE" if passed is None else "PASS" if passed else "FAIL"
     return {"check": name, "status": status, "required": required, "detail": detail}
 
 
 def git_state() -> dict:
+    # Describe the current repository revision and change state.
     commit = subprocess.run(
         ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True, capture_output=True, check=True
     ).stdout.strip()
@@ -91,6 +99,7 @@ def git_state() -> dict:
 
 
 def safe_repo_path(relative: str) -> Path | None:
+    # Resolve a repository path only when it remains inside the repository.
     candidate = (ROOT / relative).resolve()
     try:
         candidate.relative_to(ROOT.resolve())
@@ -100,6 +109,7 @@ def safe_repo_path(relative: str) -> Path | None:
 
 
 def validate_field_manifest(path: Path, prior_hashes: set[str]) -> tuple[list[dict], dict]:
+    # Validate field manifest and report any integrity problems.
     field_rows = rows(path)
     if not field_rows:
         return [], {
@@ -166,6 +176,7 @@ def validate_field_manifest(path: Path, prior_hashes: set[str]) -> tuple[list[di
 
 
 def main() -> int:
+    # Parse the command options and run this script's complete workflow.
     parser = argparse.ArgumentParser()
     parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)

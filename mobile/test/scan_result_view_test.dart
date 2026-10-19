@@ -1,3 +1,7 @@
+// =============================================================================
+// File: scan_result_view_test.dart
+// Purpose: Verifies the scan result view test behavior.
+// =============================================================================
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -12,6 +16,7 @@ import 'package:pepper_care/shared/widgets/scan_result_view.dart';
 Uint8List tinyPng() =>
     Uint8List.fromList(img.encodePng(img.Image(width: 8, height: 8)));
 
+// Create a sample detection for this test.
 Detection det(String name, double score) => Detection(
   classId: 0,
   className: name,
@@ -20,6 +25,7 @@ Detection det(String name, double score) => Detection(
   color: const Color(0xFF2ECC71),
 );
 
+// Wrap the widget with the dependencies required by this test.
 Widget wrap(Widget child) => MaterialApp(
   localizationsDelegates: AppLocalizations.localizationsDelegates,
   supportedLocales: AppLocalizations.supportedLocales,
@@ -27,6 +33,7 @@ Widget wrap(Widget child) => MaterialApp(
 );
 
 void main() {
+  // Register the tests defined in this file.
   group('ScanResultView', () {
     testWidgets('lists every detection with its confidence', (tester) async {
       await tester.pumpWidget(

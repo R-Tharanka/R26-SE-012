@@ -1,3 +1,7 @@
+# =============================================================================
+# File: train forecast model
+# Purpose: Archived legacy workflow: trains forecast model using the recorded experiment procedure.
+# =============================================================================
 from __future__ import annotations
 
 import argparse
@@ -21,14 +25,17 @@ sys.dont_write_bytecode = True
 
 
 def _repo_root() -> Path:
+    # Find the repository root from this script's fixed location.
     return Path(__file__).resolve().parents[4]
 
 
 def _utc_now_iso() -> str:
+    # Return the current UTC time in a stable ISO format.
     return datetime.now(tz=UTC).replace(microsecond=0).isoformat()
 
 
 def _git_sha(repo_root: Path) -> str | None:
+    # Return the current Git revision when it can be determined.
     head = repo_root / ".git" / "HEAD"
     if not head.exists():
         return None
@@ -46,12 +53,14 @@ def _git_sha(repo_root: Path) -> str | None:
 
 
 def _set_seeds(seed: int) -> None:
+    # Set seeds for repeatable execution.
     os.environ.setdefault("PYTHONHASHSEED", str(seed))
     random.seed(seed)
     np.random.seed(seed)
 
 
 def _feature_spec(*, lags: list[int], rolling_windows: list[int], eps: float) -> dict[str, Any]:
+    # Build feature spec from the validated inputs.
     features: list[str] = []
     for lag in lags:
         features.append(f"lag_{lag}")
@@ -74,11 +83,13 @@ TARGET_DEFINITION = {
 
 
 def _is_v2_path(path: Path, marker: str) -> bool:
+    # Check whether v2 path meets the required condition.
     normalized = str(path).replace("\\", "/").lower()
     return marker.lower() in normalized
 
 
 def _date_range_payload(df: pd.DataFrame) -> dict[str, str | None]:
+    # Return the dataset date range as serializable text.
     if df.empty or "date" not in df.columns:
         return {"start": None, "end": None}
     dates = pd.to_datetime(df["date"], errors="coerce").dropna()
@@ -88,6 +99,7 @@ def _date_range_payload(df: pd.DataFrame) -> dict[str, str | None]:
 
 
 def _csv_summary(path: Path | None) -> dict[str, Any] | None:
+    # Summarize csv summary from the supplied records.
     if path is None or not path.exists():
         return None
     df = pd.read_csv(path)
@@ -98,6 +110,7 @@ def _csv_summary(path: Path | None) -> dict[str, Any] | None:
 
 
 def _add_time_features(df: pd.DataFrame) -> pd.DataFrame:
+    # Build add time features from the validated inputs.
     out = df.copy()
     out["month"] = out["date"].dt.month.astype(int)
     out["week_of_year"] = out["date"].dt.isocalendar().week.astype(int)
@@ -117,6 +130,7 @@ def build_features(
     Input: df with columns [date, price_lkr_per_kg] sorted ascending.
     Output: df with engineered features + target y_next_price.
     """
+    # Build features from the validated inputs.
     df = series_df.copy()
     df["date"] = pd.to_datetime(df["date"], errors="coerce")
     df = df.dropna(subset=["date", "price_lkr_per_kg"]).sort_values("date", ascending=True)
@@ -145,6 +159,7 @@ def build_features(
 
 
 def _validate_v2_paths(*, train_csv: Path, models_dir: Path) -> None:
+    # Resolve validate v2 paths for the current record.
     if not _is_v2_path(train_csv, "data/processed/grading_forecast/price_v2/forecast_train.csv"):
         raise ValueError(f"Expected V2 train CSV, got: {train_csv}")
     if not _is_v2_path(models_dir, "ml/grading_forecast/price_forecasting/models/v2"):
@@ -152,11 +167,13 @@ def _validate_v2_paths(*, train_csv: Path, models_dir: Path) -> None:
 
 
 def _hash_feature_spec(spec: dict[str, Any]) -> str:
+    # Build hash feature spec from the validated inputs.
     b = json.dumps(spec, sort_keys=True).encode("utf-8")
     return hashlib.sha256(b).hexdigest()[:16]
 
 
 def _metrics(y_true: np.ndarray, y_pred: np.ndarray) -> dict[str, float]:
+    # Calculate metrics from the supplied evaluation records.
     mae = float(mean_absolute_error(y_true, y_pred))
     # Avoid relying on sklearn's `squared=` kwarg (removed/changed in some versions).
     mse = float(mean_squared_error(y_true, y_pred))
@@ -167,6 +184,7 @@ def _metrics(y_true: np.ndarray, y_pred: np.ndarray) -> dict[str, float]:
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Parse the command options and run this script's complete workflow.
     parser = argparse.ArgumentParser(description="Train RandomForest forecasting model (one-step weekly).")
     parser.add_argument("--train-csv", type=Path, default=None, help="Train CSV path (train_forecast_data.csv).")
     parser.add_argument("--models-dir", type=Path, default=None, help="Output models directory.")

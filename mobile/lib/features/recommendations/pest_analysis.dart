@@ -1,3 +1,7 @@
+// =============================================================================
+// File: pest_analysis.dart
+// Purpose: Implements the pest analysis part of the mobile application.
+// =============================================================================
 /// Vision result of an AI pest analysis on a pepper-plant photo.
 ///
 /// AI identifies and counts what it can see; it does NOT recommend any
@@ -58,8 +62,11 @@ class PestAnalysis {
   /// from the AI backend/API into a Dart object that can be used
   /// throughout the Flutter application.
   factory PestAnalysis.fromJson(Map<String, dynamic> j) {
+    // Read a numeric JSON value as a decimal number.
+    // Parse and validate one object from an API JSON response.
     double asDouble(Object? v) =>
         v is num ? v.toDouble() : (double.tryParse('${v ?? ''}') ?? 0);
+    // Read a numeric JSON value as an integer.
     int asInt(Object? v) =>
         v is num ? v.round() : (int.tryParse('${v ?? ''}') ?? 0);
 

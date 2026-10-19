@@ -1,3 +1,7 @@
+# =============================================================================
+# File: grading runtime
+# Purpose: Runs frozen ONNX berry grading with approved thresholds.
+# =============================================================================
 """ONNX Runtime inference with the frozen Phase 3 decision pipeline."""
 
 from __future__ import annotations
@@ -18,6 +22,7 @@ class GradingRuntimeError(RuntimeError):
 
 
 def _thresholds() -> FrozenThresholds:
+    # Load the frozen decision thresholds from the approved configuration.
     frozen = load_config()["grading"]
     import json
     payload = json.loads(repo_path(frozen["decision_config"]).read_text(encoding="utf-8"))
@@ -26,6 +31,7 @@ def _thresholds() -> FrozenThresholds:
 
 @lru_cache(maxsize=1)
 def session():
+    # Create and cache the ONNX Runtime inference session.
     try:
         import onnxruntime as ort
         settings = load_config()["grading"]
@@ -40,23 +46,29 @@ def session():
 
 
 def initialize_grading_runtime() -> None:
+    # Load the ONNX session before requests are served.
     session()
 
 
 def _decode(image_bytes: bytes) -> np.ndarray:
+    # Decode the uploaded JPEG, PNG, or WEBP bytes into image pixels.
     try:
         # Match the frozen Phase 3 and Ultralytics OpenCV decode path exactly.
         # Pillow may expose the stored pixel orientation differently for images
         # carrying EXIF orientation metadata.
+        # np.frombuffer creates the one-dimensional byte array expected by
+        # OpenCV without changing the uploaded image content.
         bgr = cv2.imdecode(np.frombuffer(image_bytes, dtype=np.uint8), cv2.IMREAD_COLOR)
         if bgr is None:
             raise ValueError("OpenCV decode returned no image")
+        # OpenCV decodes colors as BGR, while the trained YOLO model expects RGB.
         return cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
     except Exception as exc:
         raise GradingRuntimeError("Image is unreadable") from exc
 
 
 def _quality(rgb: np.ndarray) -> dict:
+    # Calculate image quality measurements used by the frozen decision rules.
     gray = cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY)
     height, width = gray.shape
     return {"width": int(width), "height": int(height), "minimum_dimension": int(min(width, height)),
@@ -64,22 +76,38 @@ def _quality(rgb: np.ndarray) -> dict:
 
 
 def _letterbox(rgb: np.ndarray, size: int) -> tuple[np.ndarray, float, tuple[float, float]]:
+    # Prepare one RGB image for the fixed square ONNX model input.
     height, width = rgb.shape[:2]
+
+    # Use one scale for both dimensions so berries are not stretched. The
+    # longest side becomes `size`, while the shorter side remains proportional.
     scale = min(size / height, size / width)
     resized = cv2.resize(rgb, (round(width * scale), round(height * scale)), interpolation=cv2.INTER_LINEAR)
+
+    # Place the resized image in the center of a square, using the same gray
+    # padding value (114) used by the frozen YOLO preprocessing pipeline.
     canvas = np.full((size, size, 3), 114, dtype=np.uint8)
     pad_x, pad_y = (size - resized.shape[1]) / 2, (size - resized.shape[0]) / 2
     left, top = round(pad_x - 0.1), round(pad_y - 0.1)
     canvas[top:top + resized.shape[0], left:left + resized.shape[1]] = resized
+
+    # Convert HWC pixels to the NCHW layout expected by ONNX:
+    #   [height, width, channels] -> [batch, channels, height, width].
+    # The resulting float32 tensor has shape [1, 3, size, size], and division
+    # by 255 changes pixel values from integers in 0..255 to floats in 0..1.
     tensor = np.ascontiguousarray(canvas.transpose(2, 0, 1)[None], dtype=np.float32) / 255.0
     return tensor, scale, (left, top)
 
 
 def infer_raw(image_bytes: bytes) -> dict:
+    # Convert one uploaded image into the tensor used for ONNX inference.
     rgb = _decode(image_bytes)
     settings = load_config()["grading"]
     tensor, scale, padding = _letterbox(rgb, int(settings["image_size"]))
     try:
+        # Pass the tensor under the configured ONNX input name (`images`) and
+        # request the configured output (`output0`). The leading [0] selects
+        # the single output array; the trailing [0] selects this one-image batch.
         output = np.asarray(session().run([settings["output_name"]], {settings["input_name"]: tensor})[0])[0]
     except Exception as exc:
         raise GradingRuntimeError("Frozen V3 ONNX inference failed") from exc
@@ -110,6 +138,7 @@ def infer_raw(image_bytes: bytes) -> dict:
 
 
 def grade_image(image_bytes: bytes, input_id: str) -> tuple[GradingResult, dict]:
+    # Grade image with the frozen model and thresholds.
     raw = infer_raw(image_bytes)
     outcome = decide(raw, _thresholds())
     result = GradingResult(input_id=input_id, decision=outcome["decision"], grade=outcome["grade"],

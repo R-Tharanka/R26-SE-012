@@ -1,3 +1,7 @@
+// =============================================================================
+// File: scanner_view.dart
+// Purpose: Provides reusable scanner view user-interface components.
+// =============================================================================
 import 'dart:async';
 
 import 'package:camera/camera.dart';
@@ -40,6 +44,7 @@ class ScannerView extends StatefulWidget {
   });
 
   @override
+  // Create the mutable state object for this widget.
   State<ScannerView> createState() => _ScannerViewState();
 }
 
@@ -61,6 +66,7 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
   String _status = '';
   Timer? _statusTimer;
 
+  // Return the localized messages shown while analysis is running.
   static List<String> _statusMessages(AppLocalizations t) => [
     t.statusThinking,
     t.statusValidating,
@@ -72,6 +78,7 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
 
   /// Localized display label for this scanner (used in the hint + result badge).
   String _localizedLabel(AppLocalizations t) {
+    // Return the localized label for the selected scanner.
     switch (widget.modelConfig.id) {
       case 'berry':
         return t.berryLabel;
@@ -105,6 +112,7 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
 
   @override
   void initState() {
+    // Initialize controllers, listeners, and first-load state.
     super.initState();
     _additionalFallbackDetectors = List.generate(
       widget.additionalFallbackConfigs.length,
@@ -119,6 +127,7 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
   }
 
   void _showInstructions({bool force = false}) {
+    // Show the instructions for this flow.
     if (_disposed || !mounted) return;
     if (_instructionsShown && !force) return;
     _instructionsShown = true;
@@ -141,6 +150,7 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
   }
 
   Future<void> _bootstrap() async {
+    // Prepare the detector and camera for a new scan.
     try {
       final cameras = await availableCameras();
       if (_disposed) return;
@@ -166,6 +176,7 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
   }
 
   Future<void> _initCamera(List<CameraDescription> cameras) async {
+    // Open and configure the selected device camera.
     if (cameras.isEmpty) {
       throw CameraException('no_camera', 'No camera found on this device.');
     }
@@ -187,6 +198,7 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
   }
 
   Future<void> _capture() async {
+    // Capture a photo and run the configured analysis flow.
     final controller = _controller;
     if (controller == null || _analyzing || !_detector.isReady) return;
     setState(() => _analyzing = true);
@@ -203,6 +215,7 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
   /// Picks an existing photo from the gallery and analyses it with the same
   /// pipeline as a live capture.
   Future<void> _pickFromGallery() async {
+    // Select from gallery for this flow.
     if (_analyzing || !_detector.isReady) return;
     setState(() => _analyzing = true);
     _startStatusCycle();
@@ -279,6 +292,7 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
     Uint8List bytes,
     DetectionResult result,
   ) async {
+    // Save the completed detection to local history.
     final repository = HistoryScope.maybeOf(context);
     if (repository == null) return;
     final key = _historyRecordKey ??= newHistoryRecordKey();
@@ -310,6 +324,7 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
   /// Cycles [_status] through [_statusMessages] every couple of seconds so the
   /// analysing overlay stays alive during a long cloud call.
   void _startStatusCycle() {
+    // Start rotating the progress message shown during analysis.
     final messages = _statusMessages(AppLocalizations.of(context));
     var i = 0;
     setState(() => _status = messages[0]);
@@ -321,11 +336,13 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
   }
 
   void _stopStatusCycle() {
+    // Stop the rotating analysis progress messages.
     _statusTimer?.cancel();
     _statusTimer = null;
   }
 
   void _onAnalyzeError(Object e, [StackTrace? st]) {
+    // Convert an analysis failure into a clear user-facing error.
     _stopStatusCycle();
     logAiError('scanner-${widget.modelConfig.id}', e, st);
     if (_disposed) return;
@@ -339,6 +356,7 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
   }
 
   void _retake() {
+    // Reset the scanner so the user can take another photo.
     setState(() {
       _photo = null;
       _result = null;
@@ -410,6 +428,7 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
   /// For the combined scanner: route by the most-confident non-healthy
   /// detection — a pest class sends the user to the pest flow, otherwise leaf.
   Detection? _topDetection() {
+    // Return the detection with the highest confidence score.
     final dets = _result?.detections ?? const [];
     final problems =
         dets
@@ -422,6 +441,7 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
   }
 
   Detection? _primaryDetection(DetectionResult result) {
+    // Select the main detection used for the result.
     if (result.detections.isEmpty) return null;
     final sorted = [...result.detections]
       ..sort((a, b) => b.score.compareTo(a.score));
@@ -429,6 +449,7 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
   }
 
   HistoryFeature _historyFeature(DetectionResult result) {
+    // Map the current scanner to its saved history feature.
     switch (widget.modelConfig.id) {
       case 'berry':
         return HistoryFeature.berryDisease;
@@ -454,6 +475,7 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Respond safely when the application lifecycle changes.
     if (_disposed) return;
     if (state == AppLifecycleState.inactive ||
         state == AppLifecycleState.paused) {
@@ -474,6 +496,7 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    // Release controllers, listeners, and other owned resources.
     _disposed = true;
     _statusTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
@@ -488,6 +511,7 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -507,6 +531,7 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
   }
 
   Widget _buildBody() {
+    // Build and return the body for this flow.
     final t = AppLocalizations.of(context);
     if (_cameraError != null) {
       return _message(
@@ -573,6 +598,7 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
   }
 
   Widget _buildShutterBar() {
+    // Build and return the shutter bar for this flow.
     final t = AppLocalizations.of(context);
     final ready = _detector.isReady && !_analyzing;
     return SafeArea(
@@ -633,6 +659,7 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
     required String title,
     required String detail,
   }) {
+    // Process message for this flow.
     return Container(
       color: Colors.black87,
       alignment: Alignment.center,
@@ -675,6 +702,7 @@ class _ScannerViewState extends State<ScannerView> with WidgetsBindingObserver {
 /// either model keeps the combined result marked low-confidence.
 @visibleForTesting
 DetectionResult mergeDetectionResults(List<DetectionResult> results) {
+  // Merge detection results for this flow.
   if (results.isEmpty) {
     return const DetectionResult([], Size.zero, 0);
   }
@@ -714,6 +742,7 @@ String? detectedPestForRecommendations(
   Detection? detection, {
   required bool lowConfidence,
 }) {
+  // Select the pest result used to create recommendations.
   if (detection == null || lowConfidence) return null;
   return AiDetectionService.isPestClass(detection.className)
       ? detection.className
@@ -736,6 +765,7 @@ class _InstructionsSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     final cs = Theme.of(context).colorScheme;
     return SafeArea(
       child: Padding(
@@ -825,6 +855,7 @@ class _CircleAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     return Material(
       color: Colors.black45,
       shape: const CircleBorder(),
@@ -852,6 +883,7 @@ class _ShutterButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     final enabled = onPressed != null;
     return Semantics(
       button: true,
@@ -889,6 +921,7 @@ class _CoveredPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     final preview = controller.value.previewSize!;
     // previewSize is in sensor (landscape) orientation; swap for portrait.
     return ClipRect(

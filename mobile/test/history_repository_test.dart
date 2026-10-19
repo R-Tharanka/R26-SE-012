@@ -1,3 +1,7 @@
+// =============================================================================
+// File: history_repository_test.dart
+// Purpose: Verifies the history repository test behavior.
+// =============================================================================
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -11,6 +15,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
+  // Register the tests defined in this file.
   TestWidgetsFlutterBinding.ensureInitialized();
   sqfliteFfiInit();
 
@@ -23,6 +28,7 @@ void main() {
   Future<HistoryRepository> makeRepository({
     HistoryImageStore? imageStore,
   }) async {
+    // Create the repository for this flow.
     database = await databaseFactoryFfi.openDatabase(
       inMemoryDatabasePath,
       options: OpenDatabaseOptions(
@@ -108,6 +114,7 @@ void main() {
 
   test('duplicate scanner save enriches one stable record', () async {
     final bytes = Uint8List.fromList([0x89, 0x50, 0x4e, 0x47, 1, 2, 3, 4]);
+    // Save the save for this flow.
     Future<void> save() => repository.saveNew(
       recordKey: 'same-attempt',
       feature: HistoryFeature.leafDisease,
@@ -194,6 +201,7 @@ void main() {
     () async {
       final cleanupTime = clock;
       Future<void> saveAt(String key, DateTime time) async {
+        // Save the at for this flow.
         clock = time;
         await repository.saveNew(
           recordKey: key,
@@ -305,6 +313,7 @@ class _FailingImageStore extends HistoryImageStore {
 
   @override
   Future<bool> delete(String relativePath) async {
+    // Delete the delete for this flow.
     if (failDeletes) return false;
     return super.delete(relativePath);
   }

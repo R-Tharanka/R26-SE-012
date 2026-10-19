@@ -1,3 +1,7 @@
+// =============================================================================
+// File: win32_window.h
+// Purpose: Declares the reusable DPI-aware native Windows window class.
+// =============================================================================
 #ifndef RUNNER_WIN32_WINDOW_H_
 #define RUNNER_WIN32_WINDOW_H_
 
@@ -15,14 +19,18 @@ class Win32Window {
   struct Point {
     unsigned int x;
     unsigned int y;
-    Point(unsigned int x, unsigned int y) : x(x), y(y) {}
+    Point(unsigned int x, unsigned int y) : x(x), y(y) {
+      // Store the horizontal and vertical window coordinates.
+    }
   };
 
   struct Size {
     unsigned int width;
     unsigned int height;
     Size(unsigned int width, unsigned int height)
-        : width(width), height(height) {}
+        : width(width), height(height) {
+      // Store the requested window width and height.
+    }
   };
 
   Win32Window();

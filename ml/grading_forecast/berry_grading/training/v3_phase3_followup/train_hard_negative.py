@@ -1,3 +1,7 @@
+# =============================================================================
+# File: train hard negative
+# Purpose: Trains hard negative using the recorded experiment procedure.
+# =============================================================================
 """Run the one-shot Phase 3 Follow-up hard-negative fine-tuning treatment."""
 
 from __future__ import annotations
@@ -29,6 +33,7 @@ V3_MANIFEST = ROOT / "data/processed/grading_forecast/berry_v3/v3_image_sample_m
 
 
 def sha256(path: Path) -> str:
+    # Calculate the SHA-256 value used for reproducibility and integrity checks.
     digest = hashlib.sha256()
     with path.open("rb") as handle:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
@@ -37,11 +42,13 @@ def sha256(path: Path) -> str:
 
 
 def csv_rows(path: Path) -> list[dict]:
+    # Read CSV rows for the training or evaluation workflow.
     with path.open(newline="", encoding="utf-8-sig") as handle:
         return list(csv.DictReader(handle))
 
 
 def main() -> int:
+    # Parse the command options and run this script's complete workflow.
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
     parser.add_argument("--data", type=Path, default=DEFAULT_DATA)

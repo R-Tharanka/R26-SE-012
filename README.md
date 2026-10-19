@@ -1,187 +1,247 @@
-
 # Multimodal Pepper AI Decision Support System
 
-An AI-powered mobile-based system for **black pepper crop analysis, quality assessment, and market decision support**.
+A research-focused Flutter and FastAPI application for black pepper crop
+analysis, harvested-sample grading, and qualified market decision support.
 
-This project integrates **computer vision, machine learning, and time-series forecasting** to help farmers detect crop issues, evaluate pepper quality, and make informed selling decisions.
+The repository combines four mobile analysis areas:
 
----
+- pest detection;
+- leaf disease detection and severity analysis;
+- berry disease detection;
+- berry grading and grade-specific price outlooks.
 
-## 🚀 Features
+The selected berry-grading workflow is a fail-closed Phase 7 integration. It
+uses backend ONNX inference and approved frozen research evidence; it is not an
+official export-grading service, a live market-price service, or financial
+advice.
 
-- 🔍 **Pest Detection**
-  - Detect pests on pepper plants using image-based AI models
+## Current application flow
 
-- 🍃 **Leaf Disease Detection & Severity Analysis**
-  - Identify diseases and estimate infection severity
-
-- 🫛 **Berry Disease Detection**
-  - Detect diseases affecting pepper berries and provide safe remediation advice
-
-- 📊 **Berry Grading & Quality Scoring**
-  - Analyze berry size, color, and texture to determine export quality
-
-- 📈 **Price Forecasting**
-  - Predict short-term market prices using historical data
-
-- 💡 **Decision Support**
-  - Recommend actions:
-    - Sell now
-    - Wait for better price
-    - Process locally
-
-- 📱 **Mobile Application**
-  - Farmers can capture images and receive real-time insights
-
----
-
-## 🧠 System Architecture
-
+```text
+Flutter (web or Android)
+    |
+    | multipart image upload
+    v
+FastAPI: POST /api/v1/grading-forecast/analyze
+    |
+    +-> image validation and frozen quality gates
+    +-> V3 Phase 3 follow-up YOLO11n model (ONNX Runtime CPU)
+    +-> Phase 6 rejection-first decision engine
+    +-> exact-grade frozen Phase 5 forecast record, when grading is accepted
+    v
+Localized result and local History snapshot in Flutter
 ```
 
-Mobile App (Flutter)
-↓
-FastAPI Backend
-↓
-AI Models (PyTorch + OpenCV)
-↓
-Firebase / Cloud Storage
+Rejected, poor-quality, non-pepper, and uncertain inputs do not receive market
+output. An accepted Grade 1 or Grade 2 result can access only the corresponding
+grade-specific frozen forecast record. Uploading an image does not retrain a
+model or create a new price forecast.
 
+The pest, leaf-disease, and berry-disease features are separate mobile
+components. They use their own bundled TFLite fallback and optional cloud
+analysis path; those models are not the Phase 7 berry grader.
+
+## Implemented capabilities
+
+- Flutter application for Android and web development workflows.
+- English, Sinhala (`si`), and Tamil (`ta`) presentation.
+- Pest, leaf-disease, berry-disease, and berry-grading feature flows.
+- V3 two-grade harvested-sample detection and grading with YOLO11n.
+- Quality, non-pepper, and uncertainty rejection before price routing.
+- Grade-specific frozen price evidence and deterministic Phase 6 decisions.
+- Local-first History that stores completed result snapshots and selected image
+  copies without rerunning inference when a record is reopened.
+- Strict API/mobile validation for image size, format, response schema, routing,
+  and error handling.
+- Optional Firebase persistence retained outside the core Phase 7 path.
+
+## Research evidence at a glance
+
+| Area | Saved result | Interpretation boundary |
+|---|---:|---|
+| V3 data | 775 images from 194 physical samples | Group-aware split: 539 train, 116 validation, 120 test |
+| V3 follow-up positive test | 115/120 accuracy (95.83%); macro F1 0.9643 | Controlled positive-pepper images, not independent field evidence |
+| Original Phase 2 detector | mAP@0.5 0.9791 | Belongs to the original detector test, not the later hard-negative result |
+| Phase 3 follow-up negatives | 49/49 rejected | Small sealed external negative holdout, not broad open-set proof |
+| Phase 5 selected Ridge model | price MAE 34.00 and RMSE 54.73 LKR/kg over 147 final-test predictions | Chronological research evaluation; newest external check contained only 10 predictions |
+| Phase 6 decision engine | 28/28 saved scenarios passed | 13 empirical-compositional and 15 synthetic logic scenarios, not a field study |
+| Phase 7 integration | five controlled roles passed ONNX/PyTorch equivalence and corrected emulator flow | Grade 1, Grade 2, non-pepper, poor-image, and uncertain cases |
+
+These results come from different experiments and must not be combined into a
+single accuracy claim. See the [full component progress report](docs/research/FULL_COMPONENT_PROGRESS_REPORT_2026-10-10.md)
+and the phase-specific records under [`docs/research/`](docs/research/) for the
+methods, metrics, and limitations.
+
+## Technology
+
+| Layer | Main technologies |
+|---|---|
+| Mobile | Flutter, Dart, SQLite, TFLite fallback modules |
+| Backend | FastAPI, Pydantic, Uvicorn, Pillow, OpenCV |
+| Grading runtime | Ultralytics YOLO11n export, ONNX Runtime CPU |
+| Forecast research | Python, pandas, scikit-learn Ridge regression |
+| Optional integrations | Firebase, Gemini, Anthropic |
+
+## Repository layout
+
+```text
+backend/   FastAPI application, Phase 7 API boundary, schemas, and tests
+data/      Raw sources, controlled inputs, manifests, and processed evidence
+docs/      Current guides, API resources, and versioned research records
+ml/        Active V3 and Phase 4-7 ML workflow plus separated archives
+mobile/    Flutter application, local History, localization, and model assets
+archive/   Preserved superseded material; not the current runtime
 ```
 
-The system processes images captured from the field and combines AI predictions with market data to generate actionable insights.
+The authoritative file-level ownership and cleanup boundaries are documented in
+the [repository inventory](docs/guides/repository_inventory.md). Historical
+V1/V2/PP2 documents are separated under
+[`docs/research/historical/`](docs/research/historical/) and must not be read as
+the selected Phase 7 workflow.
 
----
+## Quick start
 
-## 🏗️ Project Structure
+The commands below use PowerShell and assume a repository-root Python virtual
+environment named `.venv`.
 
+### 1. Install backend dependencies
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r backend\requirements.txt
 ```
 
-multimodal-pepper-ai-decision-support/
+Dependency installation may access package registries. Skip it when the
+existing environment is already complete.
 
-├── backend/        # FastAPI backend services
-├── mobile/         # Flutter mobile application
-├── ml/             # Machine learning models
-├── data/           # Datasets (raw, processed)
-├── notebooks/      # Experiments & EDA
-├── docs/           # Documentation
-├── scripts/        # Utility scripts
-└── README.md
+### 2. Start FastAPI
 
+```powershell
+.\.venv\Scripts\python.exe -m uvicorn app.main:app `
+  --app-dir backend `
+  --host 0.0.0.0 `
+  --port 8000
 ```
 
----
+The application verifies the ONNX runtime and frozen forecast evidence during
+startup. Check both endpoints before using a client:
 
-## ⚙️ Tech Stack
+```powershell
+Invoke-RestMethod "http://127.0.0.1:8000/api/v1/grading-forecast/health"
+Invoke-RestMethod "http://127.0.0.1:8000/api/v1/grading-forecast/ready"
+```
 
-### 🔹 Backend
-- FastAPI
-- Python
+`/health` is a liveness check. `/ready` is the required readiness gate and must
+return HTTP 200 with `status: ready`. Interactive API documentation is at
+`http://127.0.0.1:8000/docs`.
 
-### 🔹 Machine Learning
-- PyTorch
-- OpenCV
-- Scikit-learn
-- Time-series models (ARIMA / LSTM / Prophet)
+### 3. Run Flutter
 
-### 🔹 Mobile
-- Flutter
+From `mobile/`:
 
-### 🔹 Cloud & Storage
-- Firebase
+```powershell
+flutter pub get
 
----
+# Web with a local backend
+flutter run -d chrome `
+  --dart-define=PEPPER_API_BASE_URL=http://127.0.0.1:8000
 
-## 📊 Workflow
+# Android emulator with a local backend
+flutter run -d emulator-5554 `
+  --dart-define=PEPPER_API_BASE_URL=http://10.0.2.2:8000
+```
 
-1. Capture image via mobile app  
-2. Upload to backend API  
-3. Preprocess image (OpenCV)  
-4. Run AI models (classification / detection / segmentation)  
-5. Compute quality score  
-6. Predict market price  
-7. Generate recommendation  
-8. Return results to mobile app  
+Replace `emulator-5554` with the identifier printed by `flutter devices`.
+For a physical Android device connected over USB, run
+`adb reverse tcp:8000 tcp:8000` and use `http://127.0.0.1:8000`.
 
----
+`PEPPER_API_BASE_URL` is a build-time value. Phase 7 grading does not require
+Gemini or Anthropic credentials. Optional restricted development keys for the
+other mobile analysis features may be stored in the ignored `mobile/.env` file.
+Never commit keys or distribute unrestricted provider keys inside an APK or web
+bundle.
 
-## 📁 Data Pipeline
+For browser, emulator, device, localization, controlled-image, and Android
+release procedures, use the
+[Phase 7 application guide](docs/guides/PHASE7_APPLICATION_RUN_GUIDE.md).
 
-- Raw data collection (field visits)
-- Image preprocessing & augmentation
-- Feature extraction
-- Model training & evaluation
-- Inference via API
+## API contract
 
----
+| Method and path | Purpose |
+|---|---|
+| `GET /api/v1/grading-forecast/health` | Process liveness only |
+| `GET /api/v1/grading-forecast/ready` | ONNX and frozen-evidence readiness |
+| `POST /api/v1/grading-forecast/analyze` | Rejection-first integrated analysis |
 
-## ✅ Berry Grading & Export Price Forecasting (IT22079268)
+`POST /analyze` expects multipart field `image`, accepts a single-frame JPEG,
+PNG, or WEBP, and limits uploads to 10 MB. The backend also bounds decoded
+dimensions and pixel count.
 
-This component focuses on berry quality grading, export price forecasting, and decision support. It is based on the responsibilities defined in the project proposal and implemented across the backend, ML pipeline, and mobile app.
+The pre-Phase-7 `/grade-only`, `/price-forecast`, and `/recommend` routes are
+retired and intentionally return HTTP 410. The maintained Postman collection is
+[`docs/api/grading_forecast_postman_collection.json`](docs/api/grading_forecast_postman_collection.json).
 
-### Current Authoritative Workflow
+## Validation
 
-The current research workflow uses V3 YOLO11 berry grading with the frozen
-Phase 3 follow-up model, the selected Phase 5 grade-specific forecasting
-specification and saved forecast records, the Phase 6 decision engine, and the
-Phase 7 backend ONNX integration used by Flutter. Older MobileNetV2, V1, and V2
-files are retained as historical evidence or backend fallback artifacts; they
-must not be mistaken for the selected V3 research workflow.
+Run the focused, non-generating Phase 7 backend suite from the repository root:
 
-See [Repository Inventory](docs/guides/repository_inventory.md) for the active,
-historical, generated, ignored-local, and protected artifact boundaries.
+```powershell
+.\.venv\Scripts\python.exe -m pytest -q `
+  --basetemp=.\backend\pytest-cache-files-phase7 `
+  backend\tests\test_main_startup.py `
+  backend\tests\test_phase7_integration.py `
+  backend\tests\test_phase7_text_integrity.py
+```
 
-### Key Implementation Areas
+The latest recorded run on 2026-10-18 passed 15/15 tests. That evidence covers
+startup wiring, active routes, rejection-first behavior, error handling, and
+cross-platform frozen-text integrity. It does not prove model retraining,
+hosted availability, device behavior, or field performance.
 
-- backend/app/api/routes/grading_forecast.py (API endpoints)
-- backend/app/services/grading_forecast/ (grading, forecasting, recommendations, Firebase storage)
-- ml/grading_forecast/ (training, evaluation, inference, and model artifacts)
-- data/raw/market_prices and data/raw/berry_images (source datasets)
-- data/processed/grading_forecast (cleaned data, splits, and summaries)
-- mobile/lib/features/grading_forecast/ (UI screens + API client)
+Validate Flutter separately from `mobile/`:
 
-### Progress Checklist (WBS Tasks)
+```powershell
+flutter analyze
+flutter test
+```
 
-- [x] T1 Dataset collection (berry images + market prices)
-- [x] T2 Dataset cleaning and preparation
-- [x] T3 Image preprocessing (OpenCV-based)
-- [x] T4 Feature extraction (visual quality features)
-- [x] T5 Berry grading model development (MobileNetV2 + ONNX export)
-- [x] T6 Export price forecasting model development (RandomForest + baselines)
-- [x] T7 Backend API development and integration
-- [x] T8 Mobile dashboard development
-- [ ] T9 Database integration (configure Firebase credentials and verify live writes)
-- [ ] T10 System testing and evaluation (full end-to-end + field validation)
+Static analysis and widget/unit tests do not replace an Android build,
+installation, live backend check, or manual device acceptance.
 
----
+## Important limitations
 
-## 👥 Team
+- V3 Grade 1 and Grade 2 are project-specific visual labels, not official SLS,
+  laboratory, buyer, or export certification grades.
+- The grader evaluates harvested sample/batch images; it does not grade each
+  individual berry or measure moisture, piperine, volatile oil, fibre, ash,
+  hygiene, adulteration, or other laboratory criteria.
+- Controlled results do not establish generalization across farms, phones,
+  seasons, lighting, backgrounds, cultivars, or post-harvest conditions.
+- Confidence and margin values are model scores and heuristics, not calibrated
+  probabilities.
+- Phase 5 uses historical EAC national-average farm-gate observations. Its
+  frozen records are not live buyer offers, guaranteed transaction prices, or
+  trading signals. Grade 2 forecasting evidence is materially weaker than
+  Grade 1 evidence.
+- Prospective field validation, independent user/economic-benefit studies,
+  production authentication, distributed rate limiting, adversarial testing,
+  and load testing remain incomplete.
+- The current Android application ID and release-signing setup are suitable for
+  controlled local testing, not public store distribution.
 
-- Member 1 – Pest Detection  
-- Member 2 – Leaf Disease Detection  
-- Member 3 – Berry Disease Detection  
-- Member 4 – Berry Grading & Price Forecasting  
+## Documentation
 
----
+- [Current guides index](docs/guides/README.md)
+- [Project commands](docs/guides/project_commands_guide.md)
+- [Phase 7 run and acceptance guide](docs/guides/PHASE7_APPLICATION_RUN_GUIDE.md)
+- [Flutter build and distribution guide](docs/guides/build_guide.md)
+- [Repository inventory](docs/guides/repository_inventory.md)
+- [Current research records](docs/research/)
 
-## 📌 Future Improvements
+## Project status and license
 
-- Improve model accuracy with larger datasets  
-- Real-time inference optimization  
-- Offline mode for mobile app  
-- Advanced forecasting models  
-- Integration with agricultural advisory systems  
+This is an academic research system. The selected Phase 7 integration is
+complete with documented limitations; production readiness and independent
+field validity have not been demonstrated.
 
----
-
-## 📄 License
-
-This project is for academic and research purposes.
-
----
-
-## ⭐ Acknowledgements
-
-- Agricultural experts and pepper farmers  
-- Academic supervisor and research guidance  
-- Open-source ML and development communities  
+No standalone software license is currently declared in the repository. Do not
+assume permission for external redistribution until the project owners add one.

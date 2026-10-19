@@ -1,3 +1,7 @@
+# =============================================================================
+# File: train yolo
+# Purpose: Trains yolo using the recorded experiment procedure.
+# =============================================================================
 """Run the single controlled Phase 2 YOLO11n training experiment."""
 
 from __future__ import annotations
@@ -19,6 +23,7 @@ from ultralytics import YOLO
 
 
 def main() -> int:
+    # Parse the command options and run this script's complete workflow.
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=Path, default=Path("ml/grading_forecast/berry_grading/training/v3_yolo/experiment.yaml"))
     parser.add_argument("--data", type=Path, default=Path("data/processed/grading_forecast/berry_v3/yolo_phase2/data.yaml"))

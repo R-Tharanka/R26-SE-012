@@ -1,7 +1,12 @@
+// =============================================================================
+// File: phase7_grading_forecast_result_test.dart
+// Purpose: Verifies the phase7 grading forecast result test behavior.
+// =============================================================================
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pepper_care/features/grading_forecast/models/grading_forecast_result.dart';
 
 void main() {
+  // Register the tests defined in this file.
   test('parses the Phase 6 compatible accepted response', () {
     final result = GradingForecastResult.fromJson({
       'schema_version': 'phase6_decision_support_v1',

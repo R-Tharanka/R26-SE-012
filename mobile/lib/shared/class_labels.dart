@@ -1,3 +1,7 @@
+// =============================================================================
+// File: class_labels.dart
+// Purpose: Implements the class labels part of the mobile application.
+// =============================================================================
 import '../l10n/app_localizations.dart';
 
 /// Translates a predicted class label (from the on-device detector, the AI
@@ -7,6 +11,7 @@ import '../l10n/app_localizations.dart';
 /// pest names (e.g. "Diconocoris distanti") and any free-form/unknown label fall
 /// through unchanged — scientific binomials are the same in every language.
 String localizedClassName(String raw, AppLocalizations t) {
+  // Return the localized name for a model class.
   final key = raw.trim().toLowerCase().replaceAll('_', ' ');
   switch (key) {
     case 'healthy':

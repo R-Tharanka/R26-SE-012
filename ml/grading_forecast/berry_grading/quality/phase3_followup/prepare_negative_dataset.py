@@ -1,3 +1,7 @@
+# =============================================================================
+# File: prepare negative dataset
+# Purpose: Prepares negative dataset for the next ML stage.
+# =============================================================================
 """Resume-safe Wikimedia negative acquisition, split, validation, and YOLO preparation."""
 
 from __future__ import annotations
@@ -54,10 +58,12 @@ FIELDS = [
 
 
 def sha256_bytes(payload: bytes) -> str:
+    # Calculate the SHA-256 value used for reproducibility and integrity checks.
     return hashlib.sha256(payload).hexdigest()
 
 
 def sha256_file(path: Path) -> str:
+    # Calculate the SHA-256 value used for reproducibility and integrity checks.
     digest = hashlib.sha256()
     with path.open("rb") as handle:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
@@ -66,10 +72,12 @@ def sha256_file(path: Path) -> str:
 
 
 def clean_html(value: str | None) -> str:
+    # Clean html while preserving valid observations.
     return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", value or "")).strip()
 
 
 def api_request(params: dict) -> dict:
+    # Send one bounded metadata request to the external image API.
     url = API + "?" + urllib.parse.urlencode(params)
     last_error: Exception | None = None
     for attempt in range(6):
@@ -84,6 +92,7 @@ def api_request(params: dict) -> dict:
 
 
 def search(query: str, offset: int = 0) -> list[dict]:
+    # Search the configured source for candidate negative images.
     payload = api_request({
         "action": "query", "format": "json", "formatversion": 2, "generator": "search",
         "gsrsearch": f"{query} filetype:bitmap", "gsrnamespace": 6, "gsrlimit": 50,
@@ -94,6 +103,7 @@ def search(query: str, offset: int = 0) -> list[dict]:
 
 
 def openverse_search(query: str, page: int = 1) -> list[dict]:
+    # Search Openverse for candidate negative images.
     params = urllib.parse.urlencode({"q": query, "license": "cc0,pdm,by,by-sa", "page_size": 50, "page": page})
     request = urllib.request.Request(OPENVERSE_API + "?" + params, headers={"User-Agent": USER_AGENT})
     with urllib.request.urlopen(request, timeout=60) as response:
@@ -101,6 +111,7 @@ def openverse_search(query: str, page: int = 1) -> list[dict]:
 
 
 def read_csv(path: Path) -> list[dict]:
+    # Read csv into the structure used by this workflow.
     if not path.exists():
         return []
     with path.open(newline="", encoding="utf-8-sig") as handle:
@@ -108,6 +119,7 @@ def read_csv(path: Path) -> list[dict]:
 
 
 def write_manifest(rows: list[dict]) -> None:
+    # Write manifest in the required reproducible format.
     MANIFEST.parent.mkdir(parents=True, exist_ok=True)
     temp = MANIFEST.with_suffix(".csv.tmp")
     with temp.open("w", newline="", encoding="utf-8") as handle:
@@ -118,18 +130,21 @@ def write_manifest(rows: list[dict]) -> None:
 
 
 def log_failure(payload: dict) -> None:
+    # Record one failed acquisition without stopping the full run.
     DOWNLOAD_ROOT.mkdir(parents=True, exist_ok=True)
     with FAILURES.open("a", encoding="utf-8") as handle:
         handle.write(json.dumps({"timestamp": datetime.now(timezone.utc).isoformat(), **payload}, ensure_ascii=False) + "\n")
 
 
 def forbidden_hashes() -> set[str]:
+    # Collect hashes that must never enter the negative dataset.
     hashes = {r["sha256"].lower() for r in read_csv(V3_MANIFEST) if r.get("sha256")}
     hashes.update(r["sha256"].lower() for r in read_csv(PHASE3_MANIFEST) if r.get("sha256"))
     return hashes
 
 
 def validate_existing(rows: list[dict]) -> tuple[list[dict], set[str], set[str]]:
+    # Validate existing and report any integrity problems.
     valid, hashes, pages = [], set(), set()
     for row in rows:
         path = ROOT / row["local_path"]
@@ -147,6 +162,7 @@ def validate_existing(rows: list[dict]) -> tuple[list[dict], set[str], set[str]]
 
 
 def download(url: str) -> bytes:
+    # Download and validate one candidate image.
     last_error: Exception | None = None
     for attempt in range(5):
         try:
@@ -174,6 +190,7 @@ def download(url: str) -> bytes:
 
 
 def image_metadata(payload: bytes) -> tuple[int, int, str]:
+    # Read image dimensions, format, and integrity information.
     with Image.open(io.BytesIO(payload)) as image:
         image.verify()
     with Image.open(io.BytesIO(payload)) as image:
@@ -187,6 +204,7 @@ def image_metadata(payload: bytes) -> tuple[int, int, str]:
 
 
 def acquire(target_override: int | None = None) -> list[dict]:
+    # Collect the requested negative images under the safety rules.
     existing, seen_hashes, seen_pages = validate_existing(read_csv(MANIFEST))
     if FAILURES.exists():
         for line in FAILURES.read_text(encoding="utf-8").splitlines():
@@ -289,6 +307,7 @@ def acquire(target_override: int | None = None) -> list[dict]:
 
 def acquire_openverse(target_override: int | None = None) -> list[dict]:
     """Fill remaining category quotas from Openverse's open-license API."""
+    # Acquire openverse while enforcing the dataset safeguards.
     existing, seen_hashes, seen_pages = validate_existing(read_csv(MANIFEST))
     forbidden = forbidden_hashes()
     rows = list(existing)
@@ -364,6 +383,7 @@ def acquire_openverse(target_override: int | None = None) -> list[dict]:
 
 
 def assign_splits(rows: list[dict]) -> list[dict]:
+    # Assign negative-image groups to deterministic dataset splits.
     by_group: dict[str, list[dict]] = defaultdict(list)
     for row in rows:
         by_group[row["source_group"]].append(row)
@@ -376,6 +396,7 @@ def assign_splits(rows: list[dict]) -> list[dict]:
     for _, group_rows in groups:
         group_categories = Counter(row["category"] for row in group_rows)
         def score(split: str) -> tuple[float, str]:
+            # Calculate how well this candidate split matches the target balance.
             global_load = (totals[split] + len(group_rows)) / targets[split]
             category_load = sum(
                 (category_counts[split][category] + count) / max(1.0, category_totals[category] * ratios[split])
@@ -391,6 +412,7 @@ def assign_splits(rows: list[dict]) -> list[dict]:
 
 
 def copy_derived(source: Path, destination: Path) -> None:
+    # Copy derived into the prepared output structure.
     destination.parent.mkdir(parents=True, exist_ok=True)
     if destination.exists():
         if sha256_file(destination) != sha256_file(source):
@@ -402,6 +424,7 @@ def copy_derived(source: Path, destination: Path) -> None:
 
 
 def prepare_yolo(rows: list[dict]) -> None:
+    # Prepare yolo for the next workflow stage.
     phase2 = ROOT / "data/processed/grading_forecast/berry_v3/yolo_phase2"
     train_positive = [line.strip() for line in (phase2 / "train.txt").read_text(encoding="utf-8").splitlines() if line.strip()]
     validation_positive = [line.strip() for line in (phase2 / "validation.txt").read_text(encoding="utf-8").splitlines() if line.strip()]
@@ -429,6 +452,7 @@ def prepare_yolo(rows: list[dict]) -> None:
 
 
 def validate(rows: list[dict]) -> dict:
+    # Validate the prepared dataset and return its integrity summary.
     if not rows:
         raise RuntimeError("No usable follow-up negatives")
     hashes = [r["sha256"] for r in rows]
@@ -456,6 +480,7 @@ def validate(rows: list[dict]) -> dict:
 
 
 def write_summary(rows: list[dict], validation: dict, requested_target: int | None = None) -> None:
+    # Write summary in the required reproducible format.
     failure_lines = FAILURES.read_text(encoding="utf-8").splitlines() if FAILURES.exists() else []
     failure_records = []
     for line in failure_lines:
@@ -488,6 +513,7 @@ def write_summary(rows: list[dict], validation: dict, requested_target: int | No
 
 
 def main() -> int:
+    # Parse the command options and run this script's complete workflow.
     parser = argparse.ArgumentParser()
     parser.add_argument("--target", type=int, help="Optional smaller total target for an interrupted/slow-network run")
     parser.add_argument("--prepare-only", action="store_true", help="Do not access the network; verify and materialize the cached manifest")

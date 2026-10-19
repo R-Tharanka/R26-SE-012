@@ -1,3 +1,7 @@
+// =============================================================================
+// File: yolo_detector_test.dart
+// Purpose: Verifies the yolo detector test behavior.
+// =============================================================================
 import 'dart:typed_data';
 import 'dart:ui';
 
@@ -30,6 +34,7 @@ void writeAnchor(
   required double h,
   required List<double> scores,
 }) {
+  // Write anchor for this flow.
   const n = YoloDetector.numAnchors;
   out[0 * n + anchor] = cx;
   out[1 * n + anchor] = cy;
@@ -41,6 +46,7 @@ void writeAnchor(
 }
 
 List<Detection> makeDets(List<(int, double, Rect)> specs) {
+  // Create sample detections for this test.
   return specs
       .map((s) => Detection(
             classId: s.$1,
@@ -53,6 +59,7 @@ List<Detection> makeDets(List<(int, double, Rect)> specs) {
 }
 
 void main() {
+  // Register the tests defined in this file.
   group('ScannerModelConfig invariants', () {
     test('outputChannels == numClasses + 4', () {
       const cfg = ScannerModelConfig(
@@ -225,6 +232,7 @@ void main() {
       detector = YoloDetector(confThreshold: 0.5, iouThreshold: 0.45);
     });
 
+    // Create a bounding box for the supplied test values.
     LetterboxGeometry boxFor(int w, int h) => LetterboxGeometry.forFrame(
           frameWidth: w,
           frameHeight: h,
@@ -341,6 +349,7 @@ void main() {
       );
     });
 
+    // Create a bounding box for the supplied test values.
     LetterboxGeometry boxFor(int w, int h) => LetterboxGeometry.forFrame(
           frameWidth: w,
           frameHeight: h,

@@ -1,8 +1,13 @@
+# =============================================================================
+# File: backend startup test
+# Purpose: Verifies the application startup sequence for configuration and Phase 7.
+# =============================================================================
 from fastapi.testclient import TestClient
 from app import main as main_module
 
 
 def test_lifespan_initializes_complete_phase7_runtime(monkeypatch) -> None:
+    # Verify environment loading happens before the Phase 7 runtime check.
     calls: list[str] = []
     monkeypatch.setattr(main_module, "load_dotenv", lambda: calls.append("load_dotenv"))
     monkeypatch.setattr(main_module, "initialize_phase7_runtime", lambda: calls.append("initialize_phase7_runtime"))

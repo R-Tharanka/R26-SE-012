@@ -1,3 +1,7 @@
+# =============================================================================
+# File: evaluate phase6
+# Purpose: Evaluates phase6 and saves reproducible metrics.
+# =============================================================================
 """Evaluate deterministic Phase 6 empirical-compositional and logic scenarios."""
 
 from __future__ import annotations
@@ -30,10 +34,12 @@ TRACE_FIELDS = [
 
 
 def optional_float(value) -> float | None:
+    # Convert an optional value to a float when possible.
     return None if value in (None, "") else float(value)
 
 
 def scenario_inputs(row: dict) -> tuple[GradingResult, MarketForecast | None]:
+    # Convert one scenario row into grading and market inputs.
     decision = row["grading_decision"]
     grading = GradingResult(
         input_id=row["scenario_id"], decision=decision, grade=row.get("grade") or None,
@@ -62,6 +68,7 @@ def scenario_inputs(row: dict) -> tuple[GradingResult, MarketForecast | None]:
 
 
 def evaluate_rows(rows: list[dict], config: dict) -> tuple[list[dict], list[dict]]:
+    # Evaluate rows using the configured research procedure.
     outputs, traces = [], []
     for row in rows:
         expected = row["expected_category"]
@@ -97,6 +104,7 @@ def evaluate_rows(rows: list[dict], config: dict) -> tuple[list[dict], list[dict
 
 
 def write_csv(path: Path, rows: list[dict], fields: list[str]) -> None:
+    # Write the supplied results in a stable, reproducible format.
     with path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=fields, extrasaction="ignore", lineterminator="\n")
         writer.writeheader()
@@ -104,10 +112,12 @@ def write_csv(path: Path, rows: list[dict], fields: list[str]) -> None:
 
 
 def file_sha256(path: Path) -> str:
+    # Calculate the SHA-256 value used for reproducibility and integrity checks.
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def main() -> int:
+    # Parse the command options and run this script's complete workflow.
     config = load_config()
     rows = build()
     first_outputs, first_traces = evaluate_rows(rows, config)

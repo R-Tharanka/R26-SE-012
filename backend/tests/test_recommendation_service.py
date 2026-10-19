@@ -1,3 +1,7 @@
+# =============================================================================
+# File: recommendation service tests
+# Purpose: Verifies every grade/trend rule and the supporting explanation details.
+# =============================================================================
 import pytest
 
 from app.schemas.grading_forecast import (
@@ -31,6 +35,7 @@ def test_recommendation_rule_table_all_combinations(
     trend: TrendEnum,
     expected_decision: DecisionEnum,
 ) -> None:
+    # Verify each grade and trend pair selects its documented decision rule.
     rec = build_recommendation(grade=grade, trend=trend)
     assert rec.decision == expected_decision
     assert rec.limitation_note == LIMITATION_NOTE
@@ -55,6 +60,7 @@ def test_recommendation_rule_table_all_combinations(
 
 
 def test_recommendation_includes_quality_and_prices_when_provided() -> None:
+    # Verify optional quality and price details appear in the explanation.
     rec = build_recommendation(
         grade=GradeEnum.grade_2,
         trend=TrendEnum.upward,

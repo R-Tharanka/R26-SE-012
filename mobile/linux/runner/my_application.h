@@ -1,3 +1,7 @@
+// =============================================================================
+// File: my_application.h
+// Purpose: Declares the Linux GTK application used to host Flutter.
+// =============================================================================
 #ifndef FLUTTER_MY_APPLICATION_H_
 #define FLUTTER_MY_APPLICATION_H_
 

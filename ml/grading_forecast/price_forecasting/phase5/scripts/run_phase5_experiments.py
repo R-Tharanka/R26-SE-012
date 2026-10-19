@@ -1,3 +1,7 @@
+# =============================================================================
+# File: run phase5 experiments
+# Purpose: Runs the phase5 experiments research workflow.
+# =============================================================================
 """Run controlled leakage-safe Phase 5 pepper-price experiments."""
 
 from __future__ import annotations
@@ -29,10 +33,12 @@ CONFIG_PATH = PHASE5 / "phase5_config.yaml"
 
 
 def load_config() -> dict[str, Any]:
+    # Load the frozen workflow configuration from disk.
     return yaml.safe_load(CONFIG_PATH.read_text(encoding="utf-8"))
 
 
 def sha256(path: Path) -> str:
+    # Calculate the SHA-256 value used for reproducibility and integrity checks.
     digest = hashlib.sha256()
     with path.open("rb") as handle:
         for block in iter(lambda: handle.read(1024 * 1024), b""):
@@ -41,6 +47,7 @@ def sha256(path: Path) -> str:
 
 
 def build_modeling_data(config: dict[str, Any]) -> pd.DataFrame:
+    # Build modeling data from the validated inputs.
     canonical = pd.read_csv(ROOT / config["experiment"]["dataset_path"], parse_dates=["date", "source_date"])
     series = canonical[
         canonical["market"].eq(config["series"]["market"])
@@ -119,6 +126,7 @@ def build_modeling_data(config: dict[str, Any]) -> pd.DataFrame:
 
 
 def make_estimator(name: str, config: dict[str, Any]):
+    # Create estimator for analysis or reporting.
     settings = config["ml_models"][name]
     seed = config["experiment"]["seed"]
     if name == "ridge":
@@ -137,6 +145,7 @@ def make_estimator(name: str, config: dict[str, Any]):
 
 
 def target_to_forecast(target: str, prediction: float, current_price: float) -> tuple[float, float]:
+    # Convert a predicted target value into return and price forecasts.
     if target == "simple_return":
         return prediction, current_price * (1.0 + prediction)
     if target == "log_return":
@@ -149,6 +158,7 @@ def target_to_forecast(target: str, prediction: float, current_price: float) -> 
 
 
 def prediction_record(row: pd.Series, experiment: str, method: str, target: str, prediction: float, training_rows: int, feature_group: str, formulation: str) -> dict[str, Any]:
+    # Build one traceable prediction row for saved evaluation output.
     predicted_return, predicted_price = target_to_forecast(target, prediction, float(row["current_price"]))
     reference_rounded, prediction_rounded = round(float(row["current_price"]), 2), round(predicted_price, 2)
     direction = "UP" if prediction_rounded > reference_rounded else "DOWN" if prediction_rounded < reference_rounded else "FLAT"
@@ -165,6 +175,7 @@ def prediction_record(row: pd.Series, experiment: str, method: str, target: str,
 
 
 def available_history(frame: pd.DataFrame, origin: pd.Timestamp, target_column: str, features: list[str], grade: str | None) -> pd.DataFrame:
+    # Select only historical rows available before the forecast origin.
     history = frame[frame["target_date"].le(origin)].copy()
     if grade is not None:
         history = history[history["grade"].eq(grade)]
@@ -172,6 +183,7 @@ def available_history(frame: pd.DataFrame, origin: pd.Timestamp, target_column: 
 
 
 def walk_forward_ml(frame: pd.DataFrame, partition: str, model_name: str, target: str, feature_group: str, formulation: str, config: dict[str, Any], experiment: str, cohort_features: list[str] | None = None) -> pd.DataFrame:
+    # Generate leakage-safe walk-forward predictions for one ML candidate.
     features = list(config["feature_groups"][feature_group])
     if formulation == "shared":
         features.append("grade_indicator")
@@ -193,6 +205,7 @@ def walk_forward_ml(frame: pd.DataFrame, partition: str, model_name: str, target
 
 
 def walk_forward_baseline(frame: pd.DataFrame, partition: str, name: str, config: dict[str, Any]) -> pd.DataFrame:
+    # Generate walk-forward predictions for one baseline method.
     evaluation = frame[frame["partition"].eq(partition)].dropna(subset=["target_simple_return", "return_lag_1"])
     rows: list[dict[str, Any]] = []
     for _, row in evaluation.sort_values(["target_date", "grade"]).iterrows():
@@ -214,6 +227,7 @@ def walk_forward_baseline(frame: pd.DataFrame, partition: str, name: str, config
 
 
 def walk_forward_statistical(frame: pd.DataFrame, partition: str, name: str, parameter: float | int, config: dict[str, Any]) -> pd.DataFrame:
+    # Generate walk-forward predictions for one statistical method.
     evaluation = frame[frame["partition"].eq(partition)].dropna(subset=["target_simple_return"])
     minimum = config["experiment"]["minimum_training_observations"]
     rows: list[dict[str, Any]] = []
@@ -240,6 +254,7 @@ def walk_forward_statistical(frame: pd.DataFrame, partition: str, name: str, par
 
 
 def metric_block(predictions: pd.DataFrame) -> dict[str, Any]:
+    # Calculate forecast and direction metrics for one prediction group.
     labels = ["DOWN", "FLAT", "UP"]
     actual_return, predicted_return = predictions["actual_return"].to_numpy(), predictions["predicted_return"].to_numpy()
     actual_price, predicted_price = predictions["actual_price"].to_numpy(), predictions["predicted_price"].to_numpy()
@@ -268,6 +283,7 @@ def metric_block(predictions: pd.DataFrame) -> dict[str, Any]:
 
 
 def summarize(predictions: pd.DataFrame) -> dict[str, Any]:
+    # Summarize the prediction results by method and partition.
     by_grade = {grade: metric_block(rows) for grade, rows in predictions.groupby("grade")}
     return {
         "overall": metric_block(predictions), "by_grade": by_grade,
@@ -277,20 +293,24 @@ def summarize(predictions: pd.DataFrame) -> dict[str, Any]:
 
 
 def add_candidate_id(frame: pd.DataFrame) -> pd.DataFrame:
+    # Add candidate id without changing the source observations.
     output = frame.copy()
     output["candidate_id"] = output[["experiment", "method", "target", "feature_group", "formulation"]].astype(str).agg("|".join, axis=1)
     return output
 
 
 def experiment_summaries(predictions: pd.DataFrame) -> dict[str, Any]:
+    # Build the saved metric summary for every experiment candidate.
     return {str(key): summarize(rows) for key, rows in predictions.groupby("candidate_id")}
 
 
 def choose(metrics: dict[str, Any], candidates: list[str]) -> str:
+    # Select the best candidate using the configured validation rule.
     return min(candidates, key=lambda key: (metrics[key]["macro_grade_return_rmse"], metrics[key]["macro_grade_return_mae"], key))
 
 
 def calibrate_intervals(validation: pd.DataFrame, evaluation: pd.DataFrame, quantile: float) -> tuple[pd.DataFrame, dict[str, Any]]:
+    # Calibrate intervals using only the designated validation data.
     calibrated = evaluation.copy()
     radii = {
         grade: float(np.quantile(np.abs(rows["actual_return"] - rows["predicted_return"]), quantile, method="higher"))
@@ -313,7 +333,9 @@ def calibrate_intervals(validation: pd.DataFrame, evaluation: pd.DataFrame, quan
 
 
 def make_plots(frame: pd.DataFrame, final_test: pd.DataFrame, external: pd.DataFrame, validation_metrics: dict[str, Any], selected_id: str, output: Path) -> None:
+    # Create plots for analysis or reporting.
     def segmented(ax, rows: pd.DataFrame, y: str, label: str, color: str) -> None:
+        # Plot observed values as separate segments across missing periods.
         rows = rows.sort_values("feature_date")
         ax.scatter(rows["feature_date"], rows[y], s=7, color=color, alpha=0.75)
         segments = rows["feature_date"].diff().dt.days.gt(14).cumsum()
@@ -359,6 +381,7 @@ def make_plots(frame: pd.DataFrame, final_test: pd.DataFrame, external: pd.DataF
 
 
 def main() -> int:
+    # Parse the command options and run this script's complete workflow.
     started = time.perf_counter()
     config = load_config()
     output = ROOT / config["experiment"]["output_dir"]

@@ -1,3 +1,7 @@
+# =============================================================================
+# File: export onnx
+# Purpose: Exports onnx for deployment.
+# =============================================================================
 """Reproducibly export the frozen Phase 3 follow-up YOLO checkpoint."""
 
 from __future__ import annotations
@@ -15,6 +19,7 @@ from .config import ROOT, load_config, repo_path, sha256
 
 
 def _set_metadata(model: onnx.ModelProto, values: dict[str, str]) -> None:
+    # Set metadata for repeatable execution.
     current = {item.key: item.value for item in model.metadata_props}
     current.update(values)
     del model.metadata_props[:]
@@ -24,6 +29,7 @@ def _set_metadata(model: onnx.ModelProto, values: dict[str, str]) -> None:
 
 
 def export() -> dict:
+    # Export the trained model with the metadata required at runtime.
     config = load_config()
     settings = config["grading"]
     source = repo_path(settings["source_pt"])

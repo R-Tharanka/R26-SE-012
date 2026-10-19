@@ -1,3 +1,7 @@
+# =============================================================================
+# File: grading and forecast API routes
+# Purpose: Validates image uploads and exposes the safe Phase 7 HTTP endpoints.
+# =============================================================================
 from __future__ import annotations
 
 import io
@@ -37,6 +41,7 @@ async def _read_valid_image_upload(
     image to the frozen grading runtime. Uploaded contents and filenames are
     intentionally excluded from logs.
     """
+    # Read one bounded upload and reject unsafe content before model execution.
     if image is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -128,6 +133,7 @@ def _safe_analysis(image_bytes: bytes, analysis_id: str) -> dict:
     distinct for operations while avoiding model details or uploaded data in
     the client response.
     """
+    # Run Phase 7 and convert each internal failure into a safe HTTP error.
     try:
         return analyze_phase7(image_bytes, analysis_id)
     except GradingRuntimeError as exc:
@@ -171,6 +177,7 @@ def _safe_analysis(image_bytes: bytes, analysis_id: str) -> dict:
 @router.get("/health")
 def health() -> dict[str, str]:
     """Liveness endpoint; it does not claim that artifacts are ready."""
+    # Confirm only that the API process is alive.
     return {
         "status": "ok",
         "component": "phase7_grade_price_decision_support",
@@ -180,6 +187,7 @@ def health() -> dict[str, str]:
 @router.get("/ready")
 def ready(response: Response) -> dict[str, object]:
     """Readiness endpoint for both ONNX grading and frozen price evidence."""
+    # Recheck the complete frozen runtime and return 503 if any part is unavailable.
     try:
         initialize_phase7_runtime()
         readiness = "ready"
@@ -202,6 +210,7 @@ async def analyze(image: UploadFile | None = None) -> Phase7AnalyzeResponse:
     output is withheld with HTTP 500 rather than converted into a partial or
     fabricated forecast.
     """
+    # Validate the upload, run Phase 7, and enforce the final response contract.
     analysis_id = str(uuid.uuid4())
     try:
         image_bytes, _ = await _read_valid_image_upload(image, analysis_id)
@@ -241,4 +250,5 @@ async def analyze(image: UploadFile | None = None) -> Phase7AnalyzeResponse:
 @router.api_route("/recommend", methods=["POST"], status_code=status.HTTP_410_GONE)
 def retired_legacy_endpoint() -> dict[str, str]:
     """Keep pre-Phase-7 routes explicit and prevent accidental legacy use."""
+    # Direct callers away from endpoints that the integrated Phase 7 flow replaced.
     return {"detail": "Retired in Phase 7; use POST /api/v1/grading-forecast/analyze."}

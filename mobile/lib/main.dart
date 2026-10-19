@@ -1,3 +1,7 @@
+// =============================================================================
+// File: main.dart
+// Purpose: Starts the Flutter application and configures its root widget.
+// =============================================================================
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -10,6 +14,7 @@ import 'features/onboarding/language_picker_screen.dart';
 import 'l10n/app_localizations.dart';
 
 Future<void> main() async {
+  // Initialize Flutter and start the mobile application.
   WidgetsFlutterBinding.ensureInitialized();
   await loadSavedLocale();
   HistoryRepository? historyRepository;
@@ -34,6 +39,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     final app = ValueListenableBuilder<ThemeMode>(
       valueListenable: appThemeMode,
       builder: (_, mode, __) => ValueListenableBuilder<Locale?>(

@@ -1,3 +1,7 @@
+# =============================================================================
+# File: evaluate forecast model
+# Purpose: Archived legacy workflow: evaluates forecast model and saves reproducible metrics.
+# =============================================================================
 from __future__ import annotations
 
 import argparse
@@ -17,14 +21,17 @@ sys.dont_write_bytecode = True
 
 
 def _repo_root() -> Path:
+    # Find the repository root from this script's fixed location.
     return Path(__file__).resolve().parents[4]
 
 
 def _utc_now_iso() -> str:
+    # Return the current UTC time in a stable ISO format.
     return datetime.now(tz=UTC).replace(microsecond=0).isoformat()
 
 
 def _metrics(y_true: np.ndarray, y_pred: np.ndarray) -> dict[str, float]:
+    # Calculate metrics from the supplied evaluation records.
     mae = float(mean_absolute_error(y_true, y_pred))
     mse = float(mean_squared_error(y_true, y_pred))
     rmse = float(np.sqrt(mse))
@@ -34,11 +41,13 @@ def _metrics(y_true: np.ndarray, y_pred: np.ndarray) -> dict[str, float]:
 
 
 def _is_v2_path(path: Path, marker: str) -> bool:
+    # Check whether v2 path meets the required condition.
     normalized = str(path).replace("\\", "/").lower()
     return marker.lower() in normalized
 
 
 def _date_range_payload(dates: pd.Series) -> dict[str, str | None]:
+    # Return the dataset date range as serializable text.
     clean = pd.to_datetime(dates, errors="coerce").dropna()
     if clean.empty:
         return {"start": None, "end": None}
@@ -46,6 +55,7 @@ def _date_range_payload(dates: pd.Series) -> dict[str, str | None]:
 
 
 def _add_time_features(df: pd.DataFrame) -> pd.DataFrame:
+    # Build add time features from the validated inputs.
     out = df.copy()
     out["month"] = out["date"].dt.month.astype(int)
     out["week_of_year"] = out["date"].dt.isocalendar().week.astype(int)
@@ -59,6 +69,7 @@ def build_features(
     rolling_windows: list[int],
     eps: float,
 ) -> pd.DataFrame:
+    # Build features from the validated inputs.
     df = series_df.copy()
     df["date"] = pd.to_datetime(df["date"], errors="coerce")
     df = df.dropna(subset=["date", "price_lkr_per_kg"]).sort_values("date", ascending=True)
@@ -97,6 +108,7 @@ def build_test_prediction_frame(
     This keeps lag/rolling features past-only while allowing the first test target
     to use the final validation observation as its immediate history.
     """
+    # Build test prediction frame from the validated inputs.
     test_dates = pd.to_datetime(test_df["date"], errors="coerce").dropna()
     feature_frame = build_features(target_df, lags=lags, rolling_windows=rolling_windows, eps=eps)
     feature_frame = feature_frame.dropna(subset=["prediction_date"])
@@ -107,6 +119,7 @@ def build_test_prediction_frame(
 
 
 def _validate_v2_paths(*, target_csv: Path | None, test_csv: Path, models_dir: Path, output_dir: Path) -> None:
+    # Resolve validate v2 paths for the current record.
     if target_csv is None:
         raise ValueError("--target-csv is required for V2 same-row evaluation.")
     if not _is_v2_path(target_csv, "data/processed/grading_forecast/price_v2/national_grade1_average_weekly.csv"):
@@ -120,6 +133,7 @@ def _validate_v2_paths(*, target_csv: Path | None, test_csv: Path, models_dir: P
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Parse the command options and run this script's complete workflow.
     parser = argparse.ArgumentParser(description="Evaluate RandomForest forecasting model on test set.")
     parser.add_argument("--test-csv", type=Path, default=None, help="Test CSV path (test_forecast_data.csv).")
     parser.add_argument("--target-csv", type=Path, default=None, help="Full target CSV used to build past-only test features.")

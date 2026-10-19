@@ -1,3 +1,7 @@
+// =============================================================================
+// File: ai_pest_service.dart
+// Purpose: Provides the ai pest service application service.
+// =============================================================================
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -38,6 +42,7 @@ class AiPestService {
   /// supplied, the second request verifies the plant and measures infestation
   /// details without independently replacing that pest with another species.
   Future<PestAnalysis> analyze(Uint8List jpegBytes, {String? knownPest}) async {
+    // Analyze the selected image and return its result.
     if (!AiConfig.hasKey) {
       throw LeafAnalysisException(
         'No AI API key. Run with --dart-define=GEMINI_API_KEY=your_key',
@@ -85,6 +90,7 @@ class AiPestService {
   /// Accepts only concrete pest classes that the scanner can establish.
   @visibleForTesting
   static String? normalizeKnownPest(String? value) {
+    // Normalize a pest name to a known application label.
     final candidate = value?.trim();
     if (candidate == null || candidate.isEmpty) return null;
     return const {
@@ -107,6 +113,7 @@ class AiPestService {
     Map<String, dynamic> source,
     String? knownPest,
   ) {
+    // Apply known pest for this flow.
     final result = Map<String, dynamic>.from(source);
     final anchoredPest = normalizeKnownPest(knownPest);
     if (anchoredPest == null || result['is_pepper_plant'] != true) {

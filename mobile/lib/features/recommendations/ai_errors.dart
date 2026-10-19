@@ -1,3 +1,7 @@
+// =============================================================================
+// File: ai_errors.dart
+// Purpose: Implements the ai errors part of the mobile application.
+// =============================================================================
 import 'package:flutter/foundation.dart';
 
 import '../../l10n/app_localizations.dart';
@@ -7,6 +11,7 @@ import 'ai_leaf_service.dart' show LeafAnalysisException;
 /// is where the actual provider message, status code and stack trace go — never
 /// the user-facing UI.
 void logAiError(String where, Object error, [StackTrace? stack]) {
+  // Log ai error for this flow.
   debugPrint('[AI][$where] $error');
   if (stack != null) debugPrint('[AI][$where] $stack');
 }
@@ -15,6 +20,7 @@ void logAiError(String where, Object error, [StackTrace? stack]) {
 /// leaks stack traces, provider names (Gemini/Claude), status codes or raw
 /// server payloads to the client.
 String friendlyAiMessage(Object error, AppLocalizations t) {
+  // Convert an AI service error into a clear user-facing message.
   final raw =
       (error is LeafAnalysisException ? error.message : error.toString())
           .toLowerCase();

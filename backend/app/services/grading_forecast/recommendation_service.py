@@ -1,3 +1,7 @@
+# =============================================================================
+# File: recommendation service
+# Purpose: Converts a grade and price trend into clear farmer guidance.
+# =============================================================================
 from __future__ import annotations
 
 from app.schemas.grading_forecast import (
@@ -82,6 +86,7 @@ def build_recommendation(
     current_price_lkr_per_kg: int | None = None,
     predicted_price_lkr_per_kg: int | None = None,
 ) -> RecommendationResult:
+    # Look up the matching rule and assemble its farmer-facing explanation.
     decision = _RULE_TABLE.get((grade, trend), DecisionEnum.monitor)
     message = _MESSAGE_BY_DECISION.get(decision, "Monitor the market and decide based on storage.")
     suggested_action = _SUGGESTED_ACTION_BY_DECISION.get(decision, "Monitor the market.")

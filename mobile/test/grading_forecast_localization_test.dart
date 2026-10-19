@@ -1,3 +1,7 @@
+// =============================================================================
+// File: grading_forecast_localization_test.dart
+// Purpose: Verifies the grading forecast localization test behavior.
+// =============================================================================
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pepper_care/features/grading_forecast/grading_forecast_localizations.dart';
@@ -7,6 +11,7 @@ import 'package:pepper_care/features/home/screens/home_screen.dart';
 import 'package:pepper_care/features/grading_forecast/services/grading_forecast_api_service.dart';
 import 'package:pepper_care/l10n/app_localizations.dart';
 
+// Create the localized application used by this test.
 Widget _localizedApp(Locale locale) => MaterialApp(
   locale: locale,
   localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -14,6 +19,7 @@ Widget _localizedApp(Locale locale) => MaterialApp(
   home: const HomeScreen(),
 );
 
+// Create an accepted grading result for this test.
 GradingForecastResult _acceptedResult() => GradingForecastResult.fromJson({
   'schema_version': 'phase6_decision_support_v1',
   'grading': {
@@ -52,6 +58,7 @@ GradingForecastResult _acceptedResult() => GradingForecastResult.fromJson({
 });
 
 void main() {
+  // Register the tests defined in this file.
   testWidgets('grading sheet and capture route render in Sinhala', (
     tester,
   ) async {

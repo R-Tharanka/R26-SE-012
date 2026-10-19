@@ -1,3 +1,7 @@
+# =============================================================================
+# File: prepare price v2 dataset
+# Purpose: Archived legacy workflow: prepares price v2 dataset for the next ML stage.
+# =============================================================================
 from __future__ import annotations
 
 import argparse
@@ -26,14 +30,17 @@ PRIMARY_TARGET = {
 
 
 def repo_root() -> Path:
+    # Find the repository root from this script's fixed location.
     return Path(__file__).resolve().parents[4]
 
 
 def utc_now_iso() -> str:
+    # Return the current UTC time in a stable ISO format.
     return datetime.now(tz=UTC).replace(microsecond=0).isoformat()
 
 
 def standardize_district(value: object) -> str | None:
+    # Standardize district into one consistent value.
     if value is None or (isinstance(value, float) and pd.isna(value)):
         return None
     text = str(value).strip()
@@ -44,6 +51,7 @@ def standardize_district(value: object) -> str | None:
 
 
 def standardize_grade(value: object) -> str | None:
+    # Standardize grade into one consistent value.
     if value is None or (isinstance(value, float) and pd.isna(value)):
         return None
     text = str(value).strip()
@@ -52,6 +60,7 @@ def standardize_grade(value: object) -> str | None:
 
 
 def standardize_token(value: object) -> str | None:
+    # Standardize token into one consistent value.
     if value is None or (isinstance(value, float) and pd.isna(value)):
         return None
     text = str(value).strip()
@@ -61,6 +70,7 @@ def standardize_token(value: object) -> str | None:
 
 
 def standardize_country(value: object) -> str | None:
+    # Standardize country into one consistent value.
     if value is None or (isinstance(value, float) and pd.isna(value)):
         return None
     text = re.sub(r"\s+", " ", str(value).strip())
@@ -68,6 +78,7 @@ def standardize_country(value: object) -> str | None:
 
 
 def parse_price(value: object) -> float | None:
+    # Parse price safely from the supplied input.
     if value is None or (isinstance(value, float) and pd.isna(value)):
         return None
     text = str(value).strip().replace(",", "")
@@ -81,6 +92,7 @@ def parse_price(value: object) -> float | None:
 
 
 def date_range_payload(dates: pd.Series) -> dict[str, str | None]:
+    # Return the dataset date range as serializable text.
     clean = pd.to_datetime(dates, errors="coerce").dropna()
     if clean.empty:
         return {"start": None, "end": None}
@@ -88,6 +100,7 @@ def date_range_payload(dates: pd.Series) -> dict[str, str | None]:
 
 
 def clean_raw_prices(raw_csv: Path) -> tuple[pd.DataFrame, dict[str, Any]]:
+    # Clean raw prices while preserving valid observations.
     raw = pd.read_csv(raw_csv)
     required = {
         "date",
@@ -150,6 +163,7 @@ def clean_raw_prices(raw_csv: Path) -> tuple[pd.DataFrame, dict[str, Any]]:
 
 
 def target_series(cleaned: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, Any]]:
+    # Build the price series used as the forecasting target.
     mask = (
         (cleaned["commodity"] == PRIMARY_TARGET["commodity"])
         & (cleaned["country"] == PRIMARY_TARGET["country"])
@@ -178,6 +192,7 @@ def target_series(cleaned: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, Any]]:
 
 
 def gap_summary(dates: pd.Series) -> dict[str, Any]:
+    # Summarize time gaps between price observations.
     clean = pd.to_datetime(dates, errors="coerce").dropna().sort_values()
     if clean.empty:
         return {
@@ -213,6 +228,7 @@ def gap_summary(dates: pd.Series) -> dict[str, Any]:
 
 
 def coverage_by_year(df: pd.DataFrame, *, grade: str | None = None) -> dict[str, Any]:
+    # Summarize the number of observations available per year.
     sub = df.copy()
     if grade is not None:
         sub = sub[sub["grade"] == grade].copy()
@@ -236,6 +252,7 @@ def coverage_by_year(df: pd.DataFrame, *, grade: str | None = None) -> dict[str,
 
 
 def split_chronological(target: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict[str, Any]]:
+    # Split chronological without mixing protected groups or time periods.
     n = len(target)
     if n < 3:
         raise ValueError("Need at least 3 observations for train/validation/test split.")
@@ -259,6 +276,7 @@ def split_chronological(target: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFram
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Parse the command options and run this script's complete workflow.
     parser = argparse.ArgumentParser(description="Prepare V2 price dataset and chronological splits.")
     parser.add_argument("--input", type=Path, default=None)
     args = parser.parse_args(argv)

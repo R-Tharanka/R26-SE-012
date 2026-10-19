@@ -1,3 +1,7 @@
+# =============================================================================
+# File: prepare forecast training data
+# Purpose: Archived legacy workflow: prepares forecast training data for the next ML stage.
+# =============================================================================
 from __future__ import annotations
 
 import argparse
@@ -10,14 +14,17 @@ sys.dont_write_bytecode = True
 
 
 def _repo_root() -> Path:
+    # Find the repository root from this script's fixed location.
     return Path(__file__).resolve().parents[4]
 
 
 def _default_cleaned_prices(repo_root: Path) -> Path:
+    # Return the default cleaned prices path.
     return repo_root / "data" / "processed" / "grading_forecast" / "cleaned_price_data.csv"
 
 
 def _default_output(repo_root: Path) -> Path:
+    # Return the default output path.
     return repo_root / "data" / "processed" / "grading_forecast" / "forecast_training_data.csv"
 
 
@@ -29,6 +36,7 @@ def prepare_forecast_dataset(
     grade: str = "Grade 1",
     price_type: str = "average",
 ) -> pd.DataFrame:
+    # Prepare forecast dataset for the next workflow stage.
     df = pd.read_csv(cleaned_prices_csv)
     required = {"date", "district", "grade", "price_type", "price_lkr_per_kg"}
     missing = sorted(required.difference(df.columns))
@@ -58,6 +66,7 @@ def prepare_forecast_dataset(
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Parse the command options and run this script's complete workflow.
     parser = argparse.ArgumentParser(
         description="Create forecasting-ready dataset (National + Grade 1 + average price) from cleaned prices."
     )

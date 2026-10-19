@@ -1,3 +1,7 @@
+# =============================================================================
+# File: prepare berry dataset v2
+# Purpose: Archived legacy workflow: prepares berry dataset v2 for the next ML stage.
+# =============================================================================
 from __future__ import annotations
 
 import argparse
@@ -81,14 +85,17 @@ class ImageRecord:
 
 
 def repo_root() -> Path:
+    # Find the repository root from this script's fixed location.
     return Path(__file__).resolve().parents[4]
 
 
 def utc_now_iso() -> str:
+    # Return the current UTC time in a stable ISO format.
     return datetime.now(tz=UTC).replace(microsecond=0).isoformat()
 
 
 def repo_relative(root: Path, path: Path) -> str:
+    # Return a repository-relative path for saved manifests.
     try:
         return path.resolve().relative_to(root.resolve()).as_posix()
     except ValueError:
@@ -96,10 +103,12 @@ def repo_relative(root: Path, path: Path) -> str:
 
 
 def image_id(index: int) -> str:
+    # Create the stable identifier used for one image record.
     return f"IMGV2_{index:06d}"
 
 
 def iter_candidate_images(raw_root: Path) -> list[Path]:
+    # List candidate input images in stable order.
     paths: list[Path] = []
     for grade_dir in sorted(GRADE_DIR_TO_LABEL):
         grade_root = raw_root / grade_dir
@@ -114,6 +123,7 @@ def iter_candidate_images(raw_root: Path) -> list[Path]:
 
 
 def sample_id_from_path(raw_root: Path, image_path: Path) -> tuple[str, str]:
+    # Derive the physical sample identifier from an image path.
     rel = image_path.relative_to(raw_root)
     if len(rel.parts) < 3:
         return rel.parts[0], "__root_level__"
@@ -121,6 +131,7 @@ def sample_id_from_path(raw_root: Path, image_path: Path) -> tuple[str, str]:
 
 
 def inspect_image(path: Path) -> tuple[int | None, int | None, str, str, str | None]:
+    # Read image dimensions, format, mode, and any decode error.
     try:
         with Image.open(path) as img:
             img.load()
@@ -136,6 +147,7 @@ def inspect_image(path: Path) -> tuple[int | None, int | None, str, str, str | N
 
 
 def content_hash(path: Path) -> str | None:
+    # Calculate an image content hash when the file is readable.
     try:
         h = hashlib.sha256()
         with path.open("rb") as f:
@@ -147,6 +159,7 @@ def content_hash(path: Path) -> str | None:
 
 
 def build_records(raw_root: Path) -> list[ImageRecord]:
+    # Build records from the validated inputs.
     records: list[ImageRecord] = []
     for idx, path in enumerate(iter_candidate_images(raw_root), start=1):
         grade_dir, sample_id = sample_id_from_path(raw_root, path)
@@ -173,6 +186,7 @@ def build_records(raw_root: Path) -> list[ImageRecord]:
 
 
 def manifest_row(root: Path, record: ImageRecord) -> dict[str, Any]:
+    # Convert one image record into its manifest row.
     return {
         "image_id": record.image_id,
         "image_path": repo_relative(root, record.image_path),
@@ -189,6 +203,7 @@ def manifest_row(root: Path, record: ImageRecord) -> dict[str, Any]:
 
 
 def write_csv(path: Path, rows: list[dict[str, Any]], fieldnames: list[str]) -> None:
+    # Write the supplied results in a stable, reproducible format.
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
@@ -197,6 +212,7 @@ def write_csv(path: Path, rows: list[dict[str, Any]], fieldnames: list[str]) -> 
 
 
 def split_samples(records: list[ImageRecord], seed: int) -> dict[tuple[str, str], str]:
+    # Split samples without mixing protected groups or time periods.
     rng = random.Random(seed)
     split_by_sample: dict[tuple[str, str], str] = {}
     for grade_dir in sorted(GRADE_DIR_TO_LABEL):
@@ -229,6 +245,7 @@ def copy_split_images(
     records: list[ImageRecord],
     split_by_sample: dict[tuple[str, str], str],
 ) -> list[dict[str, Any]]:
+    # Copy split images into the prepared output structure.
     rows: list[dict[str, Any]] = []
     for record in records:
         if not record.image_readable:
@@ -263,6 +280,7 @@ def build_summary(
     split_rows: list[dict[str, Any]],
     seed: int,
 ) -> dict[str, Any]:
+    # Build summary from the validated inputs.
     readable = [r for r in records if r.image_readable]
     image_paths = [repo_relative(root, r.image_path) for r in readable]
     path_counts = Counter(image_paths)
@@ -384,6 +402,7 @@ def build_summary(
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Parse the command options and run this script's complete workflow.
     parser = argparse.ArgumentParser(description="Prepare berry dataset V2 manifest, audit, and sample split.")
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args(argv)

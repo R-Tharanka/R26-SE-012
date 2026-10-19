@@ -1,3 +1,7 @@
+# =============================================================================
+# File: grading adapter
+# Purpose: Converts grading output into the Phase 6 decision format.
+# =============================================================================
 """Normalize frozen grading decisions and aggregate repeated sample views."""
 
 from __future__ import annotations
@@ -26,6 +30,7 @@ class GradingResult:
 
     @property
     def status(self) -> str:
+        # Return the grading status represented by this result.
         if self.decision in ACCEPTED:
             return "ACCEPTED"
         if self.decision in REJECTED:
@@ -34,6 +39,7 @@ class GradingResult:
 
 
 def from_mapping(row: dict) -> GradingResult:
+    # Convert a mapping into a validated grading result.
     decision = str(row.get("decision", "")).strip()
     if decision not in set(ACCEPTED) | REJECTED | UNCERTAIN:
         raise ValueError(f"Unsupported grading decision: {decision!r}")
@@ -43,6 +49,7 @@ def from_mapping(row: dict) -> GradingResult:
         raise ValueError(f"Decision/grade mismatch: {decision} versus {supplied_grade}")
 
     def number(name: str) -> float | None:
+        # Read one optional numeric field from the source mapping.
         value = row.get(name)
         return None if value in (None, "") else float(value)
 
@@ -58,6 +65,7 @@ def from_mapping(row: dict) -> GradingResult:
 
 
 def aggregate_sample(results: Iterable[GradingResult], sample_id: str) -> tuple[GradingResult, dict]:
+    # Combine multiple image decisions into one physical-sample result.
     views = list(results)
     if not views:
         raise ValueError("At least one image-level result is required")

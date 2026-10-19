@@ -1,3 +1,7 @@
+// =============================================================================
+// File: ai_berry_service.dart
+// Purpose: Provides the ai berry service application service.
+// =============================================================================
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -32,6 +36,7 @@ class AiBerryService {
   );
 
   Future<BerryAnalysis> analyze(Uint8List jpegBytes) async {
+    // Analyze the selected image and return its result.
     if (!AiConfig.hasKey) {
       throw LeafAnalysisException(
         'No AI API key. Run with --dart-define=GEMINI_API_KEY=your_key',

@@ -1,3 +1,7 @@
+# =============================================================================
+# File: run phase3
+# Purpose: Runs the phase3 research workflow.
+# =============================================================================
 """Run Phase 3 with the frozen Phase 2 checkpoint and no sealed-test access."""
 
 from __future__ import annotations
@@ -36,15 +40,18 @@ FINAL_STATES = ["GRADE_1", "GRADE_2", "POOR_IMAGE", "NO_PEPPER", "UNCERTAIN_GRAD
 
 
 def load_csv(path: Path) -> list[dict]:
+    # Load csv from its approved source.
     with path.open(newline="", encoding="utf-8-sig") as handle:
         return list(csv.DictReader(handle))
 
 
 def write_json(path: Path, payload: dict | list) -> None:
+    # Write the supplied results in a stable, reproducible format.
     path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
 
 
 def sha256(path: Path) -> str:
+    # Calculate the SHA-256 value used for reproducibility and integrity checks.
     digest = hashlib.sha256()
     with path.open("rb") as handle:
         for block in iter(lambda: handle.read(1024 * 1024), b""):
@@ -53,6 +60,7 @@ def sha256(path: Path) -> str:
 
 
 def verify_inputs() -> tuple[dict, list[dict], list[dict]]:
+    # Verify inputs before the workflow continues.
     config = yaml.safe_load(CONFIG_PATH.read_text(encoding="utf-8"))
     rows = [r for r in load_csv(MANIFEST_PATH) if r["research_partition"] == "VALIDATION"]
     negatives = load_csv(NEGATIVE_PATH)
@@ -72,6 +80,7 @@ def verify_inputs() -> tuple[dict, list[dict], list[dict]]:
 
 
 def predict(model: YOLO, rows: list[dict], path_key: str, config: dict, kind: str) -> tuple[list[dict], float]:
+    # Run model predictions for the supplied manifest records.
     sources = [str(ROOT / row[path_key]) for row in rows]
     started = time.perf_counter()
     results = model.predict(
@@ -122,6 +131,7 @@ def predict(model: YOLO, rows: list[dict], path_key: str, config: dict, kind: st
 
 
 def make_challenges(validation_rows: list[dict], config: dict) -> tuple[list[dict], dict]:
+    # Create challenges for analysis or reporting.
     rng = random.Random(int(config["seed"]))
     selected = []
     wanted = int(config["quality"]["controlled_challenge_images_per_class"])
@@ -163,6 +173,7 @@ def make_challenges(validation_rows: list[dict], config: dict) -> tuple[list[dic
 
 
 def select_quality(validation: list[dict], challenges: list[dict], config: dict) -> tuple[dict, dict]:
+    # Select quality using the configured evidence and rules.
     cap = int(config["quality"]["max_validation_false_rejections_per_gate"])
     specs = {
         "minimum_blur_variance": ("blur_laplacian_variance_candidates", "blur_laplacian_variance", "blur"),
@@ -192,6 +203,7 @@ def select_quality(validation: list[dict], challenges: list[dict], config: dict)
 
 
 def pre_quality_pass(record: dict, q: dict) -> bool:
+    # Check whether a record passes the frozen image-quality rules.
     return (
         record["quality"]["minimum_dimension"] >= q["minimum_dimension"]
         and record["quality"]["brightness"] >= q["minimum_brightness"]
@@ -201,6 +213,7 @@ def pre_quality_pass(record: dict, q: dict) -> bool:
 
 
 def select_detection(validation: list[dict], calibration_negatives: list[dict], q: dict, config: dict) -> tuple[float, list[dict]]:
+    # Select detection using the configured evidence and rules.
     rows = []
     for threshold in config["detection_threshold_candidates"]:
         positive_retained = sum(pre_quality_pass(r, q) and r["top_confidence"] >= threshold for r in validation)
@@ -219,6 +232,7 @@ def select_detection(validation: list[dict], calibration_negatives: list[dict], 
 
 
 def select_uncertainty(validation: list[dict], q: dict, detection_threshold: float, config: dict) -> tuple[dict, list[dict]]:
+    # Select uncertainty using the configured evidence and rules.
     candidates = []
     for top_threshold in config["uncertainty"]["top_confidence_candidates"]:
         for margin_threshold in config["uncertainty"]["class_margin_candidates"]:
@@ -240,6 +254,7 @@ def select_uncertainty(validation: list[dict], q: dict, detection_threshold: flo
 
 
 def baseline_negative_metrics(records: list[dict], thresholds: list[float]) -> dict:
+    # Calculate negative-image metrics across candidate thresholds.
     output = {}
     for threshold in thresholds:
         accepted = [r for r in records if r["top_confidence"] >= threshold]
@@ -258,10 +273,12 @@ def baseline_negative_metrics(records: list[dict], thresholds: list[float]) -> d
 
 
 def apply_decisions(records: list[dict], thresholds: FrozenThresholds) -> list[dict]:
+    # Apply decisions consistently to the prepared records.
     return [{**record, **decide(record, thresholds)} for record in records]
 
 
 def matrix_and_metrics(validation: list[dict], evaluation_negatives: list[dict]) -> dict:
+    # Calculate the combined confusion matrix and summary metrics.
     valid_counts = Counter(r["decision"] for r in validation)
     negative_counts = Counter(r["decision"] for r in evaluation_negatives)
     accepted_valid = [r for r in validation if r["decision"] in {"GRADE_1", "GRADE_2"}]
@@ -289,6 +306,7 @@ def matrix_and_metrics(validation: list[dict], evaluation_negatives: list[dict])
 
 
 def write_csv(path: Path, rows: list[dict], fields: list[str]) -> None:
+    # Write the supplied results in a stable, reproducible format.
     with path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=fields, extrasaction="ignore")
         writer.writeheader()
@@ -296,6 +314,7 @@ def write_csv(path: Path, rows: list[dict], fields: list[str]) -> None:
 
 
 def make_examples(records: list[dict], challenges: list[dict]) -> list[dict]:
+    # Create examples for analysis or reporting.
     choices = []
     pools = [
         ("confident_valid", [r for r in records if r["kind"] == "VALID_PEPPER" and r["decision"].startswith("GRADE")]),
@@ -315,6 +334,7 @@ def make_examples(records: list[dict], challenges: list[dict]) -> list[dict]:
 
 
 def examples_sheet(examples: list[dict]) -> None:
+    # Create a contact sheet of representative Phase 3 examples.
     cell_w, cell_h = 380, 300
     canvas = Image.new("RGB", (cell_w * 2, cell_h * ((len(examples) + 1) // 2)), "white")
     draw = ImageDraw.Draw(canvas)
@@ -335,6 +355,7 @@ def examples_sheet(examples: list[dict]) -> None:
 
 
 def main() -> int:
+    # Parse the command options and run this script's complete workflow.
     if (OUTPUT / "phase3_metrics.json").exists():
         raise RuntimeError("Phase 3 final metrics already exist; refusing to overwrite the frozen result")
     OUTPUT.mkdir(parents=True, exist_ok=True)

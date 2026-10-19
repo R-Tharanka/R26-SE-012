@@ -1,3 +1,7 @@
+// =============================================================================
+// File: language_picker_screen.dart
+// Purpose: Presents the language picker screen mobile interface and user flow.
+// =============================================================================
 import 'package:flutter/material.dart';
 
 import '../../core/locale/app_locale.dart';
@@ -10,6 +14,7 @@ class LanguagePickerScreen extends StatelessWidget {
   const LanguagePickerScreen({super.key});
 
   Future<void> _choose(BuildContext context, Locale locale) async {
+    // Choose choose for this flow.
     await setLocale(locale);
     if (!context.mounted) return;
     // Opened from the menu → just go back; starter launch → enter the app.
@@ -24,6 +29,7 @@ class LanguagePickerScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     final cs = Theme.of(context).colorScheme;
     return Scaffold(
       body: SafeArea(
@@ -90,6 +96,7 @@ class _LanguageTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     final cs = Theme.of(context).colorScheme;
     return Material(
       color: selected

@@ -1,3 +1,7 @@
+# =============================================================================
+# File: verify onnx equivalence
+# Purpose: Implements the verify onnx equivalence step of the machine-learning workflow.
+# =============================================================================
 """Compare frozen PyTorch and NMS-embedded ONNX inference on fixed evidence."""
 
 from __future__ import annotations
@@ -15,11 +19,13 @@ REPORT = Path(__file__).with_name("onnx_equivalence_report.md")
 
 
 def _rows(relative: str) -> list[dict]:
+    # Read CSV rows for the integrity or evaluation workflow.
     with repo_path(relative).open(newline="", encoding="utf-8-sig") as handle:
         return list(csv.DictReader(handle))
 
 
 def verification_set() -> list[dict]:
+    # Build the fixed image set used for ONNX equivalence checks.
     positives = _rows("ml/grading_forecast/berry_grading/evaluation/v3_phase3_followup/phase2_positive_test_decisions.csv")
     negatives = _rows("ml/grading_forecast/berry_grading/evaluation/v3_phase3_followup/final_new_negative_decisions.csv")
     selected = [next(row for row in positives if row["decision"] == "GRADE_1"),
@@ -31,6 +37,7 @@ def verification_set() -> list[dict]:
 
 
 def _pt_raw(result) -> dict:
+    # Extract comparable raw prediction values from the PyTorch result.
     boxes = result.boxes
     class_conf, best = {0: 0.0, 1: 0.0}, None
     if boxes is not None:
@@ -53,6 +60,7 @@ def _pt_raw(result) -> dict:
 
 
 def run() -> dict:
+    # Run the complete verification workflow and return its results.
     from ultralytics import YOLO
 
     config, selected = load_config(), verification_set()

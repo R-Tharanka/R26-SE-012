@@ -1,3 +1,7 @@
+# =============================================================================
+# File: result storage service test
+# Purpose: Verifies that storage failures remain safe and do not stop analysis.
+# =============================================================================
 from __future__ import annotations
 
 import uuid
@@ -14,6 +18,7 @@ from app.services.grading_forecast.result_storage_service import build_storage_r
 def test_storage_service_handles_initialization_failure_safely(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    # Verify invalid Firebase configuration skips storage without failing analysis.
     # Provide an invalid service account JSON path (exists but is not a valid JSON).
     repo_root = Path(__file__).resolve().parents[2]
     scratch_dir = repo_root / "data" / "_tmp_tests"

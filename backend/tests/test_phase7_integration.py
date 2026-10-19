@@ -1,3 +1,7 @@
+# =============================================================================
+# File: Phase 7 API integration tests
+# Purpose: Verifies safe upload handling, response contracts, and retired routes.
+# =============================================================================
 from __future__ import annotations
 
 import base64
@@ -12,6 +16,7 @@ TINY_PNG = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADUl
 
 
 def _result(decision: str = "NO_PEPPER", category: str = "REJECT") -> dict:
+    # Build a complete controlled Phase 7 response for endpoint tests.
     rejected = decision in {"NO_PEPPER", "POOR_IMAGE"}
     return {"schema_version": "phase6_decision_support_v1",
         "grading": {"status": "REJECTED" if rejected else "ACCEPTED", "decision": decision,
@@ -33,11 +38,13 @@ def _result(decision: str = "NO_PEPPER", category: str = "REJECT") -> dict:
 
 
 def test_invalid_image_returns_400() -> None:
+    # Verify unreadable image bytes are rejected before analysis.
     response = client.post("/api/v1/grading-forecast/analyze", files={"image": ("bad.jpg", b"bad", "image/jpeg")})
     assert response.status_code == 400
 
 
 def test_rejection_response_has_no_market_forecast(monkeypatch) -> None:
+    # Verify rejected grading returns no price forecast.
     from app.api.routes import grading_forecast as routes
     monkeypatch.setattr(routes, "analyze_phase7", lambda *_: _result())
     response = client.post("/api/v1/grading-forecast/analyze", files={"image": ("x.png", TINY_PNG, "image/png")})
@@ -48,6 +55,7 @@ def test_rejection_response_has_no_market_forecast(monkeypatch) -> None:
 
 
 def test_accepted_response_preserves_phase6_schema(monkeypatch) -> None:
+    # Verify accepted analysis keeps the established Phase 6 response contract.
     from app.api.routes import grading_forecast as routes
     monkeypatch.setattr(routes, "analyze_phase7", lambda *_: _result("GRADE_1", "HIGH_UNCERTAINTY_OUTLOOK"))
     response = client.post("/api/v1/grading-forecast/analyze", files={"image": ("x.png", TINY_PNG, "image/png")})
@@ -56,6 +64,7 @@ def test_accepted_response_preserves_phase6_schema(monkeypatch) -> None:
 
 
 def test_missing_price_and_forecast_categories_are_preserved(monkeypatch) -> None:
+    # Verify both unavailable-market categories reach the client unchanged.
     from app.api.routes import grading_forecast as routes
     for category in ("PRICE_DATA_UNAVAILABLE", "FORECAST_UNAVAILABLE"):
         payload = _result("GRADE_1", category)
@@ -69,6 +78,7 @@ def test_missing_price_and_forecast_categories_are_preserved(monkeypatch) -> Non
 
 
 def test_inference_failure_returns_503(monkeypatch) -> None:
+    # Verify a grading runtime failure becomes a safe service-unavailable response.
     from app.api.routes import grading_forecast as routes
     monkeypatch.setattr(routes, "analyze_phase7", lambda *_: (_ for _ in ()).throw(routes.GradingRuntimeError("failed")))
     response = client.post("/api/v1/grading-forecast/analyze", files={"image": ("x.png", TINY_PNG, "image/png")})
@@ -76,6 +86,7 @@ def test_inference_failure_returns_503(monkeypatch) -> None:
 
 
 def test_forecast_integrity_failure_returns_specific_503(monkeypatch) -> None:
+    # Verify invalid frozen forecast evidence returns the specific safe error.
     from app.api.routes import grading_forecast as routes
     monkeypatch.setattr(
         routes,
@@ -91,10 +102,12 @@ def test_forecast_integrity_failure_returns_specific_503(monkeypatch) -> None:
 
 
 def test_oversized_upload_is_rejected_before_inference(monkeypatch) -> None:
+    # Verify the upload size limit stops the request before model execution.
     from app.api.routes import grading_forecast as routes
     called = False
 
     def should_not_run(*_):
+        # Record any unexpected attempt to run inference.
         nonlocal called
         called = True
         return _result()
@@ -115,6 +128,7 @@ def test_oversized_upload_is_rejected_before_inference(monkeypatch) -> None:
 
 
 def test_rejected_response_with_market_data_is_withheld(monkeypatch) -> None:
+    # Verify contradictory rejected-plus-market output never reaches the client.
     from app.api.routes import grading_forecast as routes
     payload = _result()
     payload["market"]["status"] = "AVAILABLE"
@@ -132,6 +146,7 @@ def test_rejected_response_with_market_data_is_withheld(monkeypatch) -> None:
 
 
 def test_ready_returns_503_when_runtime_is_not_ready(monkeypatch) -> None:
+    # Verify readiness fails when the frozen forecast evidence is unavailable.
     from app.api.routes import grading_forecast as routes
     monkeypatch.setattr(
         routes,
@@ -144,10 +159,12 @@ def test_ready_returns_503_when_runtime_is_not_ready(monkeypatch) -> None:
 
 
 def test_legacy_trading_endpoint_is_retired() -> None:
+    # Verify clients cannot continue using the retired recommendation endpoint.
     assert client.post("/api/v1/grading-forecast/recommend", json={}).status_code == 410
 
 
 def test_real_grade1_api_path() -> None:
+    # Verify a known Grade 1 image follows the real integrated API path.
     root = Path(__file__).resolve().parents[2]
     path = root / "data/raw/Pepper Berry Grading V3.yolov8/test/images/20260508_160550_jpg.rf.BUF1sZWo8GvE4UCSfj74.jpg"
     response = client.post("/api/v1/grading-forecast/analyze", files={"image": (path.name, path.read_bytes(), "image/jpeg")})

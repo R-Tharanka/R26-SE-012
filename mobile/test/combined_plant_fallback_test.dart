@@ -1,3 +1,7 @@
+// =============================================================================
+// File: combined_plant_fallback_test.dart
+// Purpose: Verifies the combined plant fallback test behavior.
+// =============================================================================
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -6,6 +10,7 @@ import 'package:pepper_care/shared/models/detection.dart';
 import 'package:pepper_care/shared/widgets/scanner_view.dart';
 
 void main() {
+  // Register the tests defined in this file.
   test('combined fallback preserves detections from leaf and pest models', () {
     const leaf = Detection(
       classId: 1,

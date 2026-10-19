@@ -1,3 +1,7 @@
+# =============================================================================
+# File: evaluate phase6 field
+# Purpose: Evaluates phase6 field and saves reproducible metrics.
+# =============================================================================
 """Evaluate an independently labelled Phase 6 field set with frozen artifacts.
 
 The evaluator never trains, tunes, or changes thresholds. It validates the
@@ -38,6 +42,7 @@ DOMAIN_FIELDS = ("device_model", "lighting", "background", "framing", "pepper_de
 
 
 def sha256(path: Path) -> str:
+    # Calculate the SHA-256 value used for reproducibility and integrity checks.
     digest = hashlib.sha256()
     with path.open("rb") as handle:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
@@ -46,11 +51,13 @@ def sha256(path: Path) -> str:
 
 
 def read_csv(path: Path) -> list[dict[str, str]]:
+    # Read csv into the structure used by this workflow.
     with path.open(newline="", encoding="utf-8-sig") as handle:
         return list(csv.DictReader(handle))
 
 
 def write_csv(path: Path, values: list[dict], fields: list[str]) -> None:
+    # Write the supplied results in a stable, reproducible format.
     with path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=fields, extrasaction="ignore")
         writer.writeheader()
@@ -58,6 +65,7 @@ def write_csv(path: Path, values: list[dict], fields: list[str]) -> None:
 
 
 def validated_inputs(manifest: Path) -> list[dict[str, str]]:
+    # Read and verify all field-evaluation manifest entries.
     if not INTEGRITY.is_file():
         raise RuntimeError("Run validate_phase6_integrity.py before field evaluation")
     integrity = json.loads(INTEGRITY.read_text(encoding="utf-8"))
@@ -122,6 +130,7 @@ def validated_inputs(manifest: Path) -> list[dict[str, str]]:
 
 
 def frozen_thresholds() -> tuple[FrozenThresholds, dict]:
+    # Load the exact thresholds frozen by the prior evaluation phase.
     payload = json.loads(FREEZE.read_text(encoding="utf-8"))
     expected_hash = payload["followup_checkpoint_sha256"]
     if sha256(MODEL) != expected_hash:
@@ -131,6 +140,7 @@ def frozen_thresholds() -> tuple[FrozenThresholds, dict]:
 
 
 def predict(values: list[dict[str, str]], thresholds: FrozenThresholds) -> list[dict]:
+    # Run model predictions for the supplied manifest records.
     try:
         from ultralytics import YOLO
     except ImportError as error:
@@ -183,6 +193,7 @@ def predict(values: list[dict[str, str]], thresholds: FrozenThresholds) -> list[
 
 
 def grade_metrics(records: list[dict]) -> dict:
+    # Grade metrics with the frozen model and thresholds.
     definite = [record for record in records if record["reference_type"] == "PEPPER" and record["reference_grade"] in GRADE_TO_ID]
     accepted = [record for record in definite if record["decision"] in ACCEPTED]
     truth = [GRADE_TO_ID[record["reference_grade"]] for record in accepted]
@@ -207,6 +218,7 @@ def grade_metrics(records: list[dict]) -> dict:
 
 
 def rejection_metrics(records: list[dict]) -> dict:
+    # Calculate rejection performance from the decision records.
     pepper = [record for record in records if record["reference_type"] == "PEPPER" and record["reference_grade"] in GRADE_TO_ID]
     negatives = [record for record in records if record["reference_type"] == "NON_PEPPER"]
     false_rejections = sum(record["decision"] not in ACCEPTED for record in pepper)
@@ -226,6 +238,7 @@ def rejection_metrics(records: list[dict]) -> dict:
 
 
 def physical_sample_metrics(records: list[dict]) -> dict:
+    # Calculate metrics after grouping images by physical sample.
     groups: dict[str, list[dict]] = defaultdict(list)
     for record in records:
         groups[record["physical_sample_id"]].append(record)
@@ -260,6 +273,7 @@ def physical_sample_metrics(records: list[dict]) -> dict:
 
 
 def domain_breakdown(records: list[dict], minimum_count: int) -> dict:
+    # Summarize performance for each domain with enough samples.
     output = {}
     for field in DOMAIN_FIELDS:
         values = {}
@@ -274,6 +288,7 @@ def domain_breakdown(records: list[dict], minimum_count: int) -> dict:
 
 
 def main() -> int:
+    # Parse the command options and run this script's complete workflow.
     parser = argparse.ArgumentParser()
     parser.add_argument("--manifest", type=Path, default=PHASE6 / "phase6_field_manifest.csv")
     parser.add_argument("--partition", choices=["CALIBRATION", "FINAL_EVALUATION"], default="FINAL_EVALUATION")

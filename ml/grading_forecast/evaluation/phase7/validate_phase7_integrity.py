@@ -1,3 +1,7 @@
+# =============================================================================
+# File: validate phase7 integrity
+# Purpose: Checks validate phase7 integrity integrity and reproducibility.
+# =============================================================================
 from __future__ import annotations
 
 import json
@@ -14,8 +18,10 @@ OUTPUT = HERE / "phase7_integrity.json"
 
 
 def run() -> dict:
+    # Run the complete verification workflow and return its results.
     config = load_config(); checks = []
     def check(name: str, passed: bool, detail: str = "") -> None:
+        # Create one clear integrity-check result.
         checks.append({"check": name, "status": "PASS" if passed else "FAIL", "detail": detail})
     frozen = {
         config["grading"]["source_pt"]: config["grading"]["source_pt_sha256"],

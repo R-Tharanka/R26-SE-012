@@ -1,3 +1,7 @@
+# =============================================================================
+# File: Phase 7 service boundary
+# Purpose: Connects the API to the frozen grading, forecast, and decision flow.
+# =============================================================================
 """Backend boundary for the frozen Phase 7 integrated research pipeline.
 
 This module deliberately stays thin: the deployment implementation owns the
@@ -33,12 +37,14 @@ def analyze(image_bytes: bytes, analysis_id: str) -> dict:
     The timestamp is generated server-side for traceability; it does not alter
     the model, forecast record, grade routing, or decision category.
     """
+    # Add a server timestamp, then pass the image to the frozen integrated flow.
     timestamp = datetime.now(timezone.utc).isoformat()
     return analyze_image_bytes(image_bytes, analysis_id, timestamp_utc=timestamp)
 
 
 def initialize_phase7_runtime() -> None:
     """Fail startup/readiness unless ONNX and forecast evidence are valid."""
+    # Confirm both the grading model and saved forecast evidence are ready.
     initialize_onnx_runtime()
     validate_frozen_forecast_source()
 

@@ -1,3 +1,7 @@
+# =============================================================================
+# File: scenario builder
+# Purpose: Builds empirical and logic scenarios for Phase 6 evaluation.
+# =============================================================================
 """Build separate empirical-compositional and synthetic logic scenarios."""
 
 from __future__ import annotations
@@ -23,11 +27,13 @@ FIELDS = [
 
 
 def read_csv(path: Path) -> list[dict[str, str]]:
+    # Read csv into the structure used by this workflow.
     with path.open(newline="", encoding="utf-8-sig") as handle:
         return list(csv.DictReader(handle))
 
 
 def empirical_scenarios(config: dict) -> list[dict]:
+    # Build scenarios from the frozen grading and forecast evidence.
     settings = config["historical_scenarios"]
     positives = read_csv(repo_path(settings["positive_decisions_path"]))
     negatives = read_csv(repo_path(settings["negative_decisions_path"]))
@@ -98,6 +104,7 @@ def _logic(
     lower: float | None = None, upper: float | None = None,
     comparison: str = "MIXED", reason: str = "synthetic deterministic branch test",
 ) -> dict:
+    # Build one controlled scenario for a specific decision branch.
     return {
         "scenario_id": scenario_id, "scenario_type": "LOGIC_TEST", "source_grading_id": "SYNTHETIC_LOGIC_ONLY",
         "source_price_id": "SYNTHETIC_LOGIC_ONLY", "grading_decision": decision, "grade": grade or "",
@@ -118,6 +125,7 @@ def _logic(
 
 
 def logic_scenarios() -> list[dict]:
+    # Build the complete set of rule-coverage scenarios.
     return [
         _logic("LOGIC-001", "NO_PEPPER", None, "REJECT", reason="non-pepper blocks market output"),
         _logic("LOGIC-002", "POOR_IMAGE", None, "REJECT", reason="quality rejection blocks market output"),
@@ -138,6 +146,7 @@ def logic_scenarios() -> list[dict]:
 
 
 def build() -> list[dict]:
+    # Combine empirical and logic scenarios into one evaluation set.
     config = load_config()
     rows = empirical_scenarios(config) + logic_scenarios()
     with OUTPUT.open("w", newline="", encoding="utf-8") as handle:

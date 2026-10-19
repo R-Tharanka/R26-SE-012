@@ -1,3 +1,7 @@
+# =============================================================================
+# File: evaluate price foundation
+# Purpose: Evaluates price foundation and saves reproducible metrics.
+# =============================================================================
 """Leakage-safe Phase 4 walk-forward evaluation for next-observation returns."""
 
 from __future__ import annotations
@@ -48,6 +52,7 @@ MODEL_SPECS = {
 
 
 def make_estimator(spec: dict):
+    # Create estimator for analysis or reporting.
     if spec["algorithm"] == "ridge":
         return make_pipeline(StandardScaler(), Ridge(alpha=spec["alpha"]))
     return RandomForestRegressor(
@@ -65,6 +70,7 @@ def available_history(frame: pd.DataFrame, origin: pd.Timestamp, grade: str | No
 
 
 def model_walk_forward(frame: pd.DataFrame, partition: str, model_name: str) -> pd.DataFrame:
+    # Generate walk-forward predictions for one trained model.
     spec = MODEL_SPECS[model_name]
     features = CORE_FEATURES + (["grade_indicator"] if spec["formulation"] == "shared" else [])
     targets = frame[frame["partition"].eq(partition)].dropna(subset=features + ["target_return_next"]).copy()
@@ -83,6 +89,7 @@ def model_walk_forward(frame: pd.DataFrame, partition: str, model_name: str) -> 
 
 
 def baseline_walk_forward(frame: pd.DataFrame, partition: str, baseline: str) -> pd.DataFrame:
+    # Generate walk-forward predictions for one baseline method.
     targets = frame[frame["partition"].eq(partition)].dropna(subset=CORE_FEATURES + ["target_return_next"]).copy()
     records: list[dict] = []
     for _, row in targets.sort_values(["next_observation_date", "grade"]).iterrows():
@@ -100,6 +107,7 @@ def baseline_walk_forward(frame: pd.DataFrame, partition: str, baseline: str) ->
 
 
 def prediction_record(row, method: str, predicted_return: float, training_rows: int) -> dict:
+    # Build one traceable prediction row for saved evaluation output.
     reference = float(row["price_lkr_per_kg"])
     actual_return = float(row["target_return_next"])
     actual_price = reference * (1.0 + actual_return)
@@ -120,6 +128,7 @@ def prediction_record(row, method: str, predicted_return: float, training_rows: 
 
 
 def metric_block(predictions: pd.DataFrame) -> dict:
+    # Calculate forecast and direction metrics for one prediction group.
     actual_return = predictions["actual_return"].to_numpy()
     predicted_return = predictions["predicted_return"].to_numpy()
     actual_price = predictions["actual_price_lkr_per_kg"].to_numpy()
@@ -145,6 +154,7 @@ def metric_block(predictions: pd.DataFrame) -> dict:
 
 
 def evaluate_methods(predictions: pd.DataFrame) -> dict:
+    # Evaluate methods using the configured research procedure.
     result = {}
     for method, method_rows in predictions.groupby("method"):
         by_grade = {grade: metric_block(rows) for grade, rows in method_rows.groupby("grade")}
@@ -157,6 +167,7 @@ def evaluate_methods(predictions: pd.DataFrame) -> dict:
 
 
 def forecast_plot(predictions: pd.DataFrame, selected: str) -> None:
+    # Plot actual and forecast prices for the selected method.
     selected_rows = predictions[predictions["method"].eq(selected)]
     fig, axes = plt.subplots(2, 1, figsize=(10, 7), sharex=False)
     for ax, (grade, rows) in zip(axes, selected_rows.groupby("grade")):
@@ -170,6 +181,7 @@ def forecast_plot(predictions: pd.DataFrame, selected: str) -> None:
 
 
 def main() -> int:
+    # Parse the command options and run this script's complete workflow.
     started = time.perf_counter()
     OUT.mkdir(parents=True, exist_ok=True)
     frame = pd.read_csv(DATA_DIR / "eac_forecasting_dataset.csv", parse_dates=["date", "source_date", "next_observation_date"])

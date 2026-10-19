@@ -1,3 +1,7 @@
+# =============================================================================
+# File: grading service calculation test
+# Purpose: Verifies that grade probabilities produce the expected quality score.
+# =============================================================================
 from __future__ import annotations
 
 from app.schemas.grading_forecast import GradeEnum
@@ -5,7 +9,9 @@ from app.services.grading_forecast import grading_service
 
 
 def test_grading_service_probability_weighted_quality_score(monkeypatch) -> None:
+    # Verify grading uses all predicted probabilities when calculating quality.
     def _fake_predict(_image_bytes: bytes):
+        # Return a controlled grade distribution without running the ONNX model.
         prob_map = {
             GradeEnum.grade_1: 0.10,
             GradeEnum.grade_2: 0.85,

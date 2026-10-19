@@ -1,3 +1,7 @@
+// =============================================================================
+// File: analysis_ui.dart
+// Purpose: Implements the analysis ui part of the mobile application.
+// =============================================================================
 import 'dart:typed_data';
 import 'dart:ui';
 
@@ -14,16 +18,21 @@ export '../../core/theme/app_theme.dart' show kBrand, AppStatusColors;
 
 // ---- theme-aware palette (follows the global light/dark toggle) ----
 Color get kBg => isDarkMode ? const Color(0xFF0F1713) : const Color(0xFFF6F8F5);
+// Return the current card background color.
 Color get kCard => isDarkMode ? const Color(0xFF15201A) : Colors.white;
+// Return the current border color.
 Color get kBorder =>
     isDarkMode ? const Color(0xFF3F4D45) : const Color(0xFFC7D2CA);
+// Return the current primary text color.
 Color get kText =>
     isDarkMode ? const Color(0xFFE5EEE8) : const Color(0xFF17201B);
+// Return the current secondary text color.
 Color get kTextSub =>
     isDarkMode ? const Color(0xFFC3CEC6) : const Color(0xFF45524A);
 
 const _heroTag = 'analysis-hero-photo';
 
+// Return the color used for a severity band.
 Color bandColor(BuildContext context, String band) => switch (band) {
   'severe' => AppStatusColors.of(context).danger,
   'moderate' => AppStatusColors.of(context).warning,
@@ -48,6 +57,7 @@ class AnalysisScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     return Scaffold(
       backgroundColor: kBg,
       body: CustomScrollView(
@@ -147,6 +157,7 @@ class FadeSlideIn extends StatefulWidget {
   const FadeSlideIn({super.key, required this.child, this.delayMs = 0});
 
   @override
+  // Create the mutable state object for this widget.
   State<FadeSlideIn> createState() => _FadeSlideInState();
 }
 
@@ -159,6 +170,7 @@ class _FadeSlideInState extends State<FadeSlideIn>
 
   @override
   void initState() {
+    // Initialize controllers, listeners, and first-load state.
     super.initState();
     Future.delayed(Duration(milliseconds: widget.delayMs), () {
       if (mounted) _c.forward();
@@ -167,12 +179,14 @@ class _FadeSlideInState extends State<FadeSlideIn>
 
   @override
   void dispose() {
+    // Release controllers, listeners, and other owned resources.
     _c.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     return AnimatedBuilder(
       animation: _c,
       builder: (_, child) {
@@ -206,6 +220,7 @@ class CountUp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: value),
       duration: const Duration(milliseconds: 900),
@@ -223,6 +238,7 @@ class AnimatedBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
       child: TweenAnimationBuilder<double>(
@@ -258,6 +274,7 @@ class StatTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: _cardDecoration(context),
@@ -306,6 +323,7 @@ class SectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     return Container(
       margin: const EdgeInsets.only(top: 18),
       padding: const EdgeInsets.all(18),
@@ -349,6 +367,7 @@ class InfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     return Container(
       margin: const EdgeInsets.only(top: 18),
       padding: const EdgeInsets.all(16),
@@ -401,6 +420,7 @@ class OptionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     final banned = !allowed;
     final status = AppStatusColors.of(context);
     final scheme = Theme.of(context).colorScheme;
@@ -480,6 +500,7 @@ class MarketRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     return Container(
       margin: const EdgeInsets.only(top: 18),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -515,6 +536,7 @@ class LoadingView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 48),
       child: Column(
@@ -545,6 +567,7 @@ class ErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     return Column(
       children: [
         const SizedBox(height: 20),
@@ -585,6 +608,7 @@ class RetakeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     return Column(
       children: [
         const SizedBox(height: 12),
@@ -645,6 +669,7 @@ class _CircleButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     return Material(
       color: Colors.black.withValues(alpha: 0.28),
       shape: const CircleBorder(),
@@ -663,6 +688,7 @@ class _CircleButton extends StatelessWidget {
 
 // ---- fullscreen Hero photo viewer ----
 void _openPhoto(BuildContext context, Uint8List bytes) {
+  // Open the selected photo in a full-screen preview.
   Navigator.of(context).push(
     PageRouteBuilder(
       opaque: false,
@@ -679,6 +705,7 @@ class _PhotoViewer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build and return this widget's current interface.
     return Scaffold(
       backgroundColor: Colors.black,
       body: GestureDetector(
