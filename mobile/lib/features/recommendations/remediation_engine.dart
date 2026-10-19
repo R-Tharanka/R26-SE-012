@@ -65,6 +65,7 @@ class RemediationEngine {
       'Observe the pre-harvest interval and do not harvest for export until '
       'residues clear — confirm the exact days with your agri authority.';
 
+  //CREATE a ONJECT FROM BerryAnalysis CLASS
   static Remediation forAnalysis(BerryAnalysis a, Market market) {
     // Create guidance for the supplied analysis result.
     if (!a.isBerryCluster) {
