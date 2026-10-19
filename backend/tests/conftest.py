@@ -1,3 +1,7 @@
+# =============================================================================
+# File: shared backend test setup
+# Purpose: Keeps tests isolated from real Firebase and external artifact sources.
+# =============================================================================
 import pytest
 
 
@@ -9,6 +13,7 @@ def _disable_firebase_for_tests(monkeypatch: pytest.MonkeyPatch) -> None:
     Individual tests can still set env vars explicitly if needed.
     """
 
+    # Clear external-service settings so tests stay local and repeatable.
     monkeypatch.delenv("FIREBASE_SERVICE_ACCOUNT_PATH", raising=False)
     monkeypatch.delenv("FIREBASE_PROJECT_ID", raising=False)
     monkeypatch.delenv("FIREBASE_RESULTS_COLLECTION", raising=False)

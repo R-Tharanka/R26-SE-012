@@ -1,3 +1,7 @@
+# =============================================================================
+# File: runtime artifact service
+# Purpose: Finds or downloads the frozen model and price-data files safely.
+# =============================================================================
 from __future__ import annotations
 
 import os
@@ -51,11 +55,12 @@ _runtime_artifacts: RuntimeArtifacts | None = None
 
 
 def _repo_root() -> Path:
-    # backend/app/services/grading_forecast/artifact_service.py -> repo root
+    # Find the repository root from this module's fixed directory position.
     return Path(__file__).resolve().parents[4]
 
 
 def _required_env(name: str) -> str:
+    # Read one required setting and fail clearly when it is missing.
     value = os.getenv(name, "").strip()
     if not value:
         raise ArtifactConfigurationError(f"Missing required environment variable: {name}")
@@ -63,10 +68,12 @@ def _required_env(name: str) -> str:
 
 
 def _optional_env(name: str) -> str:
+    # Read one optional setting as a trimmed string.
     return os.getenv(name, "").strip()
 
 
 def load_hugging_face_artifact_config() -> HuggingFaceArtifactConfig:
+    # Build the complete Hugging Face configuration from environment settings.
     return HuggingFaceArtifactConfig(
         token=_required_env("HF_TOKEN"),
         repo_id=_required_env("HF_MODEL_REPO"),
@@ -80,6 +87,7 @@ def load_hugging_face_artifact_config() -> HuggingFaceArtifactConfig:
 
 
 def load_url_artifact_config() -> UrlArtifactConfig:
+    # Build the direct-download fallback configuration from environment settings.
     return UrlArtifactConfig(
         grading_model_url=_required_env("ARTIFACT_GRADING_MODEL_URL"),
         class_names_url=_required_env("ARTIFACT_CLASS_NAMES_URL"),
@@ -91,6 +99,7 @@ def load_url_artifact_config() -> UrlArtifactConfig:
 
 
 def _download_hugging_face_file(config: HuggingFaceArtifactConfig, filename: str) -> Path:
+    # Download one version-pinned file and return its local cache path.
     try:
         from huggingface_hub import hf_hub_download
 
@@ -109,6 +118,7 @@ def _download_hugging_face_file(config: HuggingFaceArtifactConfig, filename: str
 
 
 def _url_cache_dir() -> Path:
+    # Create and return the dedicated cache directory for URL downloads.
     cache_dir = Path(_optional_env("ARTIFACT_CACHE_DIR") or tempfile.gettempdir())
     cache_dir = cache_dir / "pepper_runtime_artifacts"
     cache_dir.mkdir(parents=True, exist_ok=True)
@@ -116,6 +126,7 @@ def _url_cache_dir() -> Path:
 
 
 def _filename_from_url(url: str, fallback_name: str) -> str:
+    # Use the URL filename when available, otherwise keep the known safe name.
     parsed = urlparse(url)
     name = Path(unquote(parsed.path)).name
     return name or fallback_name
@@ -127,6 +138,7 @@ def _download_url_file(
     *,
     token: str | None,
 ) -> Path:
+    # Download one protected or public URL into the local artifact cache.
     destination = _url_cache_dir() / _filename_from_url(url, fallback_name)
     try:
         headers = {"User-Agent": "pepper-ai-backend-artifact-loader"}
@@ -151,6 +163,7 @@ def _download_url_file(
 
 
 def _download_hugging_face_artifacts() -> RuntimeArtifacts:
+    # Download every required runtime file from the primary provider.
     config = load_hugging_face_artifact_config()
     return RuntimeArtifacts(
         grading_model_path=_download_hugging_face_file(config, config.grading_model_file),
@@ -162,6 +175,7 @@ def _download_hugging_face_artifacts() -> RuntimeArtifacts:
 
 
 def _download_url_artifacts() -> RuntimeArtifacts:
+    # Download every required runtime file from the configured fallback URLs.
     config = load_url_artifact_config()
     return RuntimeArtifacts(
         grading_model_path=_download_url_file(
@@ -193,6 +207,7 @@ def _download_url_artifacts() -> RuntimeArtifacts:
 
 
 def _bundled_runtime_artifacts() -> RuntimeArtifacts:
+    # Describe the artifact paths that are shipped inside the repository.
     root = _repo_root()
     return RuntimeArtifacts(
         grading_model_path=root
@@ -233,6 +248,7 @@ def _bundled_runtime_artifacts() -> RuntimeArtifacts:
 
 
 def _bundled_runtime_artifacts_ready() -> RuntimeArtifacts | None:
+    # Return bundled artifacts only when every required file exists.
     artifacts = _bundled_runtime_artifacts()
     if all(
         path.is_file()
@@ -256,6 +272,7 @@ def download_runtime_artifacts() -> RuntimeArtifacts:
     unavailable or rate-limited.
     """
 
+    # Try the approved sources in order and remember the resolved local paths.
     global _runtime_artifacts
 
     try:
@@ -277,15 +294,18 @@ def download_runtime_artifacts() -> RuntimeArtifacts:
 
 
 def set_runtime_artifacts_for_tests(artifacts: RuntimeArtifacts | None) -> None:
+    # Let isolated tests set or clear the in-memory artifact paths.
     global _runtime_artifacts
     _runtime_artifacts = artifacts
 
 
 def get_runtime_artifacts() -> RuntimeArtifacts | None:
+    # Return the currently loaded artifact paths without changing state.
     return _runtime_artifacts
 
 
 def runtime_artifacts_ready() -> bool:
+    # Confirm that all recorded artifact paths still point to real files.
     artifacts = _runtime_artifacts
     if artifacts is None:
         return False

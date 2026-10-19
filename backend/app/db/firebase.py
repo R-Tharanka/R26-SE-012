@@ -1,3 +1,7 @@
+# =============================================================================
+# File: Firebase connection helper
+# Purpose: Creates an optional Firestore client without interrupting the API.
+# =============================================================================
 from __future__ import annotations
 
 import logging
@@ -11,11 +15,12 @@ _firestore_client: Any | None = None
 
 
 def _repo_root() -> Path:
-    # backend/app/db/firebase.py -> repo root
+    # Find the repository root from this module's fixed directory position.
     return Path(__file__).resolve().parents[3]
 
 
 def _resolve_service_account_path(value: str) -> Path:
+    # Convert either an absolute or repository-relative setting to a full path.
     path = Path(value).expanduser()
     if not path.is_absolute():
         path = (_repo_root() / path).resolve()
@@ -32,6 +37,7 @@ def get_firestore_client() -> Any | None:
     Never raises. Safe to call from request handlers.
     """
 
+    # Reuse an initialized client or safely create one from environment settings.
     global _firestore_client
     if _firestore_client is not None:
         return _firestore_client

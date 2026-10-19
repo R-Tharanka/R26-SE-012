@@ -1,3 +1,7 @@
+# =============================================================================
+# File: artifact service tests
+# Purpose: Verifies artifact configuration, fallback, download, and ready states.
+# =============================================================================
 from __future__ import annotations
 
 import sys
@@ -35,30 +39,37 @@ URL_ENV = {
 
 
 def _set_hf_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Add a complete test-only Hugging Face configuration.
     for key, value in HF_ENV.items():
         monkeypatch.setenv(key, value)
 
 
 def _set_url_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Add a complete test-only direct URL configuration.
     for key, value in URL_ENV.items():
         monkeypatch.setenv(key, value)
 
 
 class _FakeUrlResponse:
     def __init__(self, body: bytes) -> None:
+        # Store the controlled response body returned by the fake download.
         self._body = body
 
     def __enter__(self) -> "_FakeUrlResponse":
+        # Support use as a context-managed URL response.
         return self
 
     def __exit__(self, *_args: object) -> None:
+        # Finish the fake context without suppressing errors.
         return None
 
     def read(self) -> bytes:
+        # Return the controlled downloaded bytes.
         return self._body
 
 
 def test_missing_hugging_face_configuration_fails_clearly() -> None:
+    # Verify missing required provider settings produce a clear error.
     with pytest.raises(ArtifactConfigurationError, match="HF_TOKEN"):
         artifact_service.load_hugging_face_artifact_config()
 
@@ -67,10 +78,12 @@ def test_download_runtime_artifacts_uses_hf_hub_download(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
+    # Verify all required files are downloaded through Hugging Face.
     _set_hf_env(monkeypatch)
     calls: list[dict[str, str]] = []
 
     def fake_hf_hub_download(*, repo_id: str, filename: str, revision: str, token: str) -> str:
+        # Record provider inputs and create a local stand-in artifact.
         calls.append(
             {
                 "repo_id": repo_id,
@@ -110,10 +123,12 @@ def test_failed_hugging_face_download_raises_without_token_leak(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
+    # Verify provider failures do not expose the configured access token.
     _set_hf_env(monkeypatch)
     monkeypatch.setattr(artifact_service, "_repo_root", lambda: tmp_path / "empty_repo")
 
     def fake_hf_hub_download(**_kwargs) -> str:
+        # Simulate a provider error that contains sensitive text.
         raise RuntimeError("private failure containing test-token")
 
     fake_module = types.SimpleNamespace(hf_hub_download=fake_hf_hub_download)
@@ -129,6 +144,7 @@ def test_download_runtime_artifacts_falls_back_to_urls(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
+    # Verify direct URLs are used when the primary provider is unavailable.
     _set_hf_env(monkeypatch)
     _set_url_env(monkeypatch)
     monkeypatch.setenv("ARTIFACT_CACHE_DIR", str(tmp_path))
@@ -136,9 +152,11 @@ def test_download_runtime_artifacts_falls_back_to_urls(
     calls: list[str] = []
 
     def fake_hf_hub_download(**_kwargs) -> str:
+        # Simulate an unavailable primary provider.
         raise RuntimeError("hugging face unavailable")
 
     def fake_urlopen(request: object, timeout: int) -> _FakeUrlResponse:
+        # Record each fallback URL and return controlled artifact bytes.
         del timeout
         calls.append(request.full_url)  # type: ignore[attr-defined]
         return _FakeUrlResponse(b"artifact")
@@ -168,6 +186,7 @@ def test_download_runtime_artifacts_falls_back_to_bundled_files(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
+    # Verify repository-bundled files are preferred before direct URL fallback.
     _set_hf_env(monkeypatch)
 
     root = tmp_path / "repo"
@@ -212,6 +231,7 @@ def test_download_runtime_artifacts_falls_back_to_bundled_files(
         path.write_text("artifact", encoding="utf-8")
 
     def fake_hf_hub_download(**_kwargs) -> str:
+        # Simulate an unavailable primary provider.
         raise RuntimeError("hugging face unavailable")
 
     fake_module = types.SimpleNamespace(hf_hub_download=fake_hf_hub_download)
@@ -229,6 +249,7 @@ def test_download_runtime_artifacts_falls_back_to_bundled_files(
 
 
 def test_ready_status_reports_loaded_artifacts(tmp_path: Path) -> None:
+    # Verify readiness succeeds when every recorded artifact file exists.
     paths = []
     for name in (
         "model.onnx",

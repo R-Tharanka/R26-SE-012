@@ -1,3 +1,7 @@
+# =============================================================================
+# File: berry grading service
+# Purpose: Loads the frozen ONNX model and produces a validated berry grade.
+# =============================================================================
 from __future__ import annotations
 
 import json
@@ -48,6 +52,7 @@ class GradingRuntimeError(RuntimeError):
 
 
 def _quality_band(value: float, *, good_threshold: float, medium_threshold: float) -> str:
+    # Translate a high-is-good numeric score into a simple quality label.
     if value >= good_threshold:
         return "good"
     if value >= medium_threshold:
@@ -56,6 +61,7 @@ def _quality_band(value: float, *, good_threshold: float, medium_threshold: floa
 
 
 def _level_band(value: float, *, low_threshold: float, medium_threshold: float) -> str:
+    # Translate a low-to-high numeric value into a simple level label.
     if value <= low_threshold:
         return "low"
     if value <= medium_threshold:
@@ -64,15 +70,17 @@ def _level_band(value: float, *, low_threshold: float, medium_threshold: float) 
 
 
 def _repo_root() -> Path:
-    # backend/app/services/grading_forecast/grading_service.py -> repo root
+    # Find the repository root from this module's fixed directory position.
     return Path(__file__).resolve().parents[4]
 
 
 def _models_dir(repo_root: Path) -> Path:
+    # Build the repository path that contains berry grading models.
     return repo_root / "ml" / "grading_forecast" / "berry_grading" / "models"
 
 
 def _runtime_model_paths(repo_root: Path) -> tuple[Path, Path]:
+    # Prefer resolved runtime artifacts, then use the bundled model paths.
     artifacts = get_runtime_artifacts()
     if artifacts is not None:
         return artifacts.grading_model_path, artifacts.class_names_path
@@ -85,10 +93,12 @@ def _runtime_model_paths(repo_root: Path) -> tuple[Path, Path]:
 def initialize_grading_runtime() -> None:
     """Initialize and cache the ONNX session during application startup."""
 
+    # Load the model now so startup fails safely instead of failing mid-request.
     _onnx_session_bundle()
 
 
 def _letterbox_224(img: Image.Image) -> Image.Image:
+    # Resize the image without distortion and pad it to the model's input size.
     target_w, target_h = 224, 224
     img = img.convert("RGB")
     w, h = img.size
@@ -106,11 +116,12 @@ def _letterbox_224(img: Image.Image) -> Image.Image:
 
 
 def _mobilenetv2_scale_minus1_1(arr_0_255: np.ndarray) -> np.ndarray:
-    # NOTE: kept for backwards compatibility but not used for ONNX inference.
+    # Keep the earlier MobileNetV2 scaling helper available for compatibility.
     return (arr_0_255.astype(np.float32) / 127.5) - 1.0
 
 
 def _softmax(x: np.ndarray) -> np.ndarray:
+    # Convert raw model scores into probabilities that add up to one.
     x = x.astype(np.float32)
     x = x - np.max(x)
     e = np.exp(x)
@@ -124,6 +135,7 @@ def _onnx_session_bundle() -> tuple[object, str, list[str], str, Path]:
 
     Raises GradingRuntimeError when the selected V2 runtime model cannot be used.
     """
+    # Validate the files and create one cached CPU inference session.
     try:
         import onnxruntime as ort  # type: ignore
     except Exception as exc:
@@ -155,6 +167,7 @@ def _onnx_session_bundle() -> tuple[object, str, list[str], str, Path]:
 
 
 def _predict_grade_with_onnx(image_bytes: bytes) -> tuple[GradeEnum, float, dict[GradeEnum, float], str, Path]:
+    # Prepare one image, run ONNX inference, and map probabilities to grades.
     bundle = _onnx_session_bundle()
     sess, input_name, class_names, model_id, model_path = bundle
 
@@ -206,6 +219,7 @@ def _predict_grade_with_onnx(image_bytes: bytes) -> tuple[GradeEnum, float, dict
 
 
 def _expected_quality_score(prob_map: dict[GradeEnum, float]) -> float:
+    # Calculate a probability-weighted quality score from the grade anchors.
     score = 0.0
     total_p = 0.0
     for grade, p in prob_map.items():
@@ -217,6 +231,7 @@ def _expected_quality_score(prob_map: dict[GradeEnum, float]) -> float:
 
 
 def build_grading_result(image_bytes: bytes | None, image_name: str | None) -> GradingResult:
+    # Combine visual features and frozen-model output into the API grading result.
     if image_bytes is None:
         raise GradingRuntimeError("Image is required for berry grading.")
 

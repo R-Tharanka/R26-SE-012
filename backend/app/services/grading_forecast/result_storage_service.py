@@ -1,3 +1,7 @@
+# =============================================================================
+# File: result storage service
+# Purpose: Saves completed analysis results to Firestore when it is available.
+# =============================================================================
 from __future__ import annotations
 
 import datetime as dt
@@ -23,6 +27,7 @@ PERSISTENCE_SCOPE = "application_level"
 
 
 def _collection_name() -> str:
+    # Use the configured Firestore collection or fall back to the safe default.
     name = os.getenv("FIREBASE_RESULTS_COLLECTION") or DEFAULT_COLLECTION
     name = name.strip()
     return name or DEFAULT_COLLECTION
@@ -34,6 +39,7 @@ def _created_at_value() -> Any:
     otherwise fallback to a UTC datetime.
     """
 
+    # Prefer a database-generated timestamp without requiring Firebase locally.
     try:
         from firebase_admin import firestore  # type: ignore[import-not-found]
 
@@ -52,6 +58,7 @@ def _build_result_document(
     forecast: ForecastResult,
     recommendation: RecommendationResult,
 ) -> dict[str, Any]:
+    # Convert the analysis models into the stable document stored in Firestore.
     return {
         "analysis_id": analysis_id,
         "component": component,
@@ -88,6 +95,7 @@ def build_storage_result(
     forecast: ForecastResult,
     recommendation: RecommendationResult,
 ) -> StorageResult:
+    # Save the result when Firestore is ready, otherwise report a safe skip.
     client = get_firestore_client()
     if client is None:
         logger.warning("Firebase not configured; skipping Firestore result storage.")

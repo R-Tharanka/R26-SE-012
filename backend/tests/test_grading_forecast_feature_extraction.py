@@ -1,3 +1,7 @@
+# =============================================================================
+# File: feature extraction tests
+# Purpose: Verifies safe, valid, and repeatable image feature extraction.
+# =============================================================================
 import base64
 import importlib.util
 
@@ -16,7 +20,7 @@ FEATURE_KEYS = {
 
 
 def _make_test_png_bytes() -> bytes:
-    # 1x1 JPEG (black) as a stable, dependency-free test fixture.
+    # Decode a tiny JPEG so tests do not depend on local image files.
     #
     # Note: A tiny PNG fixture can fail OpenCV decoding in some environments
     # (libpng CRC errors). JPEG decoding is more consistently supported.
@@ -25,6 +29,7 @@ def _make_test_png_bytes() -> bytes:
 
 
 def _assert_features_valid(features: dict[str, float]) -> None:
+    # Check that every expected feature exists and stays in its valid range.
     assert set(features.keys()) == FEATURE_KEYS
     for value in features.values():
         assert isinstance(value, float)
@@ -32,11 +37,13 @@ def _assert_features_valid(features: dict[str, float]) -> None:
 
 
 def test_extract_features_returns_valid_output_for_none() -> None:
+    # Verify missing image bytes still produce a complete safe fallback result.
     features = extract_features_from_bytes(None)
     _assert_features_valid(features)
 
 
 def test_extract_features_is_deterministic_for_same_bytes() -> None:
+    # Verify the same image always produces exactly the same feature values.
     image_bytes = _make_test_png_bytes()
     f1 = extract_features_from_bytes(image_bytes)
     f2 = extract_features_from_bytes(image_bytes)
@@ -45,6 +52,7 @@ def test_extract_features_is_deterministic_for_same_bytes() -> None:
 
 
 def test_preprocess_image_bytes_never_raises_and_returns_meta() -> None:
+    # Verify preprocessing handles valid input without raising.
     image_bytes = _make_test_png_bytes()
     processed_bytes, meta = preprocess_image_bytes(image_bytes)
     assert isinstance(meta, dict)

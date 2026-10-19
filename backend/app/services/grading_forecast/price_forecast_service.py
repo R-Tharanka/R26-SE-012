@@ -1,3 +1,7 @@
+# =============================================================================
+# File: price forecast service
+# Purpose: Cleans price data and builds grade-aware pepper price forecasts.
+# =============================================================================
 from __future__ import annotations
 
 import csv
@@ -53,17 +57,19 @@ class PricePoint:
 
 
 def _repo_root() -> Path:
-    # backend/app/services/grading_forecast/price_forecast_service.py -> repo root
+    # Find the repository root from this module's fixed directory position.
     return Path(__file__).resolve().parents[4]
 
 
 def _default_input_paths(*, repo_root: Path) -> tuple[Path, Path]:
+    # Return the normal and sample raw market-price input paths.
     real = repo_root / "data" / "raw" / "market_prices" / "black_pepper_prices.csv"
     sample = repo_root / "data" / "raw" / "market_prices" / "sample_black_pepper_prices.csv"
     return real, sample
 
 
 def _runtime_target_csv(*, repo_root: Path) -> Path:
+    # Select the resolved runtime price series or its bundled path.
     artifacts = get_runtime_artifacts()
     if artifacts is not None:
         return artifacts.forecast_data_path
@@ -72,6 +78,7 @@ def _runtime_target_csv(*, repo_root: Path) -> Path:
 
 
 def _runtime_naive_metrics_path(*, repo_root: Path) -> Path:
+    # Select the resolved metrics file or its bundled path.
     artifacts = get_runtime_artifacts()
     if artifacts is not None:
         return artifacts.forecast_metrics_path
@@ -80,14 +87,17 @@ def _runtime_naive_metrics_path(*, repo_root: Path) -> Path:
 
 
 def _grade_price_gap_source_csv(*, repo_root: Path) -> Path:
+    # Return the source used to calculate the Grade 2 price difference.
     return repo_root / GRADE_PRICE_GAP_SOURCE_RELATIVE_PATH
 
 
 def _default_output_path(*, repo_root: Path) -> Path:
+    # Return the standard location for cleaned market-price data.
     return repo_root / "data" / "processed" / "grading_forecast" / "cleaned_price_data.csv"
 
 
 def _forecast_models_dir(*, repo_root: Path) -> Path:
+    # Return the directory containing the optional forecast model files.
     return repo_root / "ml" / "grading_forecast" / "price_forecasting" / "models"
 
 
@@ -98,6 +108,7 @@ def _default_forecast_series_csv(*, repo_root: Path) -> Path | None:
     - fallback: cleaned_price_data.csv (may contain multiple series)
     """
 
+    # Use the preferred training series, then the cleaned series if available.
     p1 = repo_root / "data" / "processed" / "grading_forecast" / "forecast_training_data.csv"
     if p1.is_file():
         return p1
@@ -114,6 +125,7 @@ def _load_forecast_model_bundle(models_dir_override: Path | None = None) -> tupl
 
     Never raises: the service must fall back to the existing baseline behavior.
     """
+    # Load the optional trained model and feature specification when both are valid.
     root = _repo_root()
 
     if os.getenv("GRADING_FORECAST_DISABLE_REAL_MODELS", "").strip().lower() in {"1", "true", "yes"}:
@@ -150,12 +162,14 @@ def _load_forecast_model_bundle(models_dir_override: Path | None = None) -> tupl
 def initialize_forecast_runtime() -> None:
     """Validate the runtime forecast data and metrics during application startup."""
 
+    # Build a startup forecast and fail if the required evidence is unavailable.
     forecast = build_price_forecast(seed_hint="startup")
     if forecast.model == "forecast_unavailable":
         raise RuntimeError("Price forecast runtime artifacts are unavailable or invalid.")
 
 
 def select_input_csv_path(*, repo_root: Path | None = None) -> Path | None:
+    # Return the approved runtime price CSV only when it exists.
     root = repo_root or _repo_root()
     target_csv = _runtime_target_csv(repo_root=root)
     if target_csv.is_file():
@@ -164,6 +178,7 @@ def select_input_csv_path(*, repo_root: Path | None = None) -> Path | None:
 
 
 def _parse_date(value: str | None) -> dt.date | None:
+    # Parse supported date text safely and return None for invalid values.
     if value is None:
         return None
     s = value.strip()
@@ -201,6 +216,7 @@ _PRICE_ALLOWED_RE = re.compile(r"[^\d.\-]+")
 
 
 def _parse_price(value: str | None) -> float | None:
+    # Remove common formatting and accept only finite, non-negative prices.
     if value is None:
         return None
     s = value.strip()
@@ -220,6 +236,7 @@ def _parse_price(value: str | None) -> float | None:
 
 
 def _load_csv_rows(csv_path: Path) -> list[dict[str, str]]:
+    # Read a UTF-8 CSV into plain dictionaries while preserving its headings.
     with csv_path.open("r", encoding="utf-8-sig", newline="") as f:
         reader = csv.DictReader(f)
         if reader.fieldnames is None:
@@ -228,6 +245,7 @@ def _load_csv_rows(csv_path: Path) -> list[dict[str, str]]:
 
 
 def _detect_columns(rows: list[dict[str, str]]) -> tuple[str, str] | None:
+    # Find the required date column and the first supported price column.
     if not rows:
         return None
 
@@ -256,6 +274,7 @@ def clean_price_csv(
     - Writes cleaned CSV if output_csv_path is provided
     """
 
+    # Normalize raw rows into one sorted and complete daily price series.
     rows = _load_csv_rows(input_csv_path)
     detected = _detect_columns(rows)
     if detected is None:
@@ -330,6 +349,7 @@ def load_observed_price_points(input_csv_path: Path) -> list[PricePoint]:
     Load observed price points without filling, interpolation, or synthetic rows.
     """
 
+    # Parse and combine only the price observations actually present in the CSV.
     rows = _load_csv_rows(input_csv_path)
     detected = _detect_columns(rows)
     if detected is None:
@@ -353,6 +373,7 @@ def load_observed_price_points(input_csv_path: Path) -> list[PricePoint]:
 
 
 def _load_runtime_naive_metrics(repo_root: Path) -> ForecastMetrics:
+    # Read the recorded baseline metrics, returning empty metrics if invalid.
     metrics_path = _runtime_naive_metrics_path(repo_root=repo_root)
     if not metrics_path.is_file():
         return ForecastMetrics(mae=None, rmse=None)
@@ -368,6 +389,7 @@ def _load_runtime_naive_metrics(repo_root: Path) -> ForecastMetrics:
 
 
 def evaluate_one_step_ahead_metrics(points: list[PricePoint]) -> ForecastMetrics:
+    # Measure one-step persistence predictions when enough observations exist.
     if len(points) < EVAL_MIN_RECORDS:
         return ForecastMetrics(mae=None, rmse=None)
 
@@ -396,6 +418,7 @@ def evaluate_one_step_ahead_metrics(points: list[PricePoint]) -> ForecastMetrics
 
 
 def _rng_for(seed_hint: str | None) -> random.Random:
+    # Create a repeatable random generator for the same optional seed hint.
     hasher = hashlib.sha256()
     hasher.update(b"price-forecast-demo-v1")
     if seed_hint:
@@ -405,6 +428,7 @@ def _rng_for(seed_hint: str | None) -> random.Random:
 
 
 def _trend(current_price: int, predicted_price: int) -> TrendEnum:
+    # Classify a meaningful rise, fall, or stable price movement.
     threshold = max(20, int(round(current_price * 0.02)))
     if predicted_price >= current_price + threshold:
         return TrendEnum.upward
@@ -414,6 +438,7 @@ def _trend(current_price: int, predicted_price: int) -> TrendEnum:
 
 
 def _demo_forecast(seed_hint: str | None) -> ForecastResult:
+    # Build a repeatable demonstration forecast when real data is not in use.
     rng = _rng_for(seed_hint=seed_hint)
     current_price = int(rng.uniform(1200, 1600))
     change_pct = rng.uniform(-0.06, 0.07)
@@ -429,6 +454,7 @@ def _demo_forecast(seed_hint: str | None) -> ForecastResult:
 
 
 def _unavailable_forecast() -> ForecastResult:
+    # Return the explicit fail-safe result used when forecasting cannot run.
     return ForecastResult(
         model="forecast_unavailable",
         current_price_lkr_per_kg=0,
@@ -440,11 +466,13 @@ def _unavailable_forecast() -> ForecastResult:
 
 
 def _normalize_grade(grade: object | None) -> str:
+    # Convert enum or text input into the grade label used by routing rules.
     value = getattr(grade, "value", grade)
     return str(value or "Grade 1").strip()
 
 
 def _round_to_nearest_50(value: float) -> int:
+    # Round a display price to the nearest fifty rupees.
     return int(round(value / 50.0) * 50)
 
 
@@ -455,6 +483,7 @@ def _grade_2_discount_lkr_per_kg(source_csv: Path) -> int:
     Grade 2 rows. The latest overlapping date is used, then rounded for display.
     """
 
+    # Derive the latest observed grade gap or use the documented default.
     if not source_csv.is_file():
         return GRADE_2_DEFAULT_DISCOUNT_LKR_PER_KG
 
@@ -497,6 +526,7 @@ def _apply_grade_price_adjustment(
     grade: object | None,
     repo_root: Path,
 ) -> tuple[str, int, ForecastMetrics]:
+    # Route the base Grade 1 forecast through the matching grade price rule.
     normalized = _normalize_grade(grade)
     if normalized == "Grade 2":
         discount = _grade_2_discount_lkr_per_kg(_grade_price_gap_source_csv(repo_root=repo_root))
@@ -537,6 +567,7 @@ def build_price_forecast(
     - Never raises; data/configuration problems return an explicit unavailable state.
     """
 
+    # Load approved observations, forecast the next value, and apply grade routing.
     try:
         root = _repo_root()
         input_csv = csv_path_override
@@ -569,6 +600,7 @@ def build_price_forecast(
 
 
 def _std(values: list[float]) -> float:
+    # Calculate population standard deviation for a small numeric window.
     if not values:
         return 0.0
     mean = sum(values) / len(values)
@@ -576,6 +608,7 @@ def _std(values: list[float]) -> float:
 
 
 def _build_latest_features(points: list[PricePoint], *, spec: dict) -> dict[str, float] | None:
+    # Recreate the trained feature set from the latest observed price history.
     feature_names = list(spec.get("feature_names") or [])
     lags = [int(x) for x in (spec.get("lags") or [])]
     rolling_windows = [int(x) for x in (spec.get("rolling_windows") or [])]
@@ -628,6 +661,7 @@ def _build_latest_features(points: list[PricePoint], *, spec: dict) -> dict[str,
 
 
 def _predict_next_price(points: list[PricePoint], *, spec: dict, model: object) -> float | None:
+    # Run the optional trained model and safely return one finite prediction.
     feats = _build_latest_features(points, spec=spec)
     if feats is None:
         return None
