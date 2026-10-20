@@ -12,7 +12,7 @@ import '../../shared/class_labels.dart';
 import '../history/history_scope.dart';
 import '../history/serialization/history_payload_codec.dart';
 import 'analysis_ui.dart';
-import 'berry_analysis.dart';
+import 'berry_analysis.dart'; //import the berry_analysis.dart to get the severity percentage
 import 'ai_berry_service.dart';
 import 'ai_errors.dart';
 import 'remediation_engine.dart';
@@ -138,7 +138,7 @@ class _BerryAnalysisScreenState extends State<BerryAnalysisScreen> {
       ];
     }
 
-    final rem = RemediationEngine.forAnalysis(r, _market);
+    final rem = RemediationEngine.forAnalysis(r, _market); //Passing severity_percentage to the remediation_engine.dart
     final accent = r.healthy
         ? Theme.of(context).colorScheme.primary
         : bandColor(context, r.severityBand);
