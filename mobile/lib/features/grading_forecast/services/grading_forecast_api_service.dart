@@ -88,13 +88,13 @@ class GradingForecastApiService {
         kind: GradingForecastApiErrorKind.invalidBackendAddress,
       );
     }
-    // Multipart upload preserves the image bytes selected by the user. The
-    // backend owns quality gates, preprocessing, ONNX inference, and routing.
+    // Put the selected image in the multipart field expected by the backend.
     final request = http.MultipartRequest('POST', endpoint)
       ..files.add(
         http.MultipartFile.fromBytes('image', bytes, filename: filename),
       );
     try {
+      // Send the image request from the frontend to the backend.
       final streamed = await _client.send(request).timeout(requestTimeout);
       final response = await http.Response.fromStream(
         streamed,
