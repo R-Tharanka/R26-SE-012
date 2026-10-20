@@ -242,6 +242,7 @@ async def analyze(image: UploadFile | None = None) -> Phase7AnalyzeResponse:
         analysis_id,
         validated.decision_support.category.value,
     )
+    # Send the validated analysis result to the frontend as the API response.
     return validated
 
 

@@ -71,6 +71,7 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
       // History is best-effort persistence; failure to save must not turn a
       // valid analysis into a fabricated error or alter the displayed result.
       unawaited(_saveHistory(result));
+      // Pass the backend result to the frontend result screen for display.
       Navigator.of(context).pushReplacement(
         MaterialPageRoute<void>(
           builder: (_) => BerryQualityResultScreen(
